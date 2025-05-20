@@ -3,6 +3,27 @@
 ## 1. Planeamiento
 
 ### Estructura del Equipo, Stakeholders, Key Players
+
+#### Estructura Interna 
+
+El equipo de trabajo consiste de 5 integrantes:
+- Santiago Chaves Garbanzo
+- Anthony Fuentes
+- Luis David Blanco
+- Gabriel Gutiérrez
+- Jefferson Salas Cordero
+
+Todos tenemos asignaciones distintas dentro del proyecto, pero como vamos a trabajar con metodología Kanban, cualquiera puede hacerse cargo de cualquier tarea. Basta con elegirla en ClickUp y ponerse a trabjar.
+
+Además, una pieza muy importante en el proyecto será Rodrigo Núñez, el cuál actuará como Product Owner de Data Pura Vida, y consultor de diseño de software en caso de que tengamos algún tipo de duda.
+
+#### Stakeholders y Key Players:
+
+Se identificaron los principales actores que influyen o se ven afectados por el desarrollo de la plataforma. A continuación, se presenta una matriz que los muestra:
+
+
+
+
 Definición de estructura del equipo, Stakeholders (Matríz de StakeHolders), Key Players y Sistemas y Ecosistemas de Software Existentes
 
 ### Gestión de la Comunicación y Documentación del proyecto
