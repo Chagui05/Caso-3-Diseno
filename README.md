@@ -1,6 +1,6 @@
 # Caso-3-Diseno
 
-## Planeamiento
+## 1. Planeamiento
 
 ### Estructura del Equipo, Stakeholders, Key Players
 Definición de estructura del equipo, Stakeholders (Matríz de StakeHolders), Key Players y Sistemas y Ecosistemas de Software Existentes
@@ -26,7 +26,7 @@ Evaluación de riesgos utilizando metodologías reconocidas como ISO 31000 o NIS
 ### KPIs 
 Definición de KPIs clave y mecanismos para su recolección y cálculo en cada milestone
 
-## Supuestos del proyecto
+## 2. Supuestos del proyecto
 
 ### Estándares y Regulaciones
 Revisión de estándares y regulaciones nacionales/internacionales, incluyendo Ley 8968 (Costa Rica), GDPR, ISO/IEC 27001, OECD Data Governance y similares
@@ -43,7 +43,7 @@ Con que sistemas de terceros se interactuará: apis, protocolos de autenticació
 ### Aspectos de Calidad
 Hacer Enfasis en que será Escalabilidad y Mantenibilidad, Reutilización y Eficiencia y Claridad y Gestión de Complejidad
 
-## Stack Tecnológico 
+## 3. Stack Tecnológico 
 En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas utilizadas, así como sus restricciones y licencias  
 
  - Herramientas para Frontend, Backend, Data
@@ -51,7 +51,7 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
  - que sistemas de Terceros, Cloud y Protocolos se usarán 
  - Herramientas para testing y DevOps
 
-## Diseño de los componentes
+## 4. Diseño de los componentes
 A conitnuación cada una de estas secciones fue sacada del punto 7 de los documentos del repo del profe, hace falta aplicar cada uno de estos para todos los componentes del sistema
 ### Análisis del Componente
 ### Diseño de la Arquitectura
@@ -103,8 +103,6 @@ Este si es general de todos los componentes
 ### Diagrama General del Backend
 Este si es general de todos los componentes
 
-## Validación de los requerimientos
+## 5. Validación de los requerimientos
 - Validar que el diseño cubre todos los requerimientos funcionales y no funcionales del sistema
 - Identificar ventajas y desventajas del diseño, proponiendo mitigaciones a los riesgos y limitaciones
-
-##   
