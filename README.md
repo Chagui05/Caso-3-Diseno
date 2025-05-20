@@ -25,3 +25,29 @@ Evaluación de riesgos utilizando metodologías reconocidas como ISO 31000 o NIS
 
 ### KPIs 
 Definición de KPIs clave y mecanismos para su recolección y cálculo en cada milestone
+
+## Supuestos del proyecto
+
+### Estándares y Regulaciones
+Revisión de estándares y regulaciones nacionales/internacionales, incluyendo Ley 8968 (Costa Rica), GDPR, ISO/IEC 27001, OECD Data Governance y similares
+
+### Prácticas de Manejo de Código
+Definir prácticas de manejo de códio (OWASp, Clean Code, Twelve-Factor App), y como las implemtaremos
+
+### Sistema de Versionamiento
+que sistema de versionamiento se usará y ramas  (Git Flow, GitHub Actions, Terraform,)
+
+### Sistemas de Teceros
+Con que sistemas de terceros se interactuará: apis, protocolos de autenticación (OAuth2, JWT)
+
+### Aspectos de Calidad
+Hacer Enfasis en que será Escalabilidad y Mantenibilidad, Reutilización y Eficiencia y Claridad y Gestión de Complejidad
+
+## Stack Tecnológico 
+En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas utilizadas, así como sus restricciones y licencias  
+
+ - Herramientas para Frontend, Backend, Data
+ - Herramientas para AI
+ - que sistemas de Terceros, Cloud y Protocolos se usarán 
+ - Herramientas para testing y DevOps
+   
