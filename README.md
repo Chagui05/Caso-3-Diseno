@@ -40,7 +40,7 @@ que sistema de versionamiento se usará y ramas  (Git Flow, GitHub Actions, Terr
 ### Sistemas de Teceros
 Con que sistemas de terceros se interactuará: apis, protocolos de autenticación (OAuth2, JWT)
 
-### Aspectos de Calidad
+### Aspectos de Calidad/SLA
 Hacer Enfasis en que será Escalabilidad y Mantenibilidad, Reutilización y Eficiencia y Claridad y Gestión de Complejidad
 
 ## 3. Stack Tecnológico 
