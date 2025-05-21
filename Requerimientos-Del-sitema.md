@@ -1,5 +1,10 @@
 # Requerimientos del Sistema
 
+## Requerimientos Generales
+
+- RNF1: La documentación y el sistema será escrito en español.
+
+
 ## bio registro verde
 
 ### Requerimientos Funcionales 
@@ -7,15 +12,16 @@
 - RF1: El sistema debe permitir el registro de personas físicas, jurídicas, instituciones, cámaras, grupos y empresas.
 - RF2: El formulario de registro debe adaptarse dinámicamente según el tipo de entidad seleccionada.
 - RF3: El sistema debe solicitar y capturar información personal, societaria, legal y tributaria según el tipo de entidad.
-- RF4: El registro debe pasar por una etapa de validación interna, con estados como: pendiente, aprobado, rechazado.
-- RF5: El sistema debe implementar validación automática por inteligencia artificial de los documentos subidos.
-- RF6: El sistema debe exigir a los representantes legales el registro como individuos con: identidad digital, biometría, prueba de vida y autenticación multifactor (MFA).
-- RF7: Cada organización debe recibir llaves de seguridad que le permitan delegar o revocar accesos a sus usuarios.
-- RF8: Un usuario debe poder administrar múltiples organizaciones desde una única cuenta.
-- RF9: El sistema debe capturar datos preliminares de cuentas IBAN y/o tarjetas de crédito como parte del registro.
-- RF10: El sistema debe enviar una notificación por correo electrónico cuando un registro sea aprobado.
-- RF11: El sistema debe exigir documentos específicos según el tipo de entidad: cédulas físicas o jurídicas, actas, RTN, dirección, etc.
-- RF12: El sistema debe permitir registrar direcciones IP institucionales (listas blancas) para permitir acceso autorizado.
+- RF4: El sistema debe revisar que cuando se van a asignar personas físicas a la organización al crearla, efectivamente formen parte de dicho conjunto.
+- RF5: El registro debe pasar por una etapa de validación interna manual, con estados como: pendiente, aprobado, rechazado.
+- RF6: El sistema debe implementar validación automática por inteligencia artificial de los documentos subidos.
+- RF7: El sistema debe exigir a los representantes legales el registro como individuos con: identidad digital, biometría, prueba de vida y autenticación multifactor (MFA).
+- RF8: Cada organización debe recibir llaves de seguridad que le permitan delegar o revocar accesos a sus usuarios.
+- RF9: Un usuario debe poder administrar múltiples organizaciones desde una única cuenta.
+- RF10: El sistema debe capturar datos preliminares de cuentas IBAN y/o tarjetas de crédito como parte del registro.
+- RF11: El sistema debe enviar una notificación por correo electrónico cuando un registro sea aprobado.
+- RF12: El sistema debe exigir documentos específicos según el tipo de entidad: cédulas físicas o jurídicas, actas, RTN, dirección, etc.
+- RF13: El sistema debe permitir registrar direcciones IP institucionales (listas blancas) para permitir acceso autorizado.
 
 ### Requerimientos No Funcionales 
 
