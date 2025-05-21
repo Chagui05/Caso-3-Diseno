@@ -2,6 +2,8 @@
 
 ## 1. Planeamiento
 
+En esta sección se detallan los aspectos relacionados con la comprensión del problema, la forma en que se dividirá el trabajo dentro del equipo, los hitos en los que se estructura el desarrollo del proyecto y los mecanismos que permitirán evaluar si se está avanzando conforme a lo planificado.
+
 ### 1.1 Estructura del Equipo, Stakeholders, Key Players
 
 #### Estructura Interna 
