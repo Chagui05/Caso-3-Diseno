@@ -90,7 +90,27 @@ Es importante aclarar que en el diagrama II no se detalla paso a paso lo que hac
 
 
 ### 1.4 Customer Journeys
-Al menos 3 customer journeys completos y visuales, con Service Design y que use herramientas como Blueprints, Value Maps o UX Journey Maps
+Este Service Blueprint representa el recorrido completo de un ciudadano dentro del ecosistema Data Pura Vida, desde el descubrimiento de la plataforma hasta la creación, publicación y monitoreo de un dashboard personalizado con datos públicos.
+
+El diagrama detalla no solo las acciones del usuario, sino también los touchpoints del sistema, los procesos internos (backstage) y las herramientas de soporte involucradas en cada etapa. Además, se integran las emociones del usuario para identificar oportunidades de mejora en la experiencia.
+
+Las líneas de interacción, visibilidad e interacción interna permiten visualizar claramente los límites entre lo que el ciudadano ve, lo que ocurre detrás del sistema y las herramientas tecnológicas que lo sustentan.
+
+Este blueprint se organiza en **seis** fases principales:
+
+1. Conciencia: El ciudadano conoce la existencia de la plataforma.
+
+2. Ingreso: Accede y se autentica de forma segura.
+
+3. Exploración: Navega los datasets disponibles.
+
+4. Creación: Construye un dashboard visual con datos abiertos.
+
+5. Publicación: Comparte su dashboard con otros usuarios.
+
+6. Monitoreo: Consulta métricas de visualización y uso.b
+
+![alt text](img/journey1.png)
 
 ### 1.5 Plan de ejecución del proyecto 
 
