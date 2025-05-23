@@ -112,9 +112,11 @@ Este blueprint se organiza en **seis** fases principales:
 
 ![alt text](img/journey1.png)
 
-Este Service Blueprint representa el recorrido de una institución pública que desea compartir información dentro de Data Pura Vida, desde el registro inicial hasta la publicación de un dataset restringido con modelo de cobro.
+Este blueprint representa el recorrido completo de una empresa desde que conoce la plataforma Data Pura Vida hasta que publica y monetiza un conjunto de datos privado. 
 
-El blueprint cubre tanto las acciones visibles para el usuario institucional como los procesos internos que ejecuta la plataforma para validar la identidad, proteger los datos y habilitar el acceso controlado a los consumidores.
+El diagrama incluye una fase clave denominada “Validación de valor”, donde la empresa analiza el potencial del dataset antes de publicarlo. Esta etapa intermedia refuerza la decisión estratégica de monetización al mostrar métricas de calidad, vistas previas y recomendaciones automáticas generadas por IA, asegurando que los datos ofrecidos sean realmente útiles para otros actores del ecosistema.
+
+![alt text](img/journey2.png)
 
 **Fases principales:**
 
