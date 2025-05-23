@@ -112,6 +112,22 @@ Este blueprint se organiza en **seis** fases principales:
 
 ![alt text](img/journey1.png)
 
+Este Service Blueprint representa el recorrido de una institución pública que desea compartir información dentro de Data Pura Vida, desde el registro inicial hasta la publicación de un dataset restringido con modelo de cobro.
+
+El blueprint cubre tanto las acciones visibles para el usuario institucional como los procesos internos que ejecuta la plataforma para validar la identidad, proteger los datos y habilitar el acceso controlado a los consumidores.
+
+**Fases principales:**
+
+1. Registro: Un representante oficial crea una cuenta institucional y sube los documentos requeridos.
+2. Validación: La plataforma aplica validaciones automáticas y manuales con ayuda de IA.
+3. Configuración: La institución decide qué datos compartir y con qué restricciones.
+4. Carga: Se conecta una base de datos externa para carga automatizada.
+5. Publicación: El dataset queda disponible para actores autorizados mediante pago.
+6. Seguimiento: La institución consulta métricas de acceso y consumo.
+
+#falta la imagen
+
+
 ### 1.5 Plan de ejecución del proyecto 
 
 El proyecto se estructura en cinco hitos principales que marcarán su progreso:
