@@ -248,22 +248,22 @@ Se desarrolló un prototipo funcional de la página del Bioregistro Verde con el
 
 A continuación las imágenes del flujo de recolección de data de una persona física:
 
-![alt text](img/userReg.png)
+![alt text](img/userReg0.png)
 
-![alt text](img/userReg-1.png)
+![alt text](img/userReg1.png)
 
-![alt text](img/userReg-2.png)
+![alt text](img/userReg2.png)
 
-![alt text](img/userReg-3.png)
+![alt text](img/userReg3.png)
 
 Además, se adjunta el proceso de registar compañía pública:
 
-![alt text](img/orgPub-4.png)
-![alt text](img/orgPub-5.png)
-![alt text](img/orgPub-6.png)
-![alt text](img/orgPub-7.png)
-![alt text](img/orgPub-8.png)
-![alt text](img/orgPub-9.png)
+![alt text](img/orgPub0.png)
+![alt text](img/orgPub1.png)
+![alt text](img/orgPub2.png)
+![alt text](img/orgPub3.png)
+![alt text](img/orgPub4.png)
+![alt text](img/orgPub5.png)
 
 
 Si deseá probar el prototipo visite el siguiente [link](https://gentle-signup-wizard.lovable.app/).
