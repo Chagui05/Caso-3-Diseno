@@ -246,7 +246,7 @@ Requerimientos:
 
 Se desarrolló un prototipo funcional de la página del Bioregistro Verde con el objetivo principal de probar el comportamiento de los formularios dinámicos. Este prototipo no incluye procesos de prueba de vida ni captura de datos biométricos, y tampoco recolecta la información final que se almacenará en el sistema definitivo. Su propósito es demostrar, a alto nivel, cómo el formulario se adapta dinámicamente según las selecciones del usuario.
 
-A continuación las imágenes del flujo de recolección de data de una persona física (cabe aclarar que el prototipo está en ingles, pero el producto será en español):
+A continuación las imágenes del flujo de recolección de data de una persona física:
 
 ![alt text](img/userReg.png)
 
@@ -263,6 +263,7 @@ Además, se adjunta el proceso de registar compañía pública:
 ![alt text](img/orgPub-6.png)
 ![alt text](img/orgPub-7.png)
 ![alt text](img/orgPub-8.png)
+![alt text](img/orgPub-9.png)
 
 
 Si deseá probar el prototipo visite el siguiente [link](https://gentle-signup-wizard.lovable.app/).
