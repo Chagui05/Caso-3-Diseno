@@ -6,9 +6,10 @@ En esta sección se detallan los aspectos relacionados con la comprensión del p
 
 ### 1.1 Estructura del Equipo, Stakeholders, Key Players
 
-#### Estructura Interna 
+#### Estructura Interna
 
 El equipo de trabajo consiste de 5 integrantes:
+
 - Santiago Chaves Garbanzo
 - Anthony Fuentes
 - Luis David Blanco
@@ -64,14 +65,11 @@ Para entender adecuadamente el problema, el equipo realizó una entrevista al Pr
 
 A partir de esta información, se desarrollaron los siguientes diagramas de flujo que ilustran las tareas clave identificadas dentro del sistema:
 
-  
 - Diagrama de registro:
 
 El siguiente diagrama presenta una visión general del proceso de registro en nuestra plataforma. No incluye detalles técnicos ni especificaciones sobre los campos dinámicos que varían según el tipo de entidad registrada; su objetivo es ilustrar de forma abstracta y comprensible cómo se estructura el flujo de registro dentro del sistema.
 
 ![matrizstakeholders](img/entendimientoRegistro.png)
-
-
 
 - Diagrama de Ingesta y configuración de un dataset
 
@@ -86,7 +84,6 @@ El segundo diagrama arranca una vez que el dataset ya fue validado. Ahí se defi
 ![matrizstakeholders](img/subidaDataset2.png)
 
 Es importante aclarar que en el diagrama II no se detalla paso a paso lo que hace el motor ETDL, pero sí se deja claro que va a encargarse de tareas como: detectar duplicados, relacionar datos con otros ya cargados, ajustar el modelo según las conexiones que encuentre, y aplicar automáticamente un flujo con extracción, transformación, limpieza, detección de contexto, modelado y carga con ayuda de AI.
-
 
 #### Componentes del Sistema
 
@@ -269,7 +266,9 @@ Además, se adjunta el proceso de registar compañía pública:
 
 
 Si deseá probar el prototipo visite el siguiente [link](https://gentle-signup-wizard.lovable.app/).
+
 ### 1.4 Customer Journeys
+
 Este Service Blueprint representa el recorrido completo de un ciudadano dentro del ecosistema Data Pura Vida, desde el descubrimiento de la plataforma hasta la creación, publicación y monitoreo de un dashboard personalizado con datos públicos.
 
 El diagrama detalla no solo las acciones del usuario, sino también los touchpoints del sistema, los procesos internos (backstage) y las herramientas de soporte involucradas en cada etapa. Además, se integran las emociones del usuario para identificar oportunidades de mejora en la experiencia.
@@ -292,7 +291,7 @@ Este blueprint se organiza en **seis** fases principales:
 
 ![alt text](img/journey1.png)
 
-Este blueprint representa el recorrido completo de una empresa desde que conoce la plataforma Data Pura Vida hasta que publica y monetiza un conjunto de datos privado. 
+Este blueprint representa el recorrido completo de una empresa desde que conoce la plataforma Data Pura Vida hasta que publica y monetiza un conjunto de datos privado.
 
 El diagrama incluye una fase clave denominada “Validación de valor”, donde la empresa analiza el potencial del dataset antes de publicarlo. Esta etapa intermedia refuerza la decisión estratégica de monetización al mostrar métricas de calidad, vistas previas y recomendaciones automáticas generadas por IA, asegurando que los datos ofrecidos sean realmente útiles para otros actores del ecosistema.
 
@@ -309,17 +308,15 @@ El diagrama incluye una fase clave denominada “Validación de valor”, donde 
 
 #falta la imagen
 
-
-### 1.5 Plan de ejecución del proyecto 
+### 1.5 Plan de ejecución del proyecto
 
 El proyecto se estructura en cinco hitos principales que marcarán su progreso:
 
 - Planeamiento del Proyecto
 - Supuestos del Proyecto
-- Stack Tecnológico 
+- Stack Tecnológico
 - Diseño de los Componentes
 - Validación de los requerimientos
-
 
 Cada uno de estos hitos cuenta con un plazo definido para su ejecución, lo cual se puede observar en el siguiente diagrama de Gantt:
 
@@ -330,92 +327,234 @@ Dentro de cada hito se contemplan varias tareas. Cada integrante del equipo debe
 Además, como se indicó anteriormente, se realizarán reuniones semanales para verificar que el proyecto avance conforme al plan establecido.
 
 Además, como se dijo previamente, se harán reuniones semanales para verificar que el proyecto se esté realizando según lo dice el plan.
-### 1.6 WBS del sistema 
+
+### 1.6 WBS del sistema
+
 Creación de WBS del sistema
 
-### 1.7  Evaluación de Riesgos
-Evaluación de riesgos utilizando metodologías reconocidas como ISO 31000 o NIST RMF o otras tablas similares simplificadas
+# 1.7 Evaluación de Riesgos
 
-### 1.8 KPIs 
-Definición de KPIs clave y mecanismos para su recolección y cálculo en cada milestone. Uno puede ser que se cumplan con los hitos en la fecha establecida
+## Metodología ISO 31000
+
+La evaluación de riesgos sigue los principios de **ISO 31000** para la gestión de riesgos del proyecto Data Pura Vida.
+
+## Marco de Evaluación:
+
+La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basada en criterios específicos del proyecto Data Pura Vida y su contexto de diseño de sistemas complejos.
+
+### Escala de probabilidad:
+
+- Muy Alta (100%) : Es prácticamente seguro que el riesgo ocurrirá durante el proyecto (9 de cada 10 proyectos similares)
+- Alta (80%) : Es muy probable que el riesgo se materialice (7-8 de cada 10 casos)
+- Medios (60%) : Hay una posibilidad moderada de que ocurra (5-6 de cada 10 casos)
+- Baja (40%) : Es poco probable pero posible que suceda (3-4 de cada 10 casos)
+- Muy Baja (20%) : Es muy poco probable que se materialice (1-2 de cada 10 casos)
+
+### Escala de Impacto:
+
+- Muy Alto (100%) : Falla completa del proyecto, rediseño total necesario, o retraso superior a 4 semanas
+- Alto (80%) : Compromete objetivos principales del proyecto, retraso de 2-4 semanas, o afecta múltiples componentes críticos
+- Medio (60%) : Afecta la calidad del diseño o genera retraso de 1-2 semanas, requiere trabajo adicional significativo
+- Bajo (40%) : Impacto menor en cronograma (3-7 días) o calidad, se puede resolver con ajustes menores
+- Muy Bajo (20%) : Impacto mínimo (menos de 3 días), no afecta objetivos principales del proyecto
+
+## Riesgos para el Diseño de Data Pura Vida
+
+| ID      | Categoría         | Riesgo                                               | Descripción Detallada                                                                                                                                                                           | Probabilidad        | Impacto             | Clasificación   | Estrategia     | Plan de Respuesta                                                                                                                                                                 |
+| ------- | ----------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ------------------- | --------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **R01** | **Diseño**        | **Complejidad arquitectónica del ecosistema**        | Diseñar una arquitectura que integre efectivamente portal web, API backend, datalake, backoffice y múltiples sistemas de seguridad requiere experiencia en arquitecturas distribuidas complejas | **Muy Alta (100%)** | **Muy Alto (100%)** | **🔴 EXTREMO**  | **MITIGAR**    | **Prevención:** Definir patrones arquitectónicos estándar, revisiones semanales, división en capas<br>**Contingencia:** Consultoría externa, arquitectura monolítica simplificada |
+| **R02** | **Alcance**       | **Subestimación del alcance técnico**                | El sistema requiere diseñar más de 50 componentes técnicos diferentes incluyendo motor ETDL con IA, cifrado tripartito, validación biométrica y procesamiento de millones de registros          | **Alta (80%)**      | **Alto (80%)**      | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Descomponer en historias simples, Planning Poker, estimación por horas<br>**Contingencia:** Re-priorización MoSCoW, reducción a MVP                               |
+| **R03** | **Documentación** | **Inconsistencias en la documentación técnica**      | Generar documentación técnica coherente entre arquitectura de alto nivel, especificaciones de APIs, modelos de datos, diagramas de seguridad y patrones de integración                          | **Alta (80%)**      | **Alto (80%)**      | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Templates estándar, peer review, checklist calidad<br>**Contingencia:** Auditoría semanal, refactoring documental                                                 |
+| **R04** | **Tiempo**        | **Cronograma optimista para la complejidad**         | El tiempo asignado puede ser insuficiente para diseñar completamente todos los componentes técnicos con el nivel de detalle requerido para un sistema de esta magnitud                          | **Muy Alta (100%)** | **Medio (60%)**     | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Re-estimación semanal, burndown charts, escalación automática<br>**Contingencia:** Priorización dinámica, redistribución de tareas                                |
+| **R05** | **Técnico**       | **Complejidad del motor ETDL con IA**                | Especificar técnicamente un motor que procese automáticamente múltiples formatos, detecte duplicados, relacione datos y aplique transformaciones inteligentes es altamente complejo             | **Media (60%)**     | **Muy Alto (100%)** | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Spike 16 horas, prototipo con 3 casos, arquitectura modular<br>**Contingencia:** Motor simplificado sin IA, integración Talend/NiFi                               |
+| **R06** | **Seguridad**     | **Diseño de sistema de cifrado tripartito**          | Especificar correctamente un sistema de llaves criptográficas divididas entre tres custodios, incluyendo protocolos de recuperación y validación mancomunada                                    | **Baja (40%)**      | **Muy Alto (100%)** | **🟠 ALTO**     | **TRANSFERIR** | **Prevención:** Consulta expertos, estándares FIPS 140-2, validación externa<br>**Contingencia:** Cifrado HSM tradicional, esquema dual                                           |
+| **R07** | **Integración**   | **Interfaces entre componentes mal definidas**       | Riesgo de que las especificaciones de APIs, contratos de datos y protocolos de comunicación entre portal, backend y datalake no sean completamente compatibles                                  | **Media (60%)**     | **Alto (80%)**      | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Contratos OpenAPI 3.0, reuniones bi-semanales, diagramas secuencia<br>**Contingencia:** Workshop alineación 4 horas, rediseño contratos                           |
+| **R08** | **Escalabilidad** | **Arquitectura no preparada para la carga esperada** | El diseño puede no contemplar adecuadamente el manejo de millones de registros, miles de usuarios concurrentes y procesamiento de grandes volúmenes de datos                                    | **Baja (40%)**      | **Medio (60%)**     | **🟡 MODERADO** | **ACEPTAR**    | **Prevención:** Análisis capacidad inicial, documentar recomendaciones<br>**Contingencia:** Roadmap escalabilidad futura, patrones horizontales                                   |
+| **R09** | **Recursos**      | **Disponibilidad limitada del Product Owner**        | El Product Owner puede no estar disponible para validar decisiones arquitectónicas críticas o para resolver ambigüedades en los requerimientos técnicos                                         | **Media (60%)**     | **Bajo (40%)**      | **🟡 MODERADO** | **ACEPTAR**    | **Prevención:** Agenda fija martes/viernes, decisiones escritas, timeboxing 24h<br>**Contingencia:** Escalación stakeholders, decisiones equipo con validación posterior          |
+| **R10** | **Coordinación**  | **Diseños de componentes desconectados**             | Los diferentes integrantes del equipo pueden diseñar sus componentes sin suficiente coordinación, resultando en interfaces incompatibles o duplicación de funcionalidades                       | **Media (60%)**     | **Medio (60%)**     | **🟡 MODERADO** | **MITIGAR**    | **Prevención:** Sincronización semanal viernes, documentación GitHub, daily stand-ups<br>**Contingencia:** Workshop alineación medio día, rediseño interfaces                     |
+
+# 1.8 Definición de KPIs
+
+## KPIs por Hito del Proyecto
+
+### Hito 1: Planeamiento del Proyecto
+
+**Período**: 18-22 Mayo 2025 (Semana W20)
+
+| KPI                              | Métrica                            | Objetivo | Método de Recolección                              |
+| -------------------------------- | ---------------------------------- | -------- | -------------------------------------------------- |
+| **Cumplimiento de cronograma**   | % de tareas completadas a tiempo   | 100%     | ClickUp - estado de tareas vs. fechas planificadas |
+| **Completitud de documentación** | % de entregables documentados      | 100%     | Revisión de README y archivos en GitHub            |
+| **Participación del equipo**     | % de integrantes activos en tareas | 100%     | ClickUp - asignación y progreso de tareas          |
+| **Validación del Product Owner** | % de entregables aprobados         | 100%     | Estado "Aprobado" en ClickUp                       |
+
+### Hito 2: Supuestos del Proyecto
+
+**Período**: 25-31 Mayo 2025 (Semana W21)
+
+| KPI                            | Métrica                              | Objetivo | Método de Recolección                            |
+| ------------------------------ | ------------------------------------ | -------- | ------------------------------------------------ |
+| **Cumplimiento de cronograma** | % de tareas completadas a tiempo     | 100%     | ClickUp - comparación fecha planificada vs. real |
+| **Calidad de supuestos**       | Número de supuestos validados con PO | 100%     | Documentación de validaciones en Slack/GitHub    |
+| **Identificación de riesgos**  | Número de riesgos documentados       | ≥10      | Matriz de riesgos actualizada                    |
+
+### Hito 3: Stack Tecnológico
+
+**Período**: 1-7 Junio 2025 (Semana W22)
+
+| KPI                               | Métrica                                       | Objetivo | Método de Recolección                        |
+| --------------------------------- | --------------------------------------------- | -------- | -------------------------------------------- |
+| **Cumplimiento de cronograma**    | % de tareas completadas a tiempo              | 100%     | ClickUp - estado vs. cronograma              |
+| **Decisiones tecnológicas**       | % de tecnologías seleccionadas y justificadas | 100%     | Documentación técnica en GitHub              |
+| **Factibilidad técnica**          | Prototipos de concepto funcionando            | ≥2       | Repositorio con ejemplos funcionales         |
+| **Compatibilidad con requisitos** | % de requisitos cubiertos por stack           | 100%     | Matriz de trazabilidad requisitos-tecnología |
+
+### Hito 4: Diseño de los Componentes
+
+**Período**: 8-14 Junio 2025 (Semana W23)
+
+| KPI                               | Métrica                                   | Objetivo | Método de Recolección                 |
+| --------------------------------- | ----------------------------------------- | -------- | ------------------------------------- |
+| **Cumplimiento de cronograma**    | % de tareas completadas a tiempo          | 100%     | ClickUp - seguimiento diario          |
+| **Cobertura de componentes**      | % de componentes diseñados vs. requeridos | 100%     | Documentación de arquitectura         |
+| **Calidad del diseño**            | Revisiones aprobadas por PO               | 100%     | Estados de aprobación en ClickUp      |
+| **Integración entre componentes** | % de interfaces definidas                 | 100%     | Diagramas de integración documentados |
+
+### Hito 5: Validación de los Requerimientos
+
+**Período**: 15-21 Junio 2025 (Semana W24)
+
+| KPI                            | Métrica                           | Objetivo | Método de Recolección             |
+| ------------------------------ | --------------------------------- | -------- | --------------------------------- |
+| **Cumplimiento de cronograma** | Entrega a tiempo                  | 100%     | Fecha de entrega final            |
+| **Cobertura de requisitos**    | % de requisitos validados         | 100%     | Matriz de trazabilidad completa   |
+| **Calidad de documentación**   | Checklist de atributos completado | 100%     | Revisión contra checklist oficial |
+| **Aprobación final**           | Validación del Product Owner      | 100%     | Confirmación formal de aceptación |
+
+## KPIs Transversales del Proyecto
+
+### Gestión y Comunicación
+
+| KPI                         | Métrica                        | Objetivo | Frecuencia de Medición |
+| --------------------------- | ------------------------------ | -------- | ---------------------- |
+| **Comunicación efectiva**   | Respuestas en Slack < 24h      | 90%      | Semanal                |
+| **Reuniones semanales**     | Asistencia a reuniones         | 100%     | Semanal                |
+| **Actualización de tareas** | Tareas actualizadas en ClickUp | Diario   | Diario                 |
+| **Resolución de bloqueos**  | Tiempo promedio de resolución  | <48h     | Semanal                |
+
+### Calidad y Riesgos
+
+| KPI                        | Métrica                             | Objetivo | Frecuencia de Medición |
+| -------------------------- | ----------------------------------- | -------- | ---------------------- |
+| **Gestión de riesgos**     | % de riesgos con plan de mitigación | 100%     | Semanal                |
+| **Incidencias críticas**   | Número de riesgos materializados    | 0        | Semanal                |
+| **Calidad de entregables** | % de entregables sin retrabajos     | 90%      | Por hito               |
+
+## Mecanismos de Recolección y Cálculo
+
+### Herramientas de Monitoreo
+
+1. **ClickUp**: Seguimiento automático de tareas, tiempos y estados
+2. **Slack**: Métricas de comunicación y tiempo de respuesta
+3. **GitHub**: Commits, documentación y versiones
+4. **Reuniones semanales**: Revisión manual de KPIs y ajustes
 
 ## 2. Supuestos del proyecto
 
 ### 2.1 Estándares y Regulaciones
+
 Revisión de estándares y regulaciones nacionales/internacionales, incluyendo Ley 8968 (Costa Rica), GDPR, ISO/IEC 27001, OECD Data Governance y similares
 
 ### 2.2 Prácticas de Manejo de Código
+
 Definir prácticas de manejo de códio (OWASp, Clean Code, Twelve-Factor App), y como las implemtaremos
 
 ### 2.3 Sistema de Versionamiento
-que sistema de versionamiento se usará y ramas  (Git Flow, GitHub Actions, Terraform,)
+
+que sistema de versionamiento se usará y ramas (Git Flow, GitHub Actions, Terraform,)
 
 ### 2.4 Sistemas de Teceros
+
 Con que sistemas de terceros se interactuará: apis, protocolos de autenticación (OAuth2, JWT)
 
 ### 2.5 Aspectos de Calidad/SLA
+
 Hacer Enfasis en que será Escalabilidad y Mantenibilidad, Reutilización y Eficiencia y Claridad y Gestión de Complejidad
 
-## 3. Stack Tecnológico 
-En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas utilizadas, así como sus restricciones y licencias  
+## 3. Stack Tecnológico
 
- - Herramientas para Frontend, Backend, Data
- - Herramientas para AI
- - que sistemas de Terceros, Cloud y Protocolos se usarán 
- - Herramientas para testing y DevOps
+En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas utilizadas, así como sus restricciones y licencias
+
+- Herramientas para Frontend, Backend, Data
+- Herramientas para AI
+- que sistemas de Terceros, Cloud y Protocolos se usarán
+- Herramientas para testing y DevOps
 
 ## 4. Diseño de los componentes
-A conitnuación cada una de estas secciones fue sacada del punto 7 de los documentos del repo del profe, hace falta aplicar cada uno de estos para todos los componentes del sistema
-### Análisis del Componente
-### Diseño de la Arquitectura
- - Diseño del Frontend
-  - Que sistema de autenticación se usará
-  - Como se llevará a cabo el KYC, y la verificación de identidad
-  - Arquitectura del Client, N-Layer, Client Server, etc.
-  - Componentes Visuales.
-  - Patrones y Principios
-  - Toolkkits y Standards 
-  - Estructura de carpetas del sistema
- - Diseño del Backend
-  - Definir porque el sistema tiene alta disponibilidad y como
-  - Definir porque tiene monitoreo y como 
-  - Definir modelo de seguridad detallado: encriptación, auditoría, logging seguro.
-  - REST, GraphQL, gRPC, Monolithic, or Monolithic-MVC?
-  - Serverless, Cloud, On-Premise, or Hybrid?
-  - Service vs. Microservices?
-  - Event-Driven, Queues, Brokers, Producer/Consumer, Pub/Sub?
-  - API Gateway (Security & Scalability)?
-  - El de arquitectura considera donde sea necesario prácticas y patrones para AI. Unidad 8.
- - Diseño de los Datos
-  - Como funcionará el proceso ETDL 
-  - Usar como base el proyecto anterior 
-  - El diseño de datos considera donde sea necesario prácticas y patrones para AI. Unidad 8.
 
-### Prototipado 
+A conitnuación cada una de estas secciones fue sacada del punto 7 de los documentos del repo del profe, hace falta aplicar cada uno de estos para todos los componentes del sistema
+
+### Análisis del Componente
+
+### Diseño de la Arquitectura
+
+- Diseño del Frontend
+- Que sistema de autenticación se usará
+- Como se llevará a cabo el KYC, y la verificación de identidad
+- Arquitectura del Client, N-Layer, Client Server, etc.
+- Componentes Visuales.
+- Patrones y Principios
+- Toolkkits y Standards
+- Estructura de carpetas del sistema
+- Diseño del Backend
+- Definir porque el sistema tiene alta disponibilidad y como
+- Definir porque tiene monitoreo y como
+- Definir modelo de seguridad detallado: encriptación, auditoría, logging seguro.
+- REST, GraphQL, gRPC, Monolithic, or Monolithic-MVC?
+- Serverless, Cloud, On-Premise, or Hybrid?
+- Service vs. Microservices?
+- Event-Driven, Queues, Brokers, Producer/Consumer, Pub/Sub?
+- API Gateway (Security & Scalability)?
+- El de arquitectura considera donde sea necesario prácticas y patrones para AI. Unidad 8.
+- Diseño de los Datos
+- Como funcionará el proceso ETDL
+- Usar como base el proyecto anterior
+- El diseño de datos considera donde sea necesario prácticas y patrones para AI. Unidad 8.
+
+### Prototipado
+
 No hace falta implementarlo todo, seguramente solo una prueba de concepto para algunos
 
 ### Implementación de Componentes
+
 No hace falta implementarlo todo, seguramente solo una prueba de concepto para algunos
 solo si aplica:
- - Incluir guías de integración (how to) y ejemplos de código funcional para los servicios principales
- - Incorporar pruebas de concepto, prototipos o ejemplos que guíen la futura ejecución y validen elecciones tecnológicas
+
+- Incluir guías de integración (how to) y ejemplos de código funcional para los servicios principales
+- Incorporar pruebas de concepto, prototipos o ejemplos que guíen la futura ejecución y validen elecciones tecnológicas
 
 ### Pruebas e Integración
+
 Solo explicar como se hará
 
 solo si aplica:
- - Incluir guías de integración (how to) y ejemplos de código funcional para los servicios principales
- - Incorporar pruebas de concepto, prototipos o ejemplos que guíen la futura ejecución y validen elecciones tecnológicas
-   
+
+- Incluir guías de integración (how to) y ejemplos de código funcional para los servicios principales
+- Incorporar pruebas de concepto, prototipos o ejemplos que guíen la futura ejecución y validen elecciones tecnológicas
+
 ### Despliegue y Mantenimiento
+
 Solo explicar como se hará, tal véz una prueba de concepto
 
 ### Diagrama General del Frontend
+
 Este si es general de todos los componentes
 
 ### Diagrama General del Backend
+
 Este si es general de todos los componentes
 
 ## 5. Validación de los requerimientos
+
 - Validar que el diseño cubre todos los requerimientos funcionales y no funcionales del sistema
 - Identificar ventajas y desventajas del diseño, proponiendo mitigaciones a los riesgos y limitaciones
