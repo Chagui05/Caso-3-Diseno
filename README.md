@@ -92,7 +92,7 @@ Es importante aclarar que en el diagrama II no se detalla paso a paso lo que hac
 
 Con el fin de lograr una arquitectura modular, segura y mantenible, el sistema se divide en macrocomponentes. Cada uno aborda un conjunto específico de requerimientos funcionales y no funcionales. En esta sección se listan los componentes y sus principales responsabilidades. La implementación técnica y subdivisión de estos se detalla más adelante en el documento.
 
-#### bioregistro verde
+##### bioregistro verde
 
 Este módulo gestiona el proceso de incorporación de personas físicas y jurídicas a la plataforma. Abarca desde el llenado de formularios hasta la validación de identidad y la emisión de credenciales digitales. Debe cumplir con regulaciones AML y estándares avanzados de identidad digital.
 
@@ -116,7 +116,7 @@ Requerimientos:
 - El sistema debe proteger las claves generadas mediante un esquema de llave tripartita, distribuidas entre Data Pura Vida y dos custodios.
 
 
-#### La Bóveda
+##### La Bóveda
 
 La Bóveda es el almacén central de datos del sistema, diseñado para ser seguro, escalable y auditable. Unifica todos los datos cargados, sin importar su formato de origen, y permite relaciones entre datasets. Cifra la información en tránsito y reposo, controla el acceso por roles y entidades, y mantiene trazabilidad completa del uso y movimientos de los datos. Está pensada para soportar millones de registros con alto rendimiento y cumplir estándares de gobierno de datos.
 
@@ -135,7 +135,7 @@ Requerimientos:
 - Controlar accesos lógicos por entidad, usuario o tipo de dato.
 - Implementar control de acceso a nivel de rol (RBAC) y a nivel de fila (RLS) o equivalentes.
 
-#### Módulo de Ingesta de dato / posibles nombres: El Ingestor, Centro de Carga, Dock de Datos
+##### Módulo de Ingesta de dato / posibles nombres: El Ingestor, Centro de Carga, Dock de Datos
 
 Este módulo permite a los usuarios cargar sus datasets a la plataforma. Desde acá pueden definir qué datos desean cifrar, especificar el formato de origen y configurar otros parámetros clave para asegurar que la carga se procese correctamente.
 
@@ -157,7 +157,7 @@ Requerimientos:
 - Habilitar control granular de acceso por institución, persona o grupo.
 
 
-#### Módulo de transformación de datos / posibles nombres: Motor de Transformación, Procesador ETDL
+##### Módulo de transformación de datos / posibles nombres: Motor de Transformación, Procesador ETDL
 
 Este módulo es clave para garantizar que los datasets se almacenen correctamente en la Bóveda. Se encarga de recibir datos desde distintas fuentes, validar que el formato coincida con el indicado en el formulario de ingesta y, en caso contrario, rechazar la carga. Una vez superada esta validación, aplica todo el proceso de ETDL y mapea los datos al formato interno de la Bóveda.
 
@@ -173,7 +173,7 @@ Requerimientos:
 - Soportar cargas delta con identificación de cambios.
 - Realizar merges eficientes sin pérdida de integridad.
 
-#### Centro de Visualización y Consumo
+##### Centro de Visualización y Consumo
 
 Este módulo está compuesto por 3 subcomponentes clave:
 
@@ -211,7 +211,7 @@ Requerimientos:
 - El sistema debe minimizar al máximo el riesgo de descargas indirectas mediante presunción de uso en IA.
 - Los datos deben ser envíados en un formato que no permita poder ser desencriptado para otro uso que no sea alimentar IA (por ejemplo uso de embeddings).
 
-#### Marketplace
+##### Marketplace
 
 Este módulo está enfocado en ofrecer una interfaz amigable que permita a los usuarios encontrar datasets de forma eficiente, con descripciones claras y navegación fluida. Además, incluye una sección adicional para buscar dashboards creados por otros usuarios, facilitando el descubrimiento y reutilización de visualizaciones dentro de la plataforma.
 
@@ -225,7 +225,7 @@ Requerimientos:
 - El sistema debe mostrar opciones para renovar o ampliar los paquetes de acceso en caso de superar el límite.
  
 
-#### Backoffice Administrativo
+##### Backoffice Administrativo
 
 Este módulo concentra las herramientas de backoffice necesarias para la gestión integral de la plataforma. Su enfoque está en el control, la seguridad, la gobernanza de datos y la trazabilidad completa de las operaciones. 
 
@@ -245,7 +245,30 @@ Requerimientos:
 - Debe ofrecer una interfaz robusta y segura solo para personal autorizado.
 - Debe permitir gestión flexible pero estricta de accesos y configuraciones.
 
+#### Prototipado 
 
+Se desarrolló un prototipo funcional de la página del Bioregistro Verde con el objetivo principal de probar el comportamiento de los formularios dinámicos. Este prototipo no incluye procesos de prueba de vida ni captura de datos biométricos, y tampoco recolecta la información final que se almacenará en el sistema definitivo. Su propósito es demostrar, a alto nivel, cómo el formulario se adapta dinámicamente según las selecciones del usuario.
+
+A continuación las imágenes del flujo de recolección de data de una persona física (cabe aclarar que el prototipo está en ingles, pero el producto será en español):
+
+![alt text](img/userReg.png)
+
+![alt text](img/userReg-1.png)
+
+![alt text](img/userReg-2.png)
+
+![alt text](img/userReg-3.png)
+
+Además, se adjunta el proceso de registar compañía pública:
+
+![alt text](img/orgPub-4.png)
+![alt text](img/orgPub-5.png)
+![alt text](img/orgPub-6.png)
+![alt text](img/orgPub-7.png)
+![alt text](img/orgPub-8.png)
+
+
+Si deseá probar el prototipo visite el siguiente [link](https://gentle-signup-wizard.lovable.app/).
 ### 1.4 Customer Journeys
 Este Service Blueprint representa el recorrido completo de un ciudadano dentro del ecosistema Data Pura Vida, desde el descubrimiento de la plataforma hasta la creación, publicación y monitoreo de un dashboard personalizado con datos públicos.
 
