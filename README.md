@@ -71,7 +71,7 @@ El siguiente diagrama presenta una visión general del proceso de registro en nu
 
 ![matrizstakeholders](img/entendimientoRegistro.png)
 
-- Diagrama de subida y configuración de un dataset
+- Diagrama de Ingesta y configuración de un dataset
 
 Subir y configurar un dataset en la plataforma no es nada trivial, por eso se armaron estos dos diagramas que separan el proceso en dos partes.
 
@@ -84,6 +84,188 @@ El segundo diagrama arranca una vez que el dataset ya fue validado. Ahí se defi
 ![matrizstakeholders](img/subidaDataset2.png)
 
 Es importante aclarar que en el diagrama II no se detalla paso a paso lo que hace el motor ETDL, pero sí se deja claro que va a encargarse de tareas como: detectar duplicados, relacionar datos con otros ya cargados, ajustar el modelo según las conexiones que encuentre, y aplicar automáticamente un flujo con extracción, transformación, limpieza, detección de contexto, modelado y carga con ayuda de AI.
+
+#### Componentes del Sistema
+
+Con el fin de lograr una arquitectura modular, segura y mantenible, el sistema se divide en macrocomponentes. Cada uno aborda un conjunto específico de requerimientos funcionales y no funcionales. En esta sección se listan los componentes y sus principales responsabilidades. La implementación técnica y subdivisión de estos se detalla más adelante en el documento.
+
+##### bioregistro verde
+
+Este módulo gestiona el proceso de incorporación de personas físicas y jurídicas a la plataforma. Abarca desde el llenado de formularios hasta la validación de identidad y la emisión de credenciales digitales. Debe cumplir con regulaciones AML y estándares avanzados de identidad digital.
+
+Requerimientos:
+
+- El componente debe permitir el registro de personas físicas, jurídicas, instituciones, cámaras, grupos y empresas.
+- El formulario de registro debe adaptarse dinámicamente según el tipo de entidad seleccionada.
+- El registro de usuarios debe estar asegurado con MFA y biometría, cumpliendo estándares de identidad digital avanzada.
+- El componente debe solicitar y capturar información personal, societaria, legal y tributaria según el tipo de entidad.
+- El componente debe revisar que cuando se van a asignar personas físicas a la organización al crearla, efectivamente formen parte de dicho conjunto.
+- El registro debe pasar por una etapa de validación interna manual para el registro de empresas
+- El componente debe implementar validación automática por inteligencia artificial de los documentos subidos.
+- El componente debe exigir a los representantes legales el registro como individuos con: identidad digital, biometría, prueba de vida y autenticación multifactor (MFA).
+- Cada organización debe recibir llaves de seguridad que le permitan delegar o revocar accesos a sus usuarios.
+- Un usuario debe poder administrar múltiples organizaciones desde una única cuenta.
+- El componente debe capturar datos preliminares de cuentas IBAN y/o tarjetas de crédito como parte del registro.
+- El componente debe enviar una notificación por correo electrónico cuando un registro sea aprobado.
+- El componente debe exigir documentos específicos según el tipo de entidad: cédulas físicas o jurídicas, actas, RTN, dirección, etc.
+- El componente debe permitir registrar direcciones IP institucionales (listas blancas) para permitir acceso autorizado.
+- El componente debe permitir únicamente IPs costarricenses en el registro
+- El sistema debe proteger las claves generadas mediante un esquema de llave tripartita, distribuidas entre Data Pura Vida y dos custodios.
+
+
+##### La Bóveda
+
+La Bóveda es el almacén central de datos del sistema, diseñado para ser seguro, escalable y auditable. Unifica todos los datos cargados, sin importar su formato de origen, y permite relaciones entre datasets. Cifra la información en tránsito y reposo, controla el acceso por roles y entidades, y mantiene trazabilidad completa del uso y movimientos de los datos. Está pensada para soportar millones de registros con alto rendimiento y cumplir estándares de gobierno de datos.
+
+Requerimientos:
+
+- La Bóveda tiene que almacenar los datos en un solo formato, por más de que las fuentes externas sean de distintos tipos (relacionales, documentales, csv, excel)
+- La Bóveda debe permitir especificar columnas que relacionan un dataset con otros datasets del ecosistema.
+- La Bóveda debe de estar monitoreada en todo momento para detectar movimientos sospechosos, para dar contenido de uso de un dataset, y para asegurar trazabilidad y diagnóstico rápido de fallas.
+- Debe ser resiliente, auditable y alineado con estándares de gobierno de datos.
+- Debe permitir crecimiento dinámico sin perder eficiencia.
+- Debe escalar a millones de registros y miles de usuarios concurrentes.
+- Mantener trazabilidad de datos usados, no usados y descartados.
+- Todos los datos cargados deben estar protegidos mediante cifrado, incluso frente al personal técnico ("ingenieros de la plataforma").
+- Cifrar toda la data en tránsito y en reposo, dejando trazabilidad auditable.
+- Permitir almacenamiento masivo de datos estructurados y semiestructurados.
+- Controlar accesos lógicos por entidad, usuario o tipo de dato.
+- Implementar control de acceso a nivel de rol (RBAC) y a nivel de fila (RLS) o equivalentes.
+
+##### Módulo de Ingesta de dato / posibles nombres: El Ingestor, Centro de Carga, Dock de Datos
+
+Este módulo permite a los usuarios cargar sus datasets a la plataforma. Desde acá pueden definir qué datos desean cifrar, especificar el formato de origen y configurar otros parámetros clave para asegurar que la carga se procese correctamente.
+
+Requerimientos: 
+
+- Permitir a los usuarios decidir qué datos compartir dentro del ecosistema.
+- Requerir que cada dataset tenga un nombre único.
+- Soportar múltiples métodos de carga de datos: archivos Excel, CSV, JSON, APIs y conexiones directas a bases de datos SQL y NoSQL. 
+- Requerir nombre, descripción y metadata útil para IA sobre las columnas del dataset.
+- Permitir configurar los parámetros de conexión de forma cifrada para cada medio de carga.
+- Los parámetros de conexión de bases de datos y APIs deben almacenarse de forma cifrada.
+- Permitir configurar si el dataset es público o privado, gratuito o pagado, permanente o con disponibilidad temporal.
+- El sistema de permisos debe prevenir accesos no autorizados a datasets privados o pagos.
+- Asignar permisos de acceso a los datasets privados.
+- Permitir definir montos de acceso para datasets con modelo de cobro.
+- Restringir acceso a datos por tiempo, volumen o frecuencia de consulta.
+- Indicar si la carga es única o recurrente, completa o por deltas.
+- Configurar parámetros para carga por deltas: campos diferenciales, frecuencia (timed pull) o mediante callbacks.
+- Habilitar control granular de acceso por institución, persona o grupo.
+
+
+##### Módulo de transformación de datos / posibles nombres: Motor de Transformación, Procesador ETDL
+
+Este módulo es clave para garantizar que los datasets se almacenen correctamente en la Bóveda. Se encarga de recibir datos desde distintas fuentes, validar que el formato coincida con el indicado en el formulario de ingesta y, en caso contrario, rechazar la carga. Una vez superada esta validación, aplica todo el proceso de ETDL y mapea los datos al formato interno de la Bóveda.
+
+Requerimientos: 
+
+- Validar el formato, estructura y contenido de cada dataset cargado sea correcto, o bien adaptarlo al interno de la Bóveda (formatos de fecha, booleans, etc.).
+- Validar el formato, estructura y contenido de cada dataset cargado coincida con lo especificado en el proceso de carga.
+- Automatizar el proceso de carga mediante un motor de IA que aplique un flujo ETDL (extracción, transformación, limpieza, detección de contexto, modelado y carga).
+- Aplicar IA para normalizar, rediseñar modelos de datos y vincularlos automáticamente.
+- Detectar duplicidades, optimizar relaciones y ajustar el modelo de datos automáticamente según las interrelaciones detectadas.
+- Monitorear el proceso completo con métricas de transferencia, carga, limpieza, eliminación, modelado, volumen, datos omitidos, datos consultados y tasa de éxito.
+- El sistema debe ser capaz de procesar cargas recurrentes y automatizadas sin intervención manual.
+- Soportar cargas delta con identificación de cambios.
+- Realizar merges eficientes sin pérdida de integridad.
+
+##### Centro de Visualización y Consumo
+
+Este módulo está compuesto por 3 subcomponentes clave:
+
+
+1. **Generador de dashboards**: permite a los usuarios diseñar y crear gráficos de forma rápida y amigable para visualizar cualquier dataset.
+
+Requerimientos:
+- El sistema debe permitir la construcción de dashboards personalizados de forma manual.
+- El sistema debe permitir construir dashboards manualmente o mediante prompts inteligentes que generen visualizaciones automáticas.
+- El sistema debe permitir representar visualmente los datos en tablas, gráficos, conteos, tendencias y predicciones.
+- El sistema debe permitir a los usuarios guardar sus dashboards personalizados.
+- El sistema debe permitir compartir dashboards con otros usuarios o hacerlos públicos dentro de la plataforma.
+- La interfaz de construcción de dashboards debe ser segura, intuitiva y con capacidad de respuesta en tiempo real.
+
+2. **Visualización y Consumo**: ofrece una interfaz para revisar esas visualizaciones y realizar análisis de datos directamente sobre los dashboards.
+
+Requerimientos:
+- El sistema debe permitir visualizar todos los datasets accesibles como una fuente consolidada.
+- El sistema debe bloquear toda exportación directa de datos y gráficos desde el portal.
+- El sistema debe mostrar datos de forma preliminar en modo de construcción de dashboard y luego con datos reales al ejecutar consultas
+- El sistema debe deshabilitar temporalmente el acceso a datasets cuando se superen los límites de consumo.
+- El sistema debe registrar todas las transacciones y consumos de datos en un historial accesible para cada usuario.
+- El sistema debe mostrar métricas de uso: volumen de datos consultados, número de consultas realizadas, tiempo restante o límites alcanzados.
+- El sistema no debe permitir en ningún momento la descarga directa de datasets o gráficos generados.
+- La visualización de datos debe realizarse exclusivamente dentro del portal, sin opciones de exportación, captura o embedding externo.
+- Los límites de consumo deben aplicarse en tiempo real, sin permitir bypasses o reintentos abusivos.
+
+3. **Consumo para IA**: Este subcomponente es el regulador de consumo de IA, define límites y los métodos de ingesta disponibles desde el sistema para los usuarios. 
+
+Requerimientos:
+
+- El sistema debe permitir el acceso sistema a sistema únicamente para alimentar modelos de IA aprobados.
+- La entrega de datos para modelos de IA debe ser monitoreada, registrada y limitada a contextos aprobados explícitamente por Data Pura Vida.
+- El sistema debe ofrecer plataformas limitadas y controladas para esta alimentación de IA. Solo permitirá 2 por usuario. 
+- El sistema debe minimizar al máximo el riesgo de descargas indirectas mediante presunción de uso en IA.
+- Los datos deben ser envíados en un formato que no permita poder ser desencriptado para otro uso que no sea alimentar IA (por ejemplo uso de embeddings).
+
+##### Marketplace
+
+Este módulo está enfocado en ofrecer una interfaz amigable que permita a los usuarios encontrar datasets de forma eficiente, con descripciones claras y navegación fluida. Además, incluye una sección adicional para buscar dashboards creados por otros usuarios, facilitando el descubrimiento y reutilización de visualizaciones dentro de la plataforma.
+
+Requerimientos:
+
+- La experiencia de compra de datasets debe ser fluida, transparente y accesible desde los dashboards personales.
+- Incluir un módulo de compra donde se visualicen datasets disponibles bajo acceso pagado.
+- Permitir seleccionar un dataset, visualizar precio, términos de uso, duración del acceso y condiciones de cobro.
+- Soportar múltiples métodos de pago: tarjeta de crédito, débito y otros mecanismos nacionales compatibles.
+- Mostrar confirmaciones de transacción y activar el acceso según condiciones (tiempo, volumen, frecuencia).
+- El sistema debe mostrar opciones para renovar o ampliar los paquetes de acceso en caso de superar el límite.
+ 
+
+##### Backoffice Administrativo
+
+Este módulo concentra las herramientas de backoffice necesarias para la gestión integral de la plataforma. Su enfoque está en el control, la seguridad, la gobernanza de datos y la trazabilidad completa de las operaciones. 
+
+Requerimientos:
+
+- Administrar usuarios: validación de identidad, membresía y roles.
+- Gestionar reglas de carga de datos (formatos, estructuras, validaciones).
+- Configurar conexiones externas (APIs, BDs, callbacks).
+- Activar, desactivar y supervisar objetos de datos, pipelines y flujos.
+- Revocar o regenerar llaves de seguridad (simétricas, asimétricas, tri-partitas).
+- Administrar custodios de llaves y flujos de confirmación mancomunada.
+- Auditar operaciones por usuario, fecha, acción y resultado.
+- Generar reportes de uso, calidad, integración y anomalías.
+- Monitorear el estado operativo de servicios y tareas.
+- Extraer evidencias para procesos legales bajo autorización.
+- Gestionar permisos y accesos mediante RBAC.
+- Debe ofrecer una interfaz robusta y segura solo para personal autorizado.
+- Debe permitir gestión flexible pero estricta de accesos y configuraciones.
+
+#### Prototipado 
+
+Se desarrolló un prototipo funcional de la página del Bioregistro Verde con el objetivo principal de probar el comportamiento de los formularios dinámicos. Este prototipo no incluye procesos de prueba de vida ni captura de datos biométricos, y tampoco recolecta la información final que se almacenará en el sistema definitivo. Su propósito es demostrar, a alto nivel, cómo el formulario se adapta dinámicamente según las selecciones del usuario.
+
+A continuación las imágenes del flujo de recolección de data de una persona física (cabe aclarar que el prototipo está en ingles, pero el producto será en español):
+
+![alt text](img/userReg.png)
+
+![alt text](img/userReg-1.png)
+
+![alt text](img/userReg-2.png)
+
+![alt text](img/userReg-3.png)
+
+Además, se adjunta el proceso de registar compañía pública:
+
+![alt text](img/orgPub-4.png)
+![alt text](img/orgPub-5.png)
+![alt text](img/orgPub-6.png)
+![alt text](img/orgPub-7.png)
+![alt text](img/orgPub-8.png)
+
+
+Si deseá probar el prototipo visite el siguiente [link](https://gentle-signup-wizard.lovable.app/).
 
 ### 1.4 Customer Journeys
 

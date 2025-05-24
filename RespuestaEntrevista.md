@@ -38,7 +38,7 @@ ambos
 
 - Además, que parte de la validación interna debe ser realizada por nosotros si ya se va a integrar a sistemas de terceros como SumSub (edited)
 
-Depende de los registros de personas y organizaciones, deben de estar listo a procesos de registro donde puede que todo lo puedan valida rcon sumsub, o puede ser que para otra documentación necesitan sumsub con otro servicio de terceros adicional, o esos mismos dos con revision manual de algo, o esos mismos dos con revision manual, y con un LLM propio, etc. Al final el diseño debe poder dotar a la plataforma de configurar procesos de registros segun sus variables y eso llevar a los procesos de validacion que se ocupen.
+Depende de los registros de personas y organizaciones, deben de estar listo a procesos de registro donde puede que todo lo puedan validar con sumsub, o puede ser que para otra documentación necesitan sumsub con otro servicio de terceros adicional, o esos mismos dos con revision manual de algo, o esos mismos dos con revision manual, y con un LLM propio, etc. Al final el diseño debe poder dotar a la plataforma de configurar procesos de registros segun sus variables y eso llevar a los procesos de validacion que se ocupen.
 
 ---
 
