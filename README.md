@@ -345,7 +345,29 @@ Además, como se dijo previamente, se harán reuniones semanales para verificar 
 
 ### 1.6 WBS del sistema
 
-Creación de WBS del sistema
+Como parte del análisis inicial del sistema **Data Pura Vida**, se realizó una descomposición de alto nivel para identificar los límites del sistema y los actores involucrados. A continuación, se presenta el diagrama de contexto basado en las técnicas descritas para la identificación del sistema y sus límites:
+
+![Work Breakdown Structure](img/WorkBreakdownStructure.jpg)
+
+Esta representación facilita el entendimiento general del sistema y servirá como base para la posterior descomposición en subsistemas, componentes funcionales y diseño arquitectónico detallado.
+
+#### Propósito del diagrama
+- **Identificación de límites del sistema:** El diagrama establece una frontera clara entre lo que está dentro y fuera del alcance del desarrollo, lo cual es crucial para evitar ambigüedades durante el diseño detallado.
+
+- **Visualización de los actores externos:** Permite entender quiénes interactúan con el sistema y con qué propósito.
+
+- **Detección de puntos de integración:** Ayuda a anticipar necesidades de interoperabilidad, seguridad, formatos de intercambio de datos y protocolos de comunicación.
+
+#### Consideraciones adicionales
+Este diagrama será utilizado como punto de partida para:
+
+- La descomposición en subsistemas o módulos funcionales, agrupando responsabilidades afines.
+
+- La definición de casos de uso y escenarios de interacción.
+
+- La elaboración de la arquitectura técnica, donde se identificarán servicios, componentes y flujos de datos internos.
+
+En resumen, este modelo de contexto es una herramienta clave para asegurar un entendimiento compartido del dominio del problema y sentar las bases de una solución técnica coherente, escalable y alineada con los objetivos del proyecto.
 
 # 1.7 Evaluación de Riesgos
 
