@@ -310,7 +310,7 @@ Este blueprint se organiza en siete fases principales:
 
 7. Monitoreo: Supervisa ingresos, visualizaciones y transacciones en tiempo real.
 
-![alt text](img/JourneyIP.png)
+![alt text](img/journeyIP.png)
 
 **Fases principales:**
 
