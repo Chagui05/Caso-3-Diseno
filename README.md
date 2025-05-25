@@ -369,17 +369,17 @@ Este diagrama será utilizado como punto de partida para:
 
 En resumen, este modelo de contexto es una herramienta clave para asegurar un entendimiento compartido del dominio del problema y sentar las bases de una solución técnica coherente, escalable y alineada con los objetivos del proyecto.
 
-# 1.7 Evaluación de Riesgos
+### 1.7 Evaluación de Riesgos
 
-## Metodología ISO 31000
+#### Metodología ISO 31000
 
 La evaluación de riesgos sigue los principios de **ISO 31000** para la gestión de riesgos del proyecto Data Pura Vida.
 
-## Marco de Evaluación:
+#### Marco de Evaluación:
 
 La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basada en criterios específicos del proyecto Data Pura Vida y su contexto de diseño de sistemas complejos.
 
-### Escala de probabilidad:
+#### Escala de probabilidad:
 
 - Muy Alta (100%) : Es prácticamente seguro que el riesgo ocurrirá durante el proyecto (9 de cada 10 proyectos similares)
 - Alta (80%) : Es muy probable que el riesgo se materialice (7-8 de cada 10 casos)
@@ -387,7 +387,7 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 - Baja (40%) : Es poco probable pero posible que suceda (3-4 de cada 10 casos)
 - Muy Baja (20%) : Es muy poco probable que se materialice (1-2 de cada 10 casos)
 
-### Escala de Impacto:
+#### Escala de Impacto:
 
 - Muy Alto (100%) : Falla completa del proyecto, rediseño total necesario, o retraso superior a 4 semanas
 - Alto (80%) : Compromete objetivos principales del proyecto, retraso de 2-4 semanas, o afecta múltiples componentes críticos
@@ -395,7 +395,7 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 - Bajo (40%) : Impacto menor en cronograma (3-7 días) o calidad, se puede resolver con ajustes menores
 - Muy Bajo (20%) : Impacto mínimo (menos de 3 días), no afecta objetivos principales del proyecto
 
-## Riesgos para el Diseño de Data Pura Vida
+#### Riesgos para el Diseño de Data Pura Vida
 
 | ID      | Categoría         | Riesgo                                               | Descripción Detallada                                                                                                                                                                           | Probabilidad        | Impacto             | Clasificación   | Estrategia     | Plan de Respuesta                                                                                                                                                                 |
 | ------- | ----------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ------------------- | --------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -410,11 +410,11 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 | **R09** | **Recursos**      | **Disponibilidad limitada del Product Owner**        | El Product Owner puede no estar disponible para validar decisiones arquitectónicas críticas o para resolver ambigüedades en los requerimientos técnicos                                         | **Media (60%)**     | **Bajo (40%)**      | **🟡 MODERADO** | **ACEPTAR**    | **Prevención:** Agenda fija martes/viernes, decisiones escritas, timeboxing 24h<br>**Contingencia:** Escalación stakeholders, decisiones equipo con validación posterior          |
 | **R10** | **Coordinación**  | **Diseños de componentes desconectados**             | Los diferentes integrantes del equipo pueden diseñar sus componentes sin suficiente coordinación, resultando en interfaces incompatibles o duplicación de funcionalidades                       | **Media (60%)**     | **Medio (60%)**     | **🟡 MODERADO** | **MITIGAR**    | **Prevención:** Sincronización semanal viernes, documentación GitHub, daily stand-ups<br>**Contingencia:** Workshop alineación medio día, rediseño interfaces                     |
 
-# 1.8 Definición de KPIs
+### 1.8 Definición de KPIs
 
-## KPIs por Hito del Proyecto
+#### KPIs por Hito del Proyecto
 
-### Hito 1: Planeamiento del Proyecto
+##### Hito 1: Planeamiento del Proyecto
 
 **Período**: 18-22 Mayo 2025 (Semana W20)
 
@@ -425,7 +425,7 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 | **Participación del equipo**     | % de integrantes activos en tareas | 100%     | ClickUp - asignación y progreso de tareas          |
 | **Validación del Product Owner** | % de entregables aprobados         | 100%     | Estado "Aprobado" en ClickUp                       |
 
-### Hito 2: Supuestos del Proyecto
+##### Hito 2: Supuestos del Proyecto
 
 **Período**: 25-31 Mayo 2025 (Semana W21)
 
@@ -435,7 +435,7 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 | **Calidad de supuestos**       | Número de supuestos validados con PO | 100%     | Documentación de validaciones en Slack/GitHub    |
 | **Identificación de riesgos**  | Número de riesgos documentados       | ≥10      | Matriz de riesgos actualizada                    |
 
-### Hito 3: Stack Tecnológico
+##### Hito 3: Stack Tecnológico
 
 **Período**: 1-7 Junio 2025 (Semana W22)
 
@@ -446,7 +446,7 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 | **Factibilidad técnica**          | Prototipos de concepto funcionando            | ≥2       | Repositorio con ejemplos funcionales         |
 | **Compatibilidad con requisitos** | % de requisitos cubiertos por stack           | 100%     | Matriz de trazabilidad requisitos-tecnología |
 
-### Hito 4: Diseño de los Componentes
+##### Hito 4: Diseño de los Componentes
 
 **Período**: 8-14 Junio 2025 (Semana W23)
 
@@ -457,7 +457,7 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 | **Calidad del diseño**            | Revisiones aprobadas por PO               | 100%     | Estados de aprobación en ClickUp      |
 | **Integración entre componentes** | % de interfaces definidas                 | 100%     | Diagramas de integración documentados |
 
-### Hito 5: Validación de los Requerimientos
+##### Hito 5: Validación de los Requerimientos
 
 **Período**: 15-21 Junio 2025 (Semana W24)
 
@@ -468,9 +468,9 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 | **Calidad de documentación**   | Checklist de atributos completado | 100%     | Revisión contra checklist oficial |
 | **Aprobación final**           | Validación del Product Owner      | 100%     | Confirmación formal de aceptación |
 
-## KPIs Transversales del Proyecto
+#### KPIs Transversales del Proyecto
 
-### Gestión y Comunicación
+##### Gestión y Comunicación
 
 | KPI                         | Métrica                        | Objetivo | Frecuencia de Medición |
 | --------------------------- | ------------------------------ | -------- | ---------------------- |
@@ -479,7 +479,7 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 | **Actualización de tareas** | Tareas actualizadas en ClickUp | Diario   | Diario                 |
 | **Resolución de bloqueos**  | Tiempo promedio de resolución  | <48h     | Semanal                |
 
-### Calidad y Riesgos
+##### Calidad y Riesgos
 
 | KPI                        | Métrica                             | Objetivo | Frecuencia de Medición |
 | -------------------------- | ----------------------------------- | -------- | ---------------------- |
@@ -487,9 +487,9 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 | **Incidencias críticas**   | Número de riesgos materializados    | 0        | Semanal                |
 | **Calidad de entregables** | % de entregables sin retrabajos     | 90%      | Por hito               |
 
-## Mecanismos de Recolección y Cálculo
+#### Mecanismos de Recolección y Cálculo
 
-### Herramientas de Monitoreo
+#####  Herramientas de Monitoreo
 
 1. **ClickUp**: Seguimiento automático de tareas, tiempos y estados
 2. **Slack**: Métricas de comunicación y tiempo de respuesta
@@ -761,7 +761,125 @@ Definir prácticas de manejo de códio (OWASp, Clean Code, Twelve-Factor App), y
 
 ### 2.3 Sistema de Versionamiento
 
-que sistema de versionamiento se usará y ramas (Git Flow, GitHub Actions, Terraform,)
+Para el versionamiento de los distintos componentes de Data Pura Vida manejaremos un solo repositorio en GitHub, utilizando una enfoque de GitHub Flow con las siguientes ramas:
+
+- main: rama estable lista para production.
+
+- dev: rama de integración en ella se corren los tests 
+
+- feature/*: son ramas efímeras en las que se desarrolla una característica en específico
+
+- fix/*: son ramas efímeras en las que se solventan  hotfixes o bugs.
+
+A continuación, esta será la estructura del repositorio:
+
+``` bash
+/data-pura-vida/
+├── components/
+│   ├── bioregistro-verde/
+│   ├── la-boveda/
+│   ├── ingestor/
+│   ├── motor-de-transformacion/
+│   ├── centro-de-visualizacion-y-consumo/
+│   │   ├── generador-de-dashboards/
+│   │   ├── consumo-para-ia/
+│   │   └── visualización-consumo/
+│   ├── marketplace/
+│   └── backoffice/
+├── shared/
+│   ├── utils/
+│   └── auth/
+├── infra/
+│   └── terraform/
+├── .github/
+│   └── workflows/
+└── docker-compose.yml
+```
+
+- En la carpeta de components estarán albergados todos los componentes del sistema, junto con sus subcomponentes.
+
+- El el directorio de shared se encontrarán librerias y herramientas comunes a todos los componentes.
+
+- En terraform/ estará la estructura para el despliegue en AWS, todo cambio al app para poder verse reflejado en el cloud provider debe pasar por acá.
+
+ejemplos de archivos en terraform son:
+
+``` hcl 
+
+# provider.tf, para poner la metada del cloud provider 
+provider "aws" {
+  region = "us-east-1"
+}
+
+# s3.tf, para crear un bucket de S3
+resource "aws_s3_bucket" "react_app_bucket" {
+  bucket = "mi-bucket-react-app-unique-1234"
+  acl    = "public-read"
+}
+
+# eks.tf, para crear un cluster de EKS
+module "eks" {
+  source          = "terraform-aws-modules/eks/aws"
+  cluster_name    = "mi-cluster-eks"
+  cluster_version = "1.27"
+
+  subnets         = ["subnet-12345", "subnet-67890"] # las subnets donde va el cluster
+  vpc_id          = "vpc-abcde123"
+
+  node_groups = {
+    default = {
+      desired_capacity = 2
+      max_capacity     = 3
+      min_capacity     = 1
+
+      instance_type = "t3.medium"
+    }
+  }
+}
+
+```
+- En .github/ estarán ubicados los pipelines de GitHub Actions. Definirá las reglas de despliegue del app, por ejmplo, cuando se haga un push a main de cierto componente, se encargará de prepararlo y hacer su deploy al cloud provider. A continuación un ejemplo de un pipeline que monta un microservicio en EKS:
+
+``` yaml 
+name: Deploy-Microservice
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Terraform Init and Apply
+      working-directory: ./terraform/bioregistro-verde
+      run: |
+        terraform init
+        terraform apply -auto-approve
+
+    - name: Build Docker image
+      run: |
+        docker build -t ${{ secrets.ECR_REPO_URI }}/bioregistro-verde:latest .
+        aws ecr get-login-password | docker login --username AWS --password-stdin ${{ secrets.ECR_REPO_URI }}
+        docker push ${{ secrets.ECR_REPO_URI }}/bioregistro-verde:latest
+
+    - name: Deploy to EKS
+      run: |
+        helm upgrade --install bioregistro-verde ./charts/bioregistro-verde \
+        --set image.repository=${{ secrets.ECR_REPO_URI }}/bioregistro-verde \
+        --set image.tag=latest
+```
+
 
 ### 2.4 Sistemas de Teceros
 
