@@ -771,6 +771,9 @@ Para el versionamiento de los distintos componentes de Data Pura Vida manejaremo
 
 - fix/*: son ramas efímeras en las que se solventan  hotfixes o bugs.
 
+Todo cambio realizado en las ramas de feature y hotfix, una vez estén listos, se deben fusionar a la rama dev, donde se ejecutarán las pruebas correspondientes. Luego, cuando todo esté aprobado, se harán merge a la rama main para que se realice el despliegue a producción.
+
+
 A continuación, esta será la estructura del repositorio:
 
 ``` bash
