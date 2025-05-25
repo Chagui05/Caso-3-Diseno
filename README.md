@@ -125,7 +125,7 @@ El blueprint cubre tanto las acciones visibles para el usuario institucional com
 5. Publicación: El dataset queda disponible para actores autorizados mediante pago.
 6. Seguimiento: La institución consulta métricas de acceso y consumo.
 
-#falta la imagen
+![alt text](img/journey2.png)
 
 
 ### 1.5 Plan de ejecución del proyecto 
