@@ -770,19 +770,17 @@ Se describen los principales
 - Protocolos de Autenticación 
   - OAuth2: Protocolo estándar que será utilizado para la autorización segura entre los componentes del frontend y backend, así como para acceso de terceros a APIs protegidas
   - JWT (Json web token): Para la transmisión segura de credenciales y validación de sesiones dentro del ecosistema, especialmente útil en el acceso a dashboards, APIs y servicios personalizados. 
+  - MFA: Es la autenticación multifactor mediante integración con servicios externos como Google Autheticator, Auth0 para asegurar una autenticación robusta y fortalecer los proceso de login y administración de cuentas.
 
 - Verificación de identidad y Seguridad 
   - SumSub: Plataforma externa utilizada para la verificación de identidad (KYC), para validación documental automatica y prueba de vida para personas físicas y representantes institucionales 
-  - MFA: Es la autenticación multifactor mediante integración con servicios externos como Google Autheticator, Auth0 para asegurar una autenticación robusta. 
+ 
 
-- Conectividad 
-  - APIs externas: La plataforma podrá conectarse a bases de datos, APIs REST y servicios de terceros para facilitar la obtención automatizada de datasets 
-  - Stripe: Sistema externo para la gestión de pagos electrónicos por acceso a datasets privados o monetizados
-  - API Gateway: AWS, Kong para controlar y asegurar el acceso a servicios expuestos a usuarios y sistemas externos 
+-Cloud Provider General 
+  - AWS: Plataforma en la nube seleccionada para desplegar componentes de la solución. Se utilizarán servicios específicos de AWS para hosting, bases de datos, control de acceos, colas de eventos, API exposure y otros detallados más adelante.
 
 - Inteligencia Artificial y Recomendaciones
   - HiggingFace / GPT Recommender: Se explorar diferentes integraciones para ofrecer recomendaciones de datasets relevantes a los usuarios mediante modelos preentrenados 
-  - Estalisearch: Motor de búsqueda semántico utilizado como intermediario para búsquedas temáticas y sugerencias. 
 
 ### 2.5 Aspectos de Calidad/SLA
 
