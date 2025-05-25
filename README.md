@@ -757,7 +757,119 @@ La implementación de **Data Pura Vida** no solo debe enfocarse en la funcionali
 
 ### 2.2 Prácticas de Manejo de Código
 
-Definir prácticas de manejo de códio (OWASp, Clean Code, Twelve-Factor App), y como las implemtaremos
+Para garantizar que el código fuente de Data Pura Vida sea seguro, mantenible y escalable, se adoptan tres marcos principales de buenas prácticas:
+#### 1. OWASP Secure Coding Practices
+Basados en los estándares de OWASP Top 10 y OWASP ASVS:
+
+- Validación de entradas: 
+    - Se realiza con el objetivo de que solo los datos parametrizados correctamente entren al workflow de Data Pura Vida. 
+    - Se evita que malformaciones de datos entren en las bases de datos y realicen un efecto en cadena de malfuncionamientos.
+
+- Control de acceso y privilegios mínimos: 
+    - El objetivo es asegurar que cada usuario solo tenga acceso a los recursos estrictamente necesarios para cumplir su función. 
+    - Se evitará la acumulación de privilegios innecesarios a lo largo del tiempo mediante revisiones periódicas.
+    - Todas las solicitudes serán validadas en el backend, independientemente de su origen. 
+    - En lugar de depender exclusivamente de roles (RBAC) también se hara el uso de ABAC (Attribute-Based Access Control).
+
+- Almacenamiento y transmisión segura: 
+    - Todos los datos sensibles serán cifrados en tránsito mediante TLS 1.3 y en reposo mediante AES-256.
+	- **TLS 1.3 (Transport Layer Security):** protocolo criptográfico utilizado para proteger los datos en tránsito entre el cliente y el servidor. Asegura la confidencialidad e integridad de la información, evitando ataques de MITM(Man in the middle).
+        - **AES-256 (Advanced Encryption Standard):** algoritmo de cifrado simétrico que se usa para proteger los datos almacenados en el sistema. Utiliza una clave de 256 bits, lo que lo hace extremadamente resistente a ataques de fuerza bruta. Es uno de los estándares más seguros y reconocidos a nivel mundial.
+    - El sistema implementará gestión segura de llaves y almacenamiento segmentado para evitar accesos no autorizados, incluso desde el personal técnico.
+- Manejo seguro de errores: 
+    - Los mensajes de error visibles para el usuario serán genéricos, evitando revelar información del sistema.
+    - Los errores serán registrados en logs internos enmascarados, permitiendo análisis posterior sin comprometer datos sensibles.
+
+- Protección ante dependencias vulnerables: 
+    - Se integrará un escaneo automatizado de dependencias y librerías de terceros en el pipeline de CI/CD.
+    - Las versiones serán actualizadas de forma periódica y se restringirá el uso de paquetes sin mantenimiento o con vulnerabilidades conocidas.
+
+- Autenticación robusta: 
+    - El sistema implementará OAuth2 para autorización y JWT como mecanismo de sesión segura.
+        - **OAuth2 (Open Authorization 2.0):** es un protocolo de autorización que permite a una aplicación acceder a recursos en nombre del usuario sin necesidad de compartir sus credenciales.
+        - **JWT (JSON Web Token):** es un formato compacto y seguro para transmitir información entre partes como un objeto JSON firmado. Se usa para manejar sesiones de forma segura, ya que contiene los datos del usuario y sus permisos codificados y firmados digitalmente, lo que permite validar su autenticidad sin necesidad de consultar una base de datos en cada petición.
+    - Además, toda cuenta que acceda a áreas críticas deberá utilizar autenticación multifactor (MFA), y se exigirá prueba de vida y biometría en el registro de representantes legales.
+
+#### 2. Clean code
+
+El proyecto aplicará los principios fundamentales de Clean Code propuestos por Robert C. Martin y enriquecidos con buenas prácticas reconocidas de la industria, con el objetivo de asegurar un código legible, mantenible y confiable.
+
+**Principios clave aplicados:**
+
+- **Funciones pequeñas y específicas:** Cada función debe realizar una sola tarea de forma clara.
+
+- **Nombres claros y semánticos:** Variables, funciones y clases deben ser autodescriptivas.
+
+- **Evitar código innecesario:** Se eliminará código muerto o comentarios obvios.
+
+- **Regla del Boy Scout:** Dejar el código más limpio de como se encontró.
+
+- **Manejo explícito de errores:** Nunca se deben silenciar excepciones.
+
+- **Evitar condicionales complejos:** Preferir polimorfismo sobre if o switch.
+
+- **Separación vertical:** Agrupar código relacionado en bloques visuales cercanos.
+
+- **Ley de Demeter:** Cada clase solo debe conocer sus dependencias directas.
+
+**Implementación concreta en el proyecto:**
+
+- **Uso de linters y formatters:** Se utilizaran para validar estilo de código en cada lenguaje usado (ESLint, SonarQube, entre otros).
+
+- **Refactorización continua:** Esta práctica será integrada como una actividad habitual dentro del flujo de trabajo del equipo.
+
+- **Validaciones reutilizables:** Se implementarán middlewares específicos para validar tokens, estructura de datos y permisos, evitando duplicación de lógica (principio DRY: Don’t Repeat Yourself).
+
+- **Inyección de dependencias:** Los servicios críticos como cifrado, autenticación y conexión a base de datos se gestionarán por inyección de dependencias, lo que facilita el testing y desacopla las capas del sistema.
+
+- **Controladores REST claros:** Los endpoints de la API seguirán convenciones semánticas (`GET /datasets`, `POST /register`, etc.) y estarán separados en archivos por entidad, facilitando su lectura y mantenimiento.
+
+- **Nombres de funciones como verbos y de clases como sustantivos:**
+Por ejemplo: `validateInput()`, `encryptDataset()`, `DatasetUploader`, `IbanVerifier`.
+
+- **Uso de constantes centralizadas:** Valores como `MAX_UPLOAD_SIZE_MB`, `SUPPORTED_FORMATS`, `DEFAULT_LANGUAGE` estarán definidos en archivos de configuración o constantes globales.
+
+- **Errores bien definidos y gestionados:** Todos los errores tendrán estructuras estandarizadas `({code, message, details})` y serán manejados con `try/catch` en backend, registrando trazas seguras en logs sin exponer detalles internos al usuario.
+
+Estas prácticas no solo mejoran la calidad del software, sino que también reducen los costos de mantenimiento, facilitan las auditorías de seguridad y mejoran la experiencia del equipo de desarrollo durante todo el ciclo de vida del sistema.
+
+#### 3. The Twelve-Factor App
+El desarrollo de Data Pura Vida también se alinea con los principios del manifiesto Twelve-Factor App, con el objetivo de garantizar una arquitectura moderna, portable, escalable y apta para despliegues en la nube o entornos híbridos. A continuación se detallan los factores aplicados:
+
+1. **Código base:** El código está centralizado en un único repositorio de GitHub con control de versiones. Cada microservicio o módulo mantiene su propio namespace lógico.
+
+2. **Dependencias explícitas:** Se utiliza un package manager en cada stack (como npm, pip, o cargo) y un archivo de lock (package-lock.json, Pipfile.lock, etc.) para gestionar y auditar todas las dependencias.
+
+3. **Configuración separada:** Variables sensibles como claves de API, cadenas de conexión y llaves criptográficas se mantienen fuera del código, gestionadas mediante variables de entorno y servicios seguros de secretos (como AWS Secrets Manager o .env en desarrollo).
+
+4. **Servicios externos como recursos:** Todas las bases de datos, colas, y almacenamiento externo se consideran recursos gestionados a través de URLs o credenciales inyectadas dinámicamente, lo que permite su intercambio sin afectar el código.
+
+5. **Construcción, ejecución y publicación desacopladas:** Se definen pipelines de CI/CD que separan claramente la fase de build (npm run build), la fase de ejecución (node app.js) y el entorno de despliegue (Docker/OCI).
+
+6. **Procesos sin estado:** El backend es stateless. Toda la sesión del usuario se gestiona mediante JWT y los archivos temporales se almacenan en servicios externos como S3, no en disco local.
+
+7. **Vinculación de puertos:** Cada componente expone sus servicios por medio de puertos estándar (PORT=3000) facilitando integración y despliegue en contenedores.
+
+8. **Concurrencia:** Se utilizan workers y multiprocesamiento para escalar horizontalmente los módulos de procesamiento intensivo, como el motor de validación ETDL y el generador de dashboards.
+
+9. **Descarte rápido:** Las apps manejan señales del sistema operativo (SIGTERM, SIGINT) y liberan recursos como conexiones o archivos abiertos. Esto permite ciclos de despliegue seguros y rápidos.
+
+10. **Entornos de desarrollo y producción iguales:** Se utilizan contenedores (Docker) para asegurar que el código se ejecute de forma idéntica en desarrollo, staging y producción.
+
+11. **Logs como streams:** Los logs no se almacenan en archivos, sino que se emiten a stdout/stderr y se redirigen a herramientas de agregación como Elastic Stack o Grafana Loki.
+
+12. **Procesos administrativos como tareas one-off:** Scripts de migración, pruebas y carga inicial de datos se ejecutan como procesos independientes (npm run seed, python manage.py migrate), no embebidos en el ciclo de vida principal de la app.
+
+
+
+#### Buenas Prácticas Complementarias de Codificación Segura
+
+| Objetivo                         | Práctica                        | Aplicación |
+| --------------------------- | ------------------------------ | -------- |
+| **Visibilidad y detección**   | 	Logs + monitoreo en tiempo real      | 	Uso de Prometheus y Alertmanager para monitoreo     |
+| **Seguridad en dependencias**     | Escaneo continuo y alertas automáticas        | GitHub Dependabot activado    | 
+| **Gestión de secretos** | Manejo seguro de claves, tokens y credenciales | Uso de servicios como AWS Secrets Manager o archivos .env con acceso restringido   | 
+| **Protección de endpoints**  | CORS y rate-limiting  | Configuración estricta de origen cruzado (CORS) y límites de solicitudes por IP     | 
 
 ### 2.3 Sistema de Versionamiento
 
