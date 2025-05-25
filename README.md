@@ -918,34 +918,36 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 
 ## 4. Diseño de los componentes
 
-A conitnuación cada una de estas secciones fue sacada del punto 7 de los documentos del repo del profe, hace falta aplicar cada uno de estos para todos los componentes del sistema
+A conitnuación cada una de estas secciones fue sacada del punto 7 de los documentos del repo del profe, hace falta aplicar cada uno de estos para todos los componentes del sistema.
+
+Además cabe aclarar que cada sección no aplica necesariamente para todos los componentes. Por ejemplo, el motor de transformación no ocupa realmente una sección de frontend ya que toda su funcionalidad ocurre en el backend.
 
 ### Análisis del Componente
 
 ### Diseño de la Arquitectura
 
 - Diseño del Frontend
-- Que sistema de autenticación se usará
-- Como se llevará a cabo el KYC, y la verificación de identidad
-- Arquitectura del Client, N-Layer, Client Server, etc.
-- Componentes Visuales.
-- Patrones y Principios
-- Toolkkits y Standards
-- Estructura de carpetas del sistema
+ - Que sistema de autenticación se usará
+ - Como se llevará a cabo el KYC, y la verificación de identidad
+ - Arquitectura del Client, N-Layer, Client Server, etc.
+ - Componentes Visuales.
+ - Patrones y Principios
+ - Toolkkits y Standards
+ - Estructura de carpetas del sistema
 - Diseño del Backend
-- Definir porque el sistema tiene alta disponibilidad y como
-- Definir porque tiene monitoreo y como
-- Definir modelo de seguridad detallado: encriptación, auditoría, logging seguro.
-- REST, GraphQL, gRPC, Monolithic, or Monolithic-MVC?
-- Serverless, Cloud, On-Premise, or Hybrid?
-- Service vs. Microservices?
-- Event-Driven, Queues, Brokers, Producer/Consumer, Pub/Sub?
-- API Gateway (Security & Scalability)?
-- El de arquitectura considera donde sea necesario prácticas y patrones para AI. Unidad 8.
+ - Definir porque el sistema tiene alta disponibilidad y como
+ - Definir porque tiene monitoreo y como
+ - Definir modelo de seguridad detallado: encriptación, auditoría, logging seguro.
+ - REST, GraphQL, gRPC, Monolithic, or Monolithic-MVC?
+ - Serverless, Cloud, On-Premise, or Hybrid?
+ - Service vs. Microservices?
+ - Event-Driven, Queues, Brokers, Producer/Consumer, Pub/Sub?
+ - API Gateway (Security & Scalability)?
+ - El de arquitectura considera donde sea necesario prácticas y patrones para AI. Unidad 8.
 - Diseño de los Datos
-- Como funcionará el proceso ETDL
-- Usar como base el proyecto anterior
-- El diseño de datos considera donde sea necesario prácticas y patrones para AI. Unidad 8.
+ - Como funcionará el proceso ETDL
+ - Usar como base el proyecto anterior
+ - El diseño de datos considera donde sea necesario prácticas y patrones para AI. Unidad 8.
 
 ### Prototipado
 
