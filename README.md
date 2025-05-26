@@ -881,6 +881,116 @@ El desarrollo de Data Pura Vida también se alinea con los principios del manifi
 | **Gestión de secretos**       | Manejo seguro de claves, tokens y credenciales | Uso de servicios como AWS Secrets Manager o archivos .env con acceso restringido |
 | **Protección de endpoints**   | CORS y rate-limiting                           | Configuración estricta de origen cruzado (CORS) y límites de solicitudes por IP  |
 
+#### Validación automatizada de código
+
+Con el fin de reforzar las prácticas de codificación segura, mantenible y coherente, el proyecto Data Pura Vida adoptará una estrategia de validación automatizada. Esta estrategia abarcará tanto el estilo y la calidad del código como la seguridad y el cumplimiento de reglas internas de desarrollo.
+
+**1. Linter personalizado y estilización de código:**
+
+- Se usará `ESLint` como base para código en Node.js, incorporando lo siguiente:
+
+  - Principios de Clean Code.
+
+  - Recomendaciones OWASP para codificación segura.
+
+  - Reglas adicionales generadas con ayuda de una IA especializada en refactorización.
+
+- Además, se incluirá `Prettier` para formateo del código. Las reglas podrán ser vistas en archivos con los siguientes formatos:
+
+  - `/.config/lint/eslintrc.js`
+
+  - `/docs/estandares-codigo.md`
+
+- A continuación, un ejemplo de un archivo `.eslintrc.js` que funciona para un proyecto Node.js:
+
+```js
+module.exports = {
+  root: true,
+  env: {
+    node: true,
+    es2021: true,
+  },
+  extends: [
+    "eslint:recommended",
+    "plugin:security/recommended", // OWASP rules
+    "airbnb-base", // Airbnb style guide
+    "plugin:prettier/recommended",
+  ],
+  plugins: ["security", "prettier"],
+  parserOptions: {
+    ecmaVersion: 12,
+    sourceType: "module",
+  },
+  rules: {
+    // --- Clean Code ---
+    "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+    "no-console": "warn",
+    "prefer-const": "error",
+    "no-magic-numbers": ["warn", { ignore: [0, 1, -1], enforceConst: true, detectObjects: false }],
+    "consistent-return": "error",
+    "no-else-return": "error",
+
+    // --- Seguridad (OWASP & buenas prácticas) ---
+    "security/detect-object-injection": "warn",
+    "security/detect-non-literal-fs-filename": "warn",
+    "security/detect-eval-with-expression": "error",
+    "security/detect-buffer-noassert": "error",
+
+    // --- Legibilidad y mantenibilidad ---
+    "max-lines": ["warn", { max: 300, skipBlankLines: true, skipComments: true }],
+    "max-depth": ["warn", 4],
+    "complexity": ["warn", 10],
+    "camelcase": "error",
+    "newline-before-return": "warn",
+
+    // --- Estilo general (Airbnb + Prettier) ---
+    "prettier/prettier": [
+      "error",
+      {
+        printWidth: 100,
+        semi: true,
+        singleQuote: true,
+        trailingComma: "es5",
+        arrowParens: "always",
+      },
+    ],
+
+    // --- Reglas adaptadas al proyecto Data Pura Vida ---
+    "no-param-reassign": ["error", { props: true }],
+    "import/order": [
+      "warn",
+      {
+        groups: [["builtin", "external"], "internal", "parent", "sibling", "index"],
+        "newlines-between": "always",
+      },
+    ],
+  },
+  overrides: [
+    {
+      files: ["*.test.js", "*.spec.js"],
+      env: {
+        jest: true,
+      },
+    },
+  ],
+};
+
+```
+
+**2. Análisis de calidad y seguridad del código:**
+
+- Se integrará `SonarQube` para análisis estático continuo del código.
+- Su uso será para detectar usos inseguros de variables de entorno, errores de autenticación, entre otros.
+
+**3. Validación de dependencias:**
+
+- Se hará uso de `Dependabot` para revisar librerías vulnerables.
+- En estas validaciones se revisan versiones desactualizadas o inseguras de paquetes, licencias incompatibles con el proyecto, paquetes abandonados, entre otros.
+
+
+
+
+
 ### 2.3 Sistema de Versionamiento
 
 Para el versionamiento de los distintos componentes de Data Pura Vida manejaremos un solo repositorio en GitHub, utilizando una enfoque de GitHub Flow con las siguientes ramas:
