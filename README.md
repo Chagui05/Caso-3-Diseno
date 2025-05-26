@@ -1034,7 +1034,8 @@ Para garantizar que Data Pura Vida funcione exitosamente como ecosistema naciona
 
 La escalabilidad es la capacidad del sistema para manejar un crecimiento progresivo de usuarios, datos y transacciones sin que se degrade el rendimiento o la calidad del servicio.
 Data Pura Vida debe comenzar con las instituciones públicas principales y crecer gradualmente hasta servir a miles de usuarios simultáneos, incluyendo ciudadanos, empresas, organizaciones sociales y entidades gubernamentales. El sistema debe soportar desde datasets iniciales de unas pocas instituciones hasta volúmenes masivos de información nacional.
-Capacidades de crecimiento requeridas:
+
+**Capacidades de crecimiento requeridas:**
 
 - Soporte para miles de usuarios trabajando al mismo tiempo sin ralentización
 - Almacenamiento que puede expandirse desde gigabytes hasta terabytes de información
