@@ -926,7 +926,10 @@ module.exports = {
     "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
     "no-console": "warn",
     "prefer-const": "error",
-    "no-magic-numbers": ["warn", { ignore: [0, 1, -1], enforceConst: true, detectObjects: false }],
+    "no-magic-numbers": [
+      "warn",
+      { ignore: [0, 1, -1], enforceConst: true, detectObjects: false },
+    ],
     "consistent-return": "error",
     "no-else-return": "error",
 
@@ -937,10 +940,13 @@ module.exports = {
     "security/detect-buffer-noassert": "error",
 
     // --- Legibilidad y mantenibilidad ---
-    "max-lines": ["warn", { max: 300, skipBlankLines: true, skipComments: true }],
+    "max-lines": [
+      "warn",
+      { max: 300, skipBlankLines: true, skipComments: true },
+    ],
     "max-depth": ["warn", 4],
-    "complexity": ["warn", 10],
-    "camelcase": "error",
+    complexity: ["warn", 10],
+    camelcase: "error",
     "newline-before-return": "warn",
 
     // --- Estilo general (Airbnb + Prettier) ---
@@ -960,7 +966,13 @@ module.exports = {
     "import/order": [
       "warn",
       {
-        groups: [["builtin", "external"], "internal", "parent", "sibling", "index"],
+        groups: [
+          ["builtin", "external"],
+          "internal",
+          "parent",
+          "sibling",
+          "index",
+        ],
         "newlines-between": "always",
       },
     ],
@@ -974,7 +986,6 @@ module.exports = {
     },
   ],
 };
-
 ```
 
 **2. Análisis de calidad y seguridad del código:**
@@ -986,10 +997,6 @@ module.exports = {
 
 - Se hará uso de `Dependabot` para revisar librerías vulnerables.
 - En estas validaciones se revisan versiones desactualizadas o inseguras de paquetes, licencias incompatibles con el proyecto, paquetes abandonados, entre otros.
-
-
-
-
 
 ### 2.3 Sistema de Versionamiento
 
@@ -1138,44 +1145,135 @@ Se describen los principales
 
 ### 2.5 Aspectos de Calidad/SLA
 
-Para garantizar que Data Pura Vida funcione exitosamente como ecosistema nacional de datos de Costa Rica, se establecen cinco aspectos de calidad fundamentales que guiarán el diseño y operación del sistema.
+Para garantizar que **Data Pura Vida** funcione exitosamente como ecosistema nacional de datos de Costa Rica, se establecen cinco aspectos de calidad fundamentales con implementaciones técnicas específicas que guiarán el diseño y operación del sistema.
 
-#### 2.5.1 Escalabilidad
+---
+
+## **2.5.1 Escalabilidad**
 
 La escalabilidad es la capacidad del sistema para manejar un crecimiento progresivo de usuarios, datos y transacciones sin que se degrade el rendimiento o la calidad del servicio.
+
 Data Pura Vida debe comenzar con las instituciones públicas principales y crecer gradualmente hasta servir a miles de usuarios simultáneos, incluyendo ciudadanos, empresas, organizaciones sociales y entidades gubernamentales. El sistema debe soportar desde datasets iniciales de unas pocas instituciones hasta volúmenes masivos de información nacional.
 
-**Capacidades de crecimiento requeridas:**
+### **Capacidades de crecimiento requeridas:**
 
 - Soporte para miles de usuarios trabajando al mismo tiempo sin ralentización
 - Almacenamiento que puede expandirse desde gigabytes hasta terabytes de información
 - Procesamiento capaz de manejar cientos de datasets nuevos diariamente durante períodos de alta actividad
 - Cobertura nacional con tiempos de respuesta rápidos desde cualquier provincia
 
-**Mecanismos de escalabilidad:**
+### **Configuraciones técnicas específicas para escalabilidad:**
+
+**Balanceador de Carga y Gateway:**
+El sistema utilizará un balanceador de carga configurado en la infraestructura cloud de AWS con parámetros específicos para garantizar distribución eficiente del tráfico:
+
+- Configuración en 2 zonas de disponibilidad con verificaciones de salud cada 60 segundos
+- Capacidad de 500 solicitudes por segundo por instancia con escalado automático hasta 6 instancias
+- Tiempo límite de 30 segundos para solicitudes normales, 600 segundos para cargas de datasets grandes
+- Terminación SSL con TLS 1.3 y certificados renovados cada 6 meses
+
+**Gestión de Conexiones y Concurrencia:**
+Para manejar múltiples usuarios simultáneos, se implementará un sistema de agrupación de conexiones a base de datos:
+
+- Agrupación con mínimo 3 conexiones activas, máximo 12 conexiones por servicio
+- Tiempo límite de conexión de 45 segundos, tiempo límite de adquisición de 90 segundos
+- Tiempo límite inactivo de 60 segundos para liberar conexiones no utilizadas
+- Tiempo límite de conexión de 10 segundos para establecimiento de nuevas conexiones
+
+**Estrategia de Caché Multicapa:**
+El almacenamiento temporal de datos frecuentemente accedidos mejorará el rendimiento mediante:
+
+- **Nivel 1 - Caché de Aplicación**: Caché en memoria con tiempo de vida de 15 minutos
+- **Nivel 2 - Caché Distribuido**: Tecnología de caché distribuido a definir en Stack Tecnológico
+- **Nivel 3 - Caché de Base de Datos**: Optimización a nivel de base de datos
+- Tiempo de vida específico por tipo de dato: usuarios (2 horas), metadatos de datasets (8 horas), validaciones (48 horas)
+
+**Procesamiento de Datos con Inteligencia Artificial:**
+Para el Motor ETDL (Extracción, Transformación y Carga) que utiliza inteligencia artificial, se configurarán colas de procesamiento:
+
+- Cola tipo FIFO (Primero en Entrar, Primero en Salir) para garantizar orden en procesamiento
+- Tiempo límite de visibilidad de 30 minutos (tiempo máximo de procesamiento por dataset)
+- Retención de mensajes de 7 días para reintento de fallos
+- Tamaño de lote de 5 mensajes por procesamiento para eficiencia
+- Máximo 3 datasets procesándose simultáneamente para evitar sobrecarga
+
+**Control de Concurrencia para Inteligencia Artificial:**
+Dado que modificar el diseño de modelos concurrentemente es peligroso, se implementarán semáforos y procesamiento asíncrono:
+
+- Semáforo único para modificaciones concurrentes del modelo de datos
+- Solo 1 modificación de esquema simultánea permitida
+- Tiempo límite de 60 minutos para operaciones de modificación de modelo
+- Cola de espera para modificaciones pendientes con prioridad FIFO
+
+### **Mecanismos de escalabilidad:**
+
 El sistema utilizará escalado automático, que significa que cuando detecta mayor actividad, automáticamente asigna más recursos computacionales (servidores adicionales) para mantener el rendimiento. Cada componente puede crecer independientemente según su demanda específica, y el sistema se optimiza continuamente basándose en los patrones de uso reales de los costarricenses.
 
-#### 2.5.2 Mantenibilidad
+---
+
+## **2.5.2 Mantenibilidad**
 
 La mantenibilidad se refiere a la facilidad con que el sistema puede ser actualizado, corregido y mejorado a lo largo del tiempo sin interrumpir el servicio a los usuarios.
+
 Un sistema nacional debe poder evolucionar constantemente. Las regulaciones cambian, las necesidades del país se transforman, y la tecnología avanza. Data Pura Vida debe adaptarse a estos cambios sin afectar su operación diaria.
 
-**Compromisos de mantenibilidad:**
+### **Compromisos de mantenibilidad:**
 
 - Resolución de problemas críticos en máximo cuatro horas
 - Implementación de mejoras sin interrumpir el servicio a usuarios
 - Capacidad de revertir cambios problemáticos en menos de quince minutos
 - Monitoreo proactivo que detecta problemas antes de que afecten a los usuarios
 
-**Estrategias de mantenimiento:**
+### **Configuraciones técnicas específicas para mantenibilidad:**
+
+**Sistema de Monitoreo Integrado:**
+La observabilidad es la capacidad de entender el estado interno del sistema basándose en los datos que produce:
+
+- **Métricas**: Retención de 15 días con resolución de 30 segundos para métricas críticas
+- **Registros**: Retención de 30 días con compresión automática después de 3 días
+- **Trazas**: Seguimiento de solicitudes entre componentes para depuración
+- **Alertas**: 25 reglas configuradas para diferentes umbrales críticos del sistema
+- **Herramientas**: Stack de monitoreo a definir en Stack Tecnológico
+
+**Integración Continua y Despliegue Continuo:**
+La práctica de integrar código frecuentemente y desplegarlo automáticamente incluye:
+
+- **GitHub Actions**: Pipelines automatizados según la estructura definida en .github/workflows/
+- **Terraform**: Infraestructura como código para despliegue en AWS según /infra/terraform/
+- **Estrategia de Despliegue**: Estrategia de despliegue seguro a definir en Stack Tecnológico
+- Pruebas automáticas con cobertura mínima del 70% antes de despliegue
+- Construcción y empaquetado de aplicaciones con etiquetado por commit SHA
+- Verificación de salud automática con tiempo límite de 5 minutos antes de activación
+
+**Migraciones de Base de Datos:**
+Los scripts que permiten evolucionar la estructura de la base de datos de forma controlada:
+
+- Scripts de migración versionados con nomenclatura estándar
+- Reversión automática si la migración falla
+- Validación con verificación de suma de comprobación en cada despliegue
+- Respaldo automático antes de cada migración crítica
+- **Herramienta**: Sistema de migración a definir según tecnología de base de datos seleccionada
+
+**Estrategia de Reversión:**
+
+- Reversión automática a revisión anterior en caso de fallo
+- Tiempo límite configurado a 10 minutos máximo para reversión completa
+- Preservación de últimas 5 revisiones para reversión selectiva
+- Scripts de reversión semiautomáticos para cambios de base de datos
+
+### **Estrategias de mantenimiento:**
+
 El sistema utiliza una arquitectura modular, lo que significa que cada componente puede actualizarse independientemente sin afectar los demás. Los despliegues son automatizados con validación previa, y existe documentación que se actualiza automáticamente. El sistema incluye observabilidad completa, que es la capacidad de monitorear en tiempo real el rendimiento, errores y patrones de uso.
 
-#### 2.5.3 Reutilización
+---
+
+## **2.5.3 Reutilización**
 
 La reutilización maximiza el aprovechamiento de cada funcionalidad desarrollada, permitiendo que sea utilizada en múltiples componentes del sistema para optimizar recursos y garantizar consistencia.
+
 Con recursos públicos limitados, cada desarrollo debe aprovecharse al máximo. Cuando se crea una funcionalidad para validar documentos costarricenses, esta debe servir para todo el sistema, no solo para una parte específica.
 
-**Componentes reutilizables principales:**
+### **Componentes reutilizables principales:**
 
 - Sistema de autenticación unificado que permite un solo acceso para toda la plataforma
 - Validadores específicos para documentos costarricenses (cédulas, IBAN, registros tributarios)
@@ -1183,64 +1281,258 @@ Con recursos públicos limitados, cada desarrollo debe aprovecharse al máximo. 
 - Herramientas de cifrado estandarizadas para protección de datos
 - APIs (interfaces de programación) comunes para integraciones con sistemas externos
 
-**Beneficios de la reutilización:**
+### **Configuraciones técnicas específicas para reutilización:**
+
+**Librerías Compartidas según estructura del repositorio:**
+Basándose en el directorio /shared/ definido en el README:
+
+- **shared/utils/**: Utilidades comunes para todos los componentes
+- **shared/auth/**: Sistema de autenticación unificado usando OAuth2 y JWT
+
+**OAuth2 (Autorización Abierta 2.0) y JWT (Token Web JSON):**
+OAuth2 es un protocolo de autorización que permite a aplicaciones obtener acceso limitado a cuentas de usuario:
+
+- Configuración con proveedores Google y Microsoft según requerimientos
+- Alcances: 'openid', 'profile', 'email' para información básica del usuario
+- URI de redirección configurado según ambiente de despliegue
+
+JWT es un estándar para transmitir información de forma segura entre partes como un objeto JSON firmado:
+
+- Expiración de 8 horas con renovación automática si el usuario está activo
+- Emisor específico 'data-pura-vida' con audiencia configurada para 'web', 'mobile', 'api'
+- Algoritmo de firma RS256 para validación de integridad con rotación de claves mensual
+
+**Autenticación Multifactor (MFA):**
+Método de autenticación que requiere múltiples formas de verificación de identidad:
+
+- **TOTP (Contraseña de Un Solo Uso Basada en Tiempo)**: Ventana de 3 períodos (90 segundos) para flexibilidad
+- **Integración con SumSub**: Según sistemas de terceros definidos para KYC (Conoce a Tu Cliente)
+- **Biometría**: Integración para prueba de vida en representantes legales
+- 8 códigos de respaldo generados automáticamente con posibilidad de regeneración
+- Códigos QR de 256x256 píxeles para mejor compatibilidad con dispositivos móviles
+
+**Plantillas de Infraestructura con Terraform:**
+Según directorio /infra/terraform/:
+
+- Módulos reutilizables para cada componente en /components/
+- Variables configurables para nombre, imagen, CPU y memoria
+- 2 réplicas por defecto con escalado automático configurado hasta 6 réplicas
+- Solicitudes de recursos de 250m CPU y 256Mi memoria por defecto
+- Límites de recursos de 1 CPU y 1Gi memoria máximo
+- Verificaciones de salud automáticas en endpoint /health con tiempo límite de 10 segundos
+
+### **Beneficios de la reutilización:**
 
 - Desarrollo significativamente más rápido al aprovechar funcionalidades ya construidas y probadas
 - Experiencia de usuario consistente en todos los componentes
 - Mantenimiento simplificado donde un cambio se propaga automáticamente
 - Mejora continua de la calidad a medida que los componentes se refinan con el uso
 
-#### 2.5.4 Eficiencia
+---
+
+## **2.5.4 Eficiencia**
 
 La eficiencia busca optimizar el uso de recursos computacionales y financieros para ofrecer el mejor rendimiento posible con el menor costo operativo, utilizando responsablemente los recursos públicos.
+
 El sistema debe proporcionar respuestas rápidas y una experiencia fluida mientras utiliza los recursos de manera inteligente, evitando desperdicios y optimizando costos.
 
-**Objetivos de eficiencia:**
+### **Objetivos de eficiencia:**
 
 - Tiempos de respuesta que los usuarios perciban como instantáneos para operaciones comunes
 - Uso óptimo de la capacidad de los servidores, manteniendo un balance eficiente
 - Almacenamiento inteligente con compresión automática para reducir costos
 - Escalado dinámico que ajusta recursos según la demanda real
 
-**Estrategias de optimización:**
+### **Configuraciones técnicas específicas para eficiencia:**
+
+**Optimización de Consultas de Base de Datos:**
+Optimización específica para La Bóveda, que debe almacenar datos en formato unificado independientemente del origen (relacional, documental, CSV, Excel):
+
+- **Particionado automático**: Organización por fecha para datasets históricos
+- **Índices optimizados**: Para búsquedas de texto completo en español (Costa Rica)
+- **Relaciones entre datasets**: Índices para columnas que relacionan datasets del ecosistema
+- **Trazabilidad completa**: Índices para auditoría de datos usados, no usados y descartados
+
+**Estrategia de Almacenamiento AWS:**
+Según proveedor cloud definido (AWS), se utilizarán servicios específicos de almacenamiento:
+
+- **Almacenamiento activo**: Para datos activos frecuentemente accedidos
+- **Almacenamiento tibio**: Para datos de acceso ocasional
+- **Almacenamiento frío**: Para archivo a largo plazo
+- **Almacenamiento de archivo**: Para archivo permanente
+- **Políticas de ciclo de vida**: Migración automática según antigüedad y patrones de acceso
+
+**Estrategia de Compresión específica para datasets:**
+
+- **LZ4**: Compresión rápida para datasets recientes (< 7 días) con proporción 2:1
+- **ZSTD**: Compresión alta para datasets archivados (> 30 días) con proporción 5:1
+- **BZIP2**: Máxima compresión para almacenamiento frío (> 1 año) con proporción 8:1
+- Migración automática según políticas de ciclo de vida de AWS
+
+**Gestión de Recursos:**
+Orquestación de contenedores según arquitectura seleccionada:
+
+- **Núcleos de CPU**: 12 en solicitudes totales, 24 núcleos de CPU en límites
+- **Memoria**: 24Gi en solicitudes totales, 48Gi memoria en límites
+- **Escalado automático**: Configurado por componente según tecnología seleccionada
+- **Disparadores de escalado**: CPU mayor a 75% o Memoria mayor a 85%
+- **Comportamiento de escalado**: Máximo 1 instancia por escalado hacia arriba cada 2 minutos, máximo 1 por escalado hacia abajo cada 5 minutos
+
+### **Estrategias de optimización:**
+
 El sistema implementa caché multicapa, que mantiene los datos más consultados en memoria de acceso rápido para respuestas inmediatas. Utiliza consultas optimizadas diseñadas para ser eficientes incluso con millones de registros, y compresión automática que reduce el espacio de almacenamiento sin pérdida de información. Incluye balanceo de carga inteligente que distribuye las consultas entre múltiples servidores para evitar sobrecargas.
 
-#### 2.5.5 Claridad y Gestión de Complejidad
+---
+
+## **2.5.5 Claridad y Gestión de Complejidad**
 
 La claridad asegura que un sistema técnicamente sofisticado sea comprensible y fácil de usar tanto para usuarios finales como para desarrolladores que lo mantienen.
+
 Data Pura Vida debe ocultar su complejidad técnica detrás de interfaces simples e intuitivas. Los usuarios no deben necesitar conocimiento técnico para aprovechar sus capacidades.
 
-**Principios de claridad:**
+### **Principios de claridad:**
 
 - Interfaces consistentes con navegación predecible y uniforme en toda la plataforma
 - Mensajes comprensibles que explican claramente qué está ocurriendo, especialmente en casos de error
 - Documentación automática que se mantiene actualizada sin intervención manual
 - Configuración organizada de forma lógica y comprensible
 
-**Gestión de complejidad:**
+### **Configuraciones técnicas específicas para claridad:**
+
+**Diseño de APIs (Interfaces de Programación):**
+API RESTful (Transferencia de Estado Representacional) es un estilo arquitectónico para diseñar interfaces web que permite la comunicación entre sistemas de forma sencilla:
+
+- **Endpoints semánticos**: /api/v1/datasets, /api/v1/users, /api/v1/dashboards
+- **Métodos HTTP**: GET (consultar), POST (crear), PUT (actualizar completo), PATCH (actualizar parcial), DELETE (eliminar)
+- **Códigos de Estado**: 200 (OK), 201 (Creado), 400 (Solicitud Incorrecta), 401 (No Autorizado), 404 (No Encontrado)
+- **Tipo de Contenido**: application/json para intercambio de datos
+- **Versionado**: /api/v1/ como prefijo para mantener compatibilidad hacia atrás
+
+**Manejo de Errores Estructurado:**
+
+- **Código semántico**: DATASET_NOT_FOUND, INVALID_CEDULA_FORMAT, UNAUTHORIZED_ACCESS
+- **Mensaje descriptivo**: En español para usuarios finales costarricenses
+- **Detalles técnicos**: Campo específico con error y valor esperado
+- **ID de Correlación**: Para seguimiento y depuración entre componentes
+- **Marca de Tiempo**: Formato ISO 8601 para consistencia internacional
+
+**Categorías de Error específicas para Costa Rica:**
+
+- **Errores de validación**: Formato de cédula costarricense, IBAN nacional, RTN
+- **Errores de autenticación**: MFA, biometría, prueba de vida
+- **Errores de autorización**: Permisos RBAC (Control de Acceso Basado en Roles), acceso por IP costarricense
+- **Errores de lógica de negocio**: Reglas específicas del ecosistema nacional de datos
+
+**Organización del Código:**
+Según estructura del repositorio definida:
+
+```
+/data-pura-vida/
+├── components/               # Cada componente independiente
+│   ├── bioregistro-verde/   # Máximo 200 líneas por archivo
+│   ├── la-boveda/           # Separación clara de responsabilidades
+│   ├── motor-de-transformacion/ # Funciones específicas para ETDL
+│   └── centro-de-visualizacion-y-consumo/
+├── shared/                  # Código reutilizable
+│   ├── utils/              # Utilidades comunes
+│   └── auth/               # Autenticación centralizada
+```
+
+**Estándares de Código Limpio:**
+
+- **Funciones**: Máximo 50 líneas, una responsabilidad específica
+- **Clases**: Principio de responsabilidad única, máximo 300 líneas
+- **Variables**: Nombres autodescriptivos en español/inglés según contexto
+- **Complejidad ciclomática**: Máximo 15 por función (moderadamente complejo)
+- **Documentación**: JSDoc para funciones públicas, comentarios en español para lógica compleja
+
+**Gestión de Configuración:**
+Configuración específica por ambiente:
+
+- **Desarrollo**: Configuración local con bases de datos de prueba
+- **Pruebas**: Ambiente de pruebas en AWS con datos simulados
+- **Producción**: Ambiente productivo con datos reales costarricenses
+- **Gestión de secretos**: Servicios AWS para credenciales sensibles
+- **Variables de ambiente**: Configuración específica por ambiente sin valores fijos en código
+
+### **Gestión de complejidad:**
+
 El sistema utiliza separación de responsabilidades, donde cada componente tiene una función específica y bien definida. Implementa abstracciones útiles que ocultan la complejidad técnica detrás de interfaces simples, y aplica patrones reconocibles con soluciones consistentes para problemas similares. Incluye escalamiento gradual que presenta funcionalidades básicas primero y avanzadas después.
 
-**Implementación práctica:**
+### **Implementación práctica:**
+
 Las APIs (interfaces de programación) utilizan nomenclatura semánticamente clara que explica exactamente qué hacen. El manejo de errores es estructurado, proporcionando mensajes que incluyen qué ocurrió y cómo solucionarlo. La arquitectura se organiza en capas claras que separan presentación, lógica de negocio y datos.
 
-#### 2.5.6 Compromisos Consolidados del Sistema
+---
 
-**Disponibilidad y Confiabilidad:**
+## **2.5.6 Métricas y SLAs Específicos**
 
-Data Pura Vida garantiza alta disponibilidad, manteniéndose operativo prácticamente todo el tiempo con interrupciones mínimas. En caso de problemas mayores, el sistema se restaura completamente en pocas horas. Mantiene integridad total de datos, asegurando que toda la información almacenada y procesada sea consistente y confiable.
+### **Métricas de Rendimiento alineadas con requerimientos**
 
-**Rendimiento y Capacidad:**
+**SLAs de Tiempo de Respuesta:**
 
-El sistema soporta miles de usuarios trabajando simultáneamente sin degradación del servicio. Proporciona tiempos de respuesta rápidos para todas las operaciones típicas y maneja grandes volúmenes de datos sin afectar el rendimiento. Durante períodos de alta actividad, puede procesar cientos de datasets nuevos por hora.
+- **Endpoints de API**: 95% de operaciones completadas en menos de 800ms
+- **Generación de Tableros**: Menos de 5 segundos para gráficos simples
+- **Carga de Datasets**: Máximo 30 minutos para procesamiento ETDL
+- **Operaciones de Búsqueda**: Menos de 3 segundos para búsquedas en español
 
-**Calidad y Mantenimiento:**
+**Tiempos de Procesamiento ETDL específicos:**
 
-Garantiza resolución rápida de problemas críticos y permite actualizaciones sin interrumpir el servicio. Mantiene alta cobertura de pruebas automatizadas para asegurar la calidad del código y documentación completa y actualizada de todas las funcionalidades.
+- **Datasets pequeños** (menor a 1MB): máximo 10 minutos de procesamiento
+- **Datasets medianos** (1-10MB): máximo 30 minutos
+- **Datasets grandes** (10-100MB): máximo 2 horas
+- **Datasets extra-grandes** (mayor a 100MB): máximo 8 horas con procesamiento por lotes
 
-**Monitoreo y Mejora Continua:**
+### **SLAs de Disponibilidad para ecosistema nacional**
 
-El sistema incluye monitoreo continuo que observa su funcionamiento las 24 horas, con alertas automáticas que notifican inmediatamente ante cualquier degradación del servicio. Implementa métricas de negocio para seguimiento de adopción, uso y satisfacción de usuarios, y mantiene auditoría completa con registro de todas las operaciones para cumplimiento regulatorio.
-Este framework de aspectos de calidad asegura que Data Pura Vida sea técnicamente sólido, operacionalmente eficiente y útil para servir como ecosistema nacional de datos de Costa Rica.
+**Disponibilidad del Sistema:**
+
+- **Sistema general**: 99.5% tiempo activo anual (máximo 43.8 horas inactivo/año)
+- **Bio Registro Verde**: 99.7% tiempo activo (componente crítico para acceso)
+- **La Bóveda**: 99.6% tiempo activo (almacenamiento central de datos)
+- **Centro Visualización**: 99.0% tiempo activo (menor criticidad, más tolerante a fallas)
+- **Ventana de mantenimiento**: Domingos 02:00-06:00 GMT-6 (horario costarricense)
+
+### **Planificación de Capacidad específico para Costa Rica**
+
+**Proyecciones de Crecimiento basadas en adopción nacional:**
+
+**Año 1 (Instituciones públicas principales):**
+
+- 25,000 usuarios registrados (funcionarios públicos y ciudadanos early adopters)
+- 5,000 datasets (datos de ministerios principales, TSE, BCCR)
+- 2TB almacenamiento (documentos básicos, bases de datos institucionales core)
+- 5M llamadas de API mensuales
+
+**Año 3 (Sector privado integrado):**
+
+- 100,000 usuarios (empresas medianas, algunas cámaras, organizaciones)
+- 25,000 datasets (expansión gradual con datos comerciales selectos)
+- 12TB almacenamiento (crecimiento orgánico con sector privado)
+- 25M llamadas de API mensuales
+
+**Año 5 (Ecosistema en maduración):**
+
+- 250,000 usuarios (adopción amplia pero no total)
+- 75,000 datasets (ecosistema robusto pero en crecimiento)
+- 50TB almacenamiento (volumen significativo de datos históricos)
+- 100M llamadas de API mensuales
+
+### **Aseguramiento de Calidad específica para Costa Rica**
+
+**Puertas de Calidad de Código:**
+
+- **Cobertura mínima**: 70% para código nuevo, 75% objetivo general
+- **Validaciones nacionales**: 85% cobertura para validadores de cédula, IBAN, RTN
+- **Cumplimiento de seguridad**: Cumplimiento básico Ley 8968, consideración GDPR e ISO 27001
+- **Internacionalización**: Soporte principal para español costarricense
+
+**Pruebas de Rendimiento específico:**
+
+- **Pruebas de carga**: 500 usuarios concurrentes (estimación conservadora)
+- **Pruebas de restricción geográfica**: Validación de acceso preferencial desde IPs costarricenses
+- **Recuperación ante desastres**: Tiempo de recuperación máximo 8 horas
+- **Integridad de datos**: 98% integridad en transferencias entre componentes (tolerancia a errores menores)
 
 ## 3. Stack Tecnológico
 
