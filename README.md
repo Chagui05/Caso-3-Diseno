@@ -112,7 +112,6 @@ Requerimientos:
 - El componente debe permitir únicamente IPs costarricenses en el registro
 - El sistema debe proteger las claves generadas mediante un esquema de llave tripartita, distribuidas entre Data Pura Vida y dos custodios.
 
-
 ##### La Bóveda
 
 La Bóveda es el almacén central de datos del sistema, diseñado para ser seguro, escalable y auditable. Unifica todos los datos cargados, sin importar su formato de origen, y permite relaciones entre datasets. Cifra la información en tránsito y reposo, controla el acceso por roles y entidades, y mantiene trazabilidad completa del uso y movimientos de los datos. Está pensada para soportar millones de registros con alto rendimiento y cumplir estándares de gobierno de datos.
@@ -136,11 +135,11 @@ Requerimientos:
 
 Este módulo permite a los usuarios cargar sus datasets a la plataforma. Desde acá pueden definir qué datos desean cifrar, especificar el formato de origen y configurar otros parámetros clave para asegurar que la carga se procese correctamente.
 
-Requerimientos: 
+Requerimientos:
 
 - Permitir a los usuarios decidir qué datos compartir dentro del ecosistema.
 - Requerir que cada dataset tenga un nombre único.
-- Soportar múltiples métodos de carga de datos: archivos Excel, CSV, JSON, APIs y conexiones directas a bases de datos SQL y NoSQL. 
+- Soportar múltiples métodos de carga de datos: archivos Excel, CSV, JSON, APIs y conexiones directas a bases de datos SQL y NoSQL.
 - Requerir nombre, descripción y metadata útil para IA sobre las columnas del dataset.
 - Permitir configurar los parámetros de conexión de forma cifrada para cada medio de carga.
 - Los parámetros de conexión de bases de datos y APIs deben almacenarse de forma cifrada.
@@ -153,12 +152,11 @@ Requerimientos:
 - Configurar parámetros para carga por deltas: campos diferenciales, frecuencia (timed pull) o mediante callbacks.
 - Habilitar control granular de acceso por institución, persona o grupo.
 
-
 ##### Módulo de transformación de datos / posibles nombres: Motor de Transformación, Procesador ETDL
 
 Este módulo es clave para garantizar que los datasets se almacenen correctamente en la Bóveda. Se encarga de recibir datos desde distintas fuentes, validar que el formato coincida con el indicado en el formulario de ingesta y, en caso contrario, rechazar la carga. Una vez superada esta validación, aplica todo el proceso de ETDL y mapea los datos al formato interno de la Bóveda.
 
-Requerimientos: 
+Requerimientos:
 
 - Validar el formato, estructura y contenido de cada dataset cargado sea correcto, o bien adaptarlo al interno de la Bóveda (formatos de fecha, booleans, etc.).
 - Validar el formato, estructura y contenido de cada dataset cargado coincida con lo especificado en el proceso de carga.
@@ -174,10 +172,10 @@ Requerimientos:
 
 Este módulo está compuesto por 3 subcomponentes clave:
 
-
 1. **Generador de dashboards**: permite a los usuarios diseñar y crear gráficos de forma rápida y amigable para visualizar cualquier dataset.
 
 Requerimientos:
+
 - El sistema debe permitir la construcción de dashboards personalizados de forma manual.
 - El sistema debe permitir construir dashboards manualmente o mediante prompts inteligentes que generen visualizaciones automáticas.
 - El sistema debe permitir representar visualmente los datos en tablas, gráficos, conteos, tendencias y predicciones.
@@ -188,6 +186,7 @@ Requerimientos:
 2. **Visualización y Consumo**: ofrece una interfaz para revisar esas visualizaciones y realizar análisis de datos directamente sobre los dashboards.
 
 Requerimientos:
+
 - El sistema debe permitir visualizar todos los datasets accesibles como una fuente consolidada.
 - El sistema debe bloquear toda exportación directa de datos y gráficos desde el portal.
 - El sistema debe mostrar datos de forma preliminar en modo de construcción de dashboard y luego con datos reales al ejecutar consultas
@@ -198,13 +197,13 @@ Requerimientos:
 - La visualización de datos debe realizarse exclusivamente dentro del portal, sin opciones de exportación, captura o embedding externo.
 - Los límites de consumo deben aplicarse en tiempo real, sin permitir bypasses o reintentos abusivos.
 
-3. **Consumo para IA**: Este subcomponente es el regulador de consumo de IA, define límites y los métodos de ingesta disponibles desde el sistema para los usuarios. 
+3. **Consumo para IA**: Este subcomponente es el regulador de consumo de IA, define límites y los métodos de ingesta disponibles desde el sistema para los usuarios.
 
 Requerimientos:
 
 - El sistema debe permitir el acceso sistema a sistema únicamente para alimentar modelos de IA aprobados.
 - La entrega de datos para modelos de IA debe ser monitoreada, registrada y limitada a contextos aprobados explícitamente por Data Pura Vida.
-- El sistema debe ofrecer plataformas limitadas y controladas para esta alimentación de IA. Solo permitirá 2 por usuario. 
+- El sistema debe ofrecer plataformas limitadas y controladas para esta alimentación de IA. Solo permitirá 2 por usuario.
 - El sistema debe minimizar al máximo el riesgo de descargas indirectas mediante presunción de uso en IA.
 - Los datos deben ser envíados en un formato que no permita poder ser desencriptado para otro uso que no sea alimentar IA (por ejemplo uso de embeddings).
 
@@ -220,11 +219,10 @@ Requerimientos:
 - Soportar múltiples métodos de pago: tarjeta de crédito, débito y otros mecanismos nacionales compatibles.
 - Mostrar confirmaciones de transacción y activar el acceso según condiciones (tiempo, volumen, frecuencia).
 - El sistema debe mostrar opciones para renovar o ampliar los paquetes de acceso en caso de superar el límite.
- 
 
 ##### Backoffice Administrativo
 
-Este módulo concentra las herramientas de backoffice necesarias para la gestión integral de la plataforma. Su enfoque está en el control, la seguridad, la gobernanza de datos y la trazabilidad completa de las operaciones. 
+Este módulo concentra las herramientas de backoffice necesarias para la gestión integral de la plataforma. Su enfoque está en el control, la seguridad, la gobernanza de datos y la trazabilidad completa de las operaciones.
 
 Requerimientos:
 
@@ -242,7 +240,7 @@ Requerimientos:
 - Debe ofrecer una interfaz robusta y segura solo para personal autorizado.
 - Debe permitir gestión flexible pero estricta de accesos y configuraciones.
 
-#### Prototipado 
+#### Prototipado
 
 Se desarrolló un prototipo funcional de la página del Bioregistro Verde con el objetivo principal de probar el comportamiento de los formularios dinámicos. Este prototipo no incluye procesos de prueba de vida ni captura de datos biométricos, y tampoco recolecta la información final que se almacenará en el sistema definitivo. Su propósito es demostrar, a alto nivel, cómo el formulario se adapta dinámicamente según las selecciones del usuario.
 
@@ -264,7 +262,6 @@ Además, se adjunta el proceso de registar compañía pública:
 ![alt text](img/orgPub3.png)
 ![alt text](img/orgPub4.png)
 ![alt text](img/orgPub5.png)
-
 
 Si deseá probar el prototipo visite el siguiente [link](https://gentle-signup-wizard.lovable.app/).
 
@@ -352,6 +349,7 @@ Como parte del análisis inicial del sistema **Data Pura Vida**, se realizó una
 Esta representación facilita el entendimiento general del sistema y servirá como base para la posterior descomposición en subsistemas, componentes funcionales y diseño arquitectónico detallado.
 
 #### Propósito del diagrama
+
 - **Identificación de límites del sistema:** El diagrama establece una frontera clara entre lo que está dentro y fuera del alcance del desarrollo, lo cual es crucial para evitar ambigüedades durante el diseño detallado.
 
 - **Visualización de los actores externos:** Permite entender quiénes interactúan con el sistema y con qué propósito.
@@ -359,6 +357,7 @@ Esta representación facilita el entendimiento general del sistema y servirá co
 - **Detección de puntos de integración:** Ayuda a anticipar necesidades de interoperabilidad, seguridad, formatos de intercambio de datos y protocolos de comunicación.
 
 #### Consideraciones adicionales
+
 Este diagrama será utilizado como punto de partida para:
 
 - La descomposición en subsistemas o módulos funcionales, agrupando responsabilidades afines.
@@ -489,7 +488,7 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 
 #### Mecanismos de Recolección y Cálculo
 
-#####  Herramientas de Monitoreo
+##### Herramientas de Monitoreo
 
 1. **ClickUp**: Seguimiento automático de tareas, tiempos y estados
 2. **Slack**: Métricas de comunicación y tiempo de respuesta
@@ -502,7 +501,6 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 
 Para el proyecto "Data Pura Vida", la revisión de estándares y regulaciones nacionales e internacionales es crucial para garantizar la legalidad, seguridad, privacidad y gobernanza de los datos. A continuación, se detalla la relevancia de cada una de las normativas mencionadas y cómo se aplican a los requerimientos de la plataforma:
 
-
 #### 1. Ley 8968 (Costa Rica) - Ley de Protección de la Persona frente al Tratamiento de sus Datos Personales
 
 Esta es la normativa nacional fundamental que rige la protección de datos personales en Costa Rica. "Data Pura Vida" debe cumplir íntegramente con sus disposiciones, dado que el sistema manejará una gran cantidad de datos personales de personas físicas y jurídicas.
@@ -510,11 +508,13 @@ Esta es la normativa nacional fundamental que rige la protección de datos perso
 ##### Aplicación a los Requerimientos de la Plataforma:
 
 ##### Bio Registro Verde:
-##### ARTÍCULO 5.- Principio de consentimiento informado:**
+
+##### ARTÍCULO 5.- Principio de consentimiento informado:\*\*
+
 El principio del consentimiento de información se regie por dos puntos importantes, a continuación, se mencionan los dos puntos y su aplicación dentro de la plataforma:
 
 **Punto 1 - Obligación de informar**
-Durante el proceso de registro en **Bio Registro Verde**, el sistema debe presentar de forma destacada y fácil de entender la siguiente información: 
+Durante el proceso de registro en **Bio Registro Verde**, el sistema debe presentar de forma destacada y fácil de entender la siguiente información:
 
 - La existencia de la base de datos **Data Pura Vida**.
 
@@ -526,8 +526,8 @@ Durante el proceso de registro en **Bio Registro Verde**, el sistema debe presen
 
 - Los derechos ARCO (Acceso, Rectificación, Cancelación y Oposición) y cómo ejercerlos dentro del portal. Esta información debe estar disponible antes de que el usuario envíe sus datos.
 
- **Punto 2 - Otorgamiento del consentimiento**
-El consentimiento para el tratamiento de datos debe ser expreso. "Bio Registro Verde" debe implementar un mecanismo de aceptación clara y explícita, como: 
+  **Punto 2 - Otorgamiento del consentimiento**
+  El consentimiento para el tratamiento de datos debe ser expreso. "Bio Registro Verde" debe implementar un mecanismo de aceptación clara y explícita, como:
 
 - Un checkbox de "Acepto los Términos y Condiciones y la Política de Privacidad" que el usuario debe marcar activamente.
 
@@ -536,6 +536,7 @@ El consentimiento para el tratamiento de datos debe ser expreso. "Bio Registro V
 - La autenticación avanzada (identidad digital, biometría, prueba de vida, MFA) y la validación documental automatizada por IA refuerzan la seguridad del proceso de consentimiento, asegurando que la persona que da el consentimiento es quien dice ser.
 
 ##### ARTÍCULOS 6 y 7 - Principio de calidad de la información; y Derechos que le asisten a la persona( Derechos ARCO ):
+
 Estos principios garantizan que los datos sean apropiados y que los usuarios mantengan el control sobre su información.
 
 **Aplicación a la Plataforma:**
@@ -551,9 +552,10 @@ El portal debe ofrecer mecanismos claros y accesibles para que los usuarios pued
 Aunque los requerimientos actuales del "Bio Registro Verde" no mencionan explícitamente la recolección de "datos sensibles" (como salud, origen racial, etc.), si el alcance de la plataforma evolucionara para incluirlos, "Data Pura Vida" deberá implementar garantías adicionales y obtener un consentimiento aún más explícito y específico para el tratamiento de estas categorías, según lo exige el Artículo 9 (Datos Sensibles).
 
 ##### ARTÍCULO 10 - Seguridad de los Datos:
+
 Este artículo impone la obligación de proteger los datos de carácter personal y evitar su alteración, destrucción accidental o ilícita, pérdida, tratamiento o acceso no autorizado, así como cualquier otra acción contraria a esta ley al responsable de la base de datos.
 
-Los requerimientos de seguridad del **Bio Registro Verde** son una respuesta directa al Artículo 10 ( Seguridad de los datos): 
+Los requerimientos de seguridad del **Bio Registro Verde** son una respuesta directa al Artículo 10 ( Seguridad de los datos):
 
 - El uso de autenticación avanzada (identidad digital, biometría, prueba de vida, MFA) son medidas de seguridad lógicas para controlar el acceso.
 
@@ -579,15 +581,14 @@ La sección **Feliz Compartiendo Datos** encarna el Artículo 4 (Autodeterminaci
 Estas funcionalidades garantizan que el titular mantenga el control sobre el uso y la difusión de su información.
 
 ##### ARTÍCULO 6 - Principio de calidad de la información:
+
 La Ley 8968 exige que la recolección y uso de datos sea proporcional a la finalidad.
 
-Los requerimientos de **Feliz Compartiendo Datos** se alinean con el Artículo 6 (Principio de Calidad de la Información) al promover la minimización y el propósito limitado: 
+Los requerimientos de **Feliz Compartiendo Datos** se alinean con el Artículo 6 (Principio de Calidad de la Información) al promover la minimización y el propósito limitado:
 
 - La opción de seleccionar campos específicos a cifrar dentro del dataset permite a los usuarios proteger solo la información sensible, sin necesidad de cifrar todo, lo que se alinea con la minimización del tratamiento de datos sensibles.
 
 - La capacidad de restringir acceso a datos por límites de tiempo, volumen o frecuencia de consulta asegura que el acceso y uso de los datos se realice únicamente para la finalidad acordada y bajo las condiciones definidas por el titular.
-
-
 
 #### ARTÍCULO 14 - Transferencia de datos personales, regla general:
 
@@ -599,19 +600,19 @@ Si bien la "comercialización" dentro del ecosistema se enfoca en el acceso y co
 
 La protección de la autodeterminación informativa y la seguridad son cruciales en la visualización.
 
-La sección **Descubriendo Costa Rica** refuerza el Artículo 4 (Autodeterminación Informativa) y el Artículo 11 (Seguridad de los datos) al: 
+La sección **Descubriendo Costa Rica** refuerza el Artículo 4 (Autodeterminación Informativa) y el Artículo 11 (Seguridad de los datos) al:
 
- - Impedir la descarga directa de datos en cualquier momento y bloquear exportaciones de gráficos y contenidos. Esta medida es fundamental para mantener el control del titular sobre la información y prevenir usos no autorizados fuera del entorno seguro de la plataforma.
+- Impedir la descarga directa de datos en cualquier momento y bloquear exportaciones de gráficos y contenidos. Esta medida es fundamental para mantener el control del titular sobre la información y prevenir usos no autorizados fuera del entorno seguro de la plataforma.
 
- - Al obligar a la visualización exclusivamente dentro del portal, "Data Pura Vida" implementa una medida de seguridad lógica que reduce el riesgo de fugas de datos y asegura que el uso de la información esté bajo la gobernanza y protección de la Ley 8968. Esto también apoya el principio de limitación de la finalidad.
-
+- Al obligar a la visualización exclusivamente dentro del portal, "Data Pura Vida" implementa una medida de seguridad lógica que reduce el riesgo de fugas de datos y asegura que el uso de la información esté bajo la gobernanza y protección de la Ley 8968. Esto también apoya el principio de limitación de la finalidad.
 
 ##### Backend API y Datalake: Aplicación de la Ley 8968 (Costa Rica)
+
 ##### Artículo 10 y 30 - Seguridad de los datos; Faltas graves:
 
 Estos son el muy importantes para la infraestructura de seguridad.
 
-Los requerimientos del Backend API y el Datalake son directamente aplicables al Artículo 10 (Seguridad de los datos) y al Artículo 30 (Faltas Graves): 
+Los requerimientos del Backend API y el Datalake son directamente aplicables al Artículo 10 (Seguridad de los datos) y al Artículo 30 (Faltas Graves):
 
 La exigencia de que "Data Pura Vida" implemente medidas técnicas y organizativas para asegurar la protección de los datos se refleja en:
 
@@ -634,6 +635,7 @@ La auditoría detallada de todas las operaciones realizadas en el sistema (por u
 - Facilitar la extracción de evidencias para procesos legales o regulatorios.
 
 #### 2. GDPR (General Data Protection Regulation)
+
 Aunque es una regulación de la Unión Europea, el GDPR tiene un alcance extraterritorial. Si "Data Pura Vida" procesa datos de ciudadanos o residentes de la UE, o si ofrece bienes y servicios a ellos, entonces el GDPR es aplicable, independientemente de dónde se encuentre el servidor o la empresa. Dado que Costa Rica es un destino turístico y centro de negocios internacional, es muy probable que haya interacción con datos de la UE. Además, el GDPR ha influenciado muchas leyes de privacidad a nivel mundial, por lo que su cumplimiento a menudo supera los requisitos de otras normativas locales.
 
 ##### Aplicación a los Requerimientos de la Plataforma:
@@ -644,7 +646,7 @@ Aunque es una regulación de la Unión Europea, el GDPR tiene un alcance extrate
 
 **Privacy by Design and by Default:** El diseño del sistema debe integrar la privacidad desde el inicio (por ejemplo, el cifrado de datos, el control granular de acceso, la minimización de datos por defecto), como exige el artículo 25 del GDPR.
 
-**Derechos de los Interesados:** El GDPR otorga derechos robustos a los interesados (data subjects): 
+**Derechos de los Interesados:** El GDPR otorga derechos robustos a los interesados (data subjects):
 
 - **Derecho a la Información:** Transparencia sobre el procesamiento de datos (artículos 13 y 14 del GDPR).
 
@@ -663,6 +665,7 @@ Aunque es una regulación de la Unión Europea, el GDPR tiene un alcance extrate
 - **Derechos en relación con Decisiones Automatizadas y Perfilado:** El uso de IA debe considerar el derecho a no ser objeto de decisiones basadas únicamente en procesamiento automatizado (artículo 22).
 
 ##### Feliz Compartiendo Datos:
+
 **Transferencias Internacionales de Datos:** Si los datos pudieran ser accedidos o transferidos fuera del Espacio Económico Europeo, deben cumplirse los requisitos del Capítulo V del GDPR (artículos 44 al 50), incluyendo garantías como cláusulas tipo o reglas corporativas vinculantes.
 
 **Evaluación de Impacto de Protección de Datos (DPIA):** Para el procesamiento de datos de alto riesgo (como la combinación de grandes volúmenes de datos sensibles, uso de IA para perfilado), una DPIA sería obligatoria bajo el GDPR (Artículo 35).
@@ -674,9 +677,11 @@ Aunque es una regulación de la Unión Europea, el GDPR tiene un alcance extrate
 **Notificación de Violaciones de Seguridad:** En caso de una brecha de seguridad que afecte datos personales, el GDPR exige la notificación a la autoridad de control en un plazo de 72 horas y, en ciertos casos, también a los interesados (Artículos 33 y 34). Esto implica un robusto sistema de monitoreo y respuesta a incidentes.
 
 #### 3. ISO/IEC 27001 - Sistemas de Gestión de la Seguridad de la Información (SGSI)
+
 Relevancia para **Data Pura Vida**: Aunque no es una ley obligatoria, la ISO/IEC 27001 es un estándar internacional que proporciona un marco para establecer, implementar, mantener y mejorar continuamente un Sistema de Gestión de la Seguridad de la Información (SGSI). Obtener la certificación ISO 27001 demostraría un compromiso serio con la seguridad de la información y la protección de activos, generando confianza en un ecosistema de datos.
 
 ##### Aplicación a los Requerimientos de la Plataforma:
+
 La ISO 27001 se basa en la identificación y gestión de riesgos de seguridad de la información. Esto es fundamental para "Data Pura Vida", dada la sensibilidad y el volumen de los datos. Se debe realizar una evaluación de riesgos exhaustiva para determinar las medidas de seguridad necesarias.
 
 Estan los controles de seguidad ubicadas en el anexo A de ISO 27001/ISO 27002 en la cual se ubican el estándar para un conjunto de controles que son relevantes para todos los requerimientos de la plataforma:
@@ -696,10 +701,12 @@ Estan los controles de seguidad ubicadas en el anexo A de ISO 27001/ISO 27002 en
 
 **Mejora Continua (Ciclo PDCA):** ISO 27001 promueve un ciclo de Planificar-Hacer-Verificar-Actuar (PDCA), lo que se alinea con la necesidad de monitoreo continuo de métricas, auditorías y revisión de la dirección para garantizar la mejora continua de la seguridad y el cumplimiento normativo.
 
-#### 4. OECD Data Governance 
+#### 4. OECD Data Governance
+
 La OCDE establece principios fundamentales de gobernanza de datos que sirven como referencia para proyectos como Data Pura Vida, orientados a maximizar el uso y la compartición responsable de datos, mientras se protege la privacidad y se fortalece la confianza.
 
 ##### Principios Fundamentales de la OCDE
+
 ##### Enfoque Integral (Whole-of-Government)
 
 - Promueve la participación de todos los actores (públicos y privados) y la coherencia entre sectores y niveles de gobierno.
@@ -727,6 +734,7 @@ La OCDE ha emitido siete recomendaciones que sirven como marco para la gobernanz
 - Estrategias de gobierno digital (2014).
 
 ##### Aplicación a los Requerimientos de la Plataforma
+
 ##### Bio Registro Verde
 
 Aplica el enfoque integral al registrar a todos los actores relevantes con autenticación avanzada (MFA, biometría, prueba de vida).
@@ -751,44 +759,47 @@ Implementación de MFA, whitelists de IPs y control de acceso estricto para prot
 
 Uso de IA para normalización, relación de datos y detección de duplicidades, reforzando la calidad y eficiencia de la gobernanza de datos.
 
-
-
 La implementación de **Data Pura Vida** no solo debe enfocarse en la funcionalidad, sino que debe tener la privacidad y seguridad integradas desde el diseño. El cumplimiento de la Ley 8968 es mandatorio para operar en Costa Rica. La incorporación de principios del GDPR y ISO 27001 garantizará un nivel de protección de datos de clase mundial y facilitará la confianza, mientras que las directrices de la OCDE proporcionarán la base para una gobernanza de datos efectiva y una promoción responsable del intercambio y uso de la información.
 
 ### 2.2 Prácticas de Manejo de Código
 
 Para garantizar que el código fuente de Data Pura Vida sea seguro, mantenible y escalable, se adoptan tres marcos principales de buenas prácticas:
+
 #### 1. OWASP Secure Coding Practices
+
 Basados en los estándares de OWASP Top 10 y OWASP ASVS:
 
-- Validación de entradas: 
-    - Se realiza con el objetivo de que solo los datos parametrizados correctamente entren al workflow de Data Pura Vida. 
-    - Se evita que malformaciones de datos entren en las bases de datos y realicen un efecto en cadena de malfuncionamientos.
+- Validación de entradas:
 
-- Control de acceso y privilegios mínimos: 
-    - El objetivo es asegurar que cada usuario solo tenga acceso a los recursos estrictamente necesarios para cumplir su función. 
-    - Se evitará la acumulación de privilegios innecesarios a lo largo del tiempo mediante revisiones periódicas.
-    - Todas las solicitudes serán validadas en el backend, independientemente de su origen. 
-    - En lugar de depender exclusivamente de roles (RBAC) también se hara el uso de ABAC (Attribute-Based Access Control).
+  - Se realiza con el objetivo de que solo los datos parametrizados correctamente entren al workflow de Data Pura Vida.
+  - Se evita que malformaciones de datos entren en las bases de datos y realicen un efecto en cadena de malfuncionamientos.
 
-- Almacenamiento y transmisión segura: 
-    - Todos los datos sensibles serán cifrados en tránsito mediante TLS 1.3 y en reposo mediante AES-256.
-	- **TLS 1.3 (Transport Layer Security):** protocolo criptográfico utilizado para proteger los datos en tránsito entre el cliente y el servidor. Asegura la confidencialidad e integridad de la información, evitando ataques de MITM(Man in the middle).
-        - **AES-256 (Advanced Encryption Standard):** algoritmo de cifrado simétrico que se usa para proteger los datos almacenados en el sistema. Utiliza una clave de 256 bits, lo que lo hace extremadamente resistente a ataques de fuerza bruta. Es uno de los estándares más seguros y reconocidos a nivel mundial.
+- Control de acceso y privilegios mínimos:
+
+  - El objetivo es asegurar que cada usuario solo tenga acceso a los recursos estrictamente necesarios para cumplir su función.
+  - Se evitará la acumulación de privilegios innecesarios a lo largo del tiempo mediante revisiones periódicas.
+  - Todas las solicitudes serán validadas en el backend, independientemente de su origen.
+  - En lugar de depender exclusivamente de roles (RBAC) también se hara el uso de ABAC (Attribute-Based Access Control).
+
+- Almacenamiento y transmisión segura:
+  - Todos los datos sensibles serán cifrados en tránsito mediante TLS 1.3 y en reposo mediante AES-256.
+  - **TLS 1.3 (Transport Layer Security):** protocolo criptográfico utilizado para proteger los datos en tránsito entre el cliente y el servidor. Asegura la confidencialidad e integridad de la información, evitando ataques de MITM(Man in the middle). - **AES-256 (Advanced Encryption Standard):** algoritmo de cifrado simétrico que se usa para proteger los datos almacenados en el sistema. Utiliza una clave de 256 bits, lo que lo hace extremadamente resistente a ataques de fuerza bruta. Es uno de los estándares más seguros y reconocidos a nivel mundial.
     - El sistema implementará gestión segura de llaves y almacenamiento segmentado para evitar accesos no autorizados, incluso desde el personal técnico.
-- Manejo seguro de errores: 
-    - Los mensajes de error visibles para el usuario serán genéricos, evitando revelar información del sistema.
-    - Los errores serán registrados en logs internos enmascarados, permitiendo análisis posterior sin comprometer datos sensibles.
+- Manejo seguro de errores:
 
-- Protección ante dependencias vulnerables: 
-    - Se integrará un escaneo automatizado de dependencias y librerías de terceros en el pipeline de CI/CD.
-    - Las versiones serán actualizadas de forma periódica y se restringirá el uso de paquetes sin mantenimiento o con vulnerabilidades conocidas.
+  - Los mensajes de error visibles para el usuario serán genéricos, evitando revelar información del sistema.
+  - Los errores serán registrados en logs internos enmascarados, permitiendo análisis posterior sin comprometer datos sensibles.
 
-- Autenticación robusta: 
-    - El sistema implementará OAuth2 para autorización y JWT como mecanismo de sesión segura.
-        - **OAuth2 (Open Authorization 2.0):** es un protocolo de autorización que permite a una aplicación acceder a recursos en nombre del usuario sin necesidad de compartir sus credenciales.
-        - **JWT (JSON Web Token):** es un formato compacto y seguro para transmitir información entre partes como un objeto JSON firmado. Se usa para manejar sesiones de forma segura, ya que contiene los datos del usuario y sus permisos codificados y firmados digitalmente, lo que permite validar su autenticidad sin necesidad de consultar una base de datos en cada petición.
-    - Además, toda cuenta que acceda a áreas críticas deberá utilizar autenticación multifactor (MFA), y se exigirá prueba de vida y biometría en el registro de representantes legales.
+- Protección ante dependencias vulnerables:
+
+  - Se integrará un escaneo automatizado de dependencias y librerías de terceros en el pipeline de CI/CD.
+  - Las versiones serán actualizadas de forma periódica y se restringirá el uso de paquetes sin mantenimiento o con vulnerabilidades conocidas.
+
+- Autenticación robusta:
+  - El sistema implementará OAuth2 para autorización y JWT como mecanismo de sesión segura.
+    - **OAuth2 (Open Authorization 2.0):** es un protocolo de autorización que permite a una aplicación acceder a recursos en nombre del usuario sin necesidad de compartir sus credenciales.
+    - **JWT (JSON Web Token):** es un formato compacto y seguro para transmitir información entre partes como un objeto JSON firmado. Se usa para manejar sesiones de forma segura, ya que contiene los datos del usuario y sus permisos codificados y firmados digitalmente, lo que permite validar su autenticidad sin necesidad de consultar una base de datos en cada petición.
+  - Además, toda cuenta que acceda a áreas críticas deberá utilizar autenticación multifactor (MFA), y se exigirá prueba de vida y biometría en el registro de representantes legales.
 
 #### 2. Clean code
 
@@ -825,7 +836,7 @@ El proyecto aplicará los principios fundamentales de Clean Code propuestos por 
 - **Controladores REST claros:** Los endpoints de la API seguirán convenciones semánticas (`GET /datasets`, `POST /register`, etc.) y estarán separados en archivos por entidad, facilitando su lectura y mantenimiento.
 
 - **Nombres de funciones como verbos y de clases como sustantivos:**
-Por ejemplo: `validateInput()`, `encryptDataset()`, `DatasetUploader`, `IbanVerifier`.
+  Por ejemplo: `validateInput()`, `encryptDataset()`, `DatasetUploader`, `IbanVerifier`.
 
 - **Uso de constantes centralizadas:** Valores como `MAX_UPLOAD_SIZE_MB`, `SUPPORTED_FORMATS`, `DEFAULT_LANGUAGE` estarán definidos en archivos de configuración o constantes globales.
 
@@ -834,6 +845,7 @@ Por ejemplo: `validateInput()`, `encryptDataset()`, `DatasetUploader`, `IbanVeri
 Estas prácticas no solo mejoran la calidad del software, sino que también reducen los costos de mantenimiento, facilitan las auditorías de seguridad y mejoran la experiencia del equipo de desarrollo durante todo el ciclo de vida del sistema.
 
 #### 3. The Twelve-Factor App
+
 El desarrollo de Data Pura Vida también se alinea con los principios del manifiesto Twelve-Factor App, con el objetivo de garantizar una arquitectura moderna, portable, escalable y apta para despliegues en la nube o entornos híbridos. A continuación se detallan los factores aplicados:
 
 1. **Código base:** El código está centralizado en un único repositorio de GitHub con control de versiones. Cada microservicio o módulo mantiene su propio namespace lógico.
@@ -860,16 +872,14 @@ El desarrollo de Data Pura Vida también se alinea con los principios del manifi
 
 12. **Procesos administrativos como tareas one-off:** Scripts de migración, pruebas y carga inicial de datos se ejecutan como procesos independientes (npm run seed, python manage.py migrate), no embebidos en el ciclo de vida principal de la app.
 
-
-
 #### Buenas Prácticas Complementarias de Codificación Segura
 
-| Objetivo                         | Práctica                        | Aplicación |
-| --------------------------- | ------------------------------ | -------- |
-| **Visibilidad y detección**   | 	Logs + monitoreo en tiempo real      | 	Uso de Prometheus y Alertmanager para monitoreo     |
-| **Seguridad en dependencias**     | Escaneo continuo y alertas automáticas        | GitHub Dependabot activado    | 
-| **Gestión de secretos** | Manejo seguro de claves, tokens y credenciales | Uso de servicios como AWS Secrets Manager o archivos .env con acceso restringido   | 
-| **Protección de endpoints**  | CORS y rate-limiting  | Configuración estricta de origen cruzado (CORS) y límites de solicitudes por IP     | 
+| Objetivo                      | Práctica                                       | Aplicación                                                                       |
+| ----------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------- |
+| **Visibilidad y detección**   | Logs + monitoreo en tiempo real                | Uso de Prometheus y Alertmanager para monitoreo                                  |
+| **Seguridad en dependencias** | Escaneo continuo y alertas automáticas         | GitHub Dependabot activado                                                       |
+| **Gestión de secretos**       | Manejo seguro de claves, tokens y credenciales | Uso de servicios como AWS Secrets Manager o archivos .env con acceso restringido |
+| **Protección de endpoints**   | CORS y rate-limiting                           | Configuración estricta de origen cruzado (CORS) y límites de solicitudes por IP  |
 
 ### 2.3 Sistema de Versionamiento
 
@@ -877,18 +887,17 @@ Para el versionamiento de los distintos componentes de Data Pura Vida manejaremo
 
 - main: rama estable lista para production.
 
-- dev: rama de integración en ella se corren los tests 
+- dev: rama de integración en ella se corren los tests
 
-- feature/*: son ramas efímeras en las que se desarrolla una característica en específico
+- feature/\*: son ramas efímeras en las que se desarrolla una característica en específico
 
-- fix/*: son ramas efímeras en las que se solventan  hotfixes o bugs.
+- fix/\*: son ramas efímeras en las que se solventan hotfixes o bugs.
 
 Todo cambio realizado en las ramas de feature y hotfix, una vez estén listos, se deben fusionar a la rama dev, donde se ejecutarán las pruebas correspondientes. Luego, cuando todo esté aprobado, se harán merge a la rama main para que se realice el despliegue a producción.
 
-
 A continuación, esta será la estructura del repositorio:
 
-``` bash
+```bash
 /data-pura-vida/
 ├── components/
 │   ├── bioregistro-verde/
@@ -919,9 +928,9 @@ A continuación, esta será la estructura del repositorio:
 
 ejemplos de archivos en terraform son:
 
-``` hcl 
+```hcl
 
-# provider.tf, para poner la metada del cloud provider 
+# provider.tf, para poner la metada del cloud provider
 provider "aws" {
   region = "us-east-1"
 }
@@ -953,9 +962,10 @@ module "eks" {
 }
 
 ```
+
 - En .github/ estarán ubicados los pipelines de GitHub Actions. Definirá las reglas de despliegue del app, por ejmplo, cuando se haga un push a main de cierto componente, se encargará de prepararlo y hacer su deploy al cloud provider. A continuación un ejemplo de un pipeline que monta un microservicio en EKS:
 
-``` yaml 
+```yaml
 name: Deploy-Microservice
 
 on:
@@ -967,57 +977,159 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up AWS CLI
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-    - name: Terraform Init and Apply
-      working-directory: ./terraform/bioregistro-verde
-      run: |
-        terraform init
-        terraform apply -auto-approve
+      - name: Terraform Init and Apply
+        working-directory: ./terraform/bioregistro-verde
+        run: |
+          terraform init
+          terraform apply -auto-approve
 
-    - name: Build Docker image
-      run: |
-        docker build -t ${{ secrets.ECR_REPO_URI }}/bioregistro-verde:latest .
-        aws ecr get-login-password | docker login --username AWS --password-stdin ${{ secrets.ECR_REPO_URI }}
-        docker push ${{ secrets.ECR_REPO_URI }}/bioregistro-verde:latest
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.ECR_REPO_URI }}/bioregistro-verde:latest .
+          aws ecr get-login-password | docker login --username AWS --password-stdin ${{ secrets.ECR_REPO_URI }}
+          docker push ${{ secrets.ECR_REPO_URI }}/bioregistro-verde:latest
 
-    - name: Deploy to EKS
-      run: |
-        helm upgrade --install bioregistro-verde ./charts/bioregistro-verde \
-        --set image.repository=${{ secrets.ECR_REPO_URI }}/bioregistro-verde \
-        --set image.tag=latest
+      - name: Deploy to EKS
+        run: |
+          helm upgrade --install bioregistro-verde ./charts/bioregistro-verde \
+          --set image.repository=${{ secrets.ECR_REPO_URI }}/bioregistro-verde \
+          --set image.tag=latest
 ```
-
 
 ### 2.4 Sistemas de Teceros
 
-Durante el desarrollo y la integración de la plataforma Data Pura Vida, se contempla el uso de múltiples sistemas de terceros para asegurar funcionalidades clave relacionadas con identidad, autenticación integración de datos y procesamiento inteligente. 
-Se describen los principales 
-- Protocolos de Autenticación 
+Durante el desarrollo y la integración de la plataforma Data Pura Vida, se contempla el uso de múltiples sistemas de terceros para asegurar funcionalidades clave relacionadas con identidad, autenticación integración de datos y procesamiento inteligente.
+Se describen los principales
+
+- Protocolos de Autenticación
+
   - OAuth2: Protocolo estándar que será utilizado para la autorización segura entre los componentes del frontend y backend, así como para acceso de terceros a APIs protegidas
-  - JWT (Json web token): Para la transmisión segura de credenciales y validación de sesiones dentro del ecosistema, especialmente útil en el acceso a dashboards, APIs y servicios personalizados. 
+  - JWT (Json web token): Para la transmisión segura de credenciales y validación de sesiones dentro del ecosistema, especialmente útil en el acceso a dashboards, APIs y servicios personalizados.
   - MFA: Es la autenticación multifactor mediante integración con servicios externos como Google Autheticator, Auth0 para asegurar una autenticación robusta y fortalecer los proceso de login y administración de cuentas.
 
-- Verificación de identidad y Seguridad 
-  - SumSub: Plataforma externa utilizada para la verificación de identidad (KYC), para validación documental automatica y prueba de vida para personas físicas y representantes institucionales 
- 
+- Verificación de identidad y Seguridad
+  - SumSub: Plataforma externa utilizada para la verificación de identidad (KYC), para validación documental automatica y prueba de vida para personas físicas y representantes institucionales
 
--Cloud Provider General 
-  - AWS: Plataforma en la nube seleccionada para desplegar componentes de la solución. Se utilizarán servicios específicos de AWS para hosting, bases de datos, control de acceos, colas de eventos, API exposure y otros detallados más adelante.
+-Cloud Provider General
+
+- AWS: Plataforma en la nube seleccionada para desplegar componentes de la solución. Se utilizarán servicios específicos de AWS para hosting, bases de datos, control de acceos, colas de eventos, API exposure y otros detallados más adelante.
 
 - Inteligencia Artificial y Recomendaciones
-  - HiggingFace / GPT Recommender: Se explorar diferentes integraciones para ofrecer recomendaciones de datasets relevantes a los usuarios mediante modelos preentrenados 
+  - HiggingFace / GPT Recommender: Se explorar diferentes integraciones para ofrecer recomendaciones de datasets relevantes a los usuarios mediante modelos preentrenados
 
 ### 2.5 Aspectos de Calidad/SLA
 
-Hacer Enfasis en que será Escalabilidad y Mantenibilidad, Reutilización y Eficiencia y Claridad y Gestión de Complejidad
+Para garantizar que Data Pura Vida funcione exitosamente como ecosistema nacional de datos de Costa Rica, se establecen cinco aspectos de calidad fundamentales que guiarán el diseño y operación del sistema.
+
+#### 2.5.1 Escalabilidad
+
+La escalabilidad es la capacidad del sistema para manejar un crecimiento progresivo de usuarios, datos y transacciones sin que se degrade el rendimiento o la calidad del servicio.
+Data Pura Vida debe comenzar con las instituciones públicas principales y crecer gradualmente hasta servir a miles de usuarios simultáneos, incluyendo ciudadanos, empresas, organizaciones sociales y entidades gubernamentales. El sistema debe soportar desde datasets iniciales de unas pocas instituciones hasta volúmenes masivos de información nacional.
+Capacidades de crecimiento requeridas:
+
+- Soporte para miles de usuarios trabajando al mismo tiempo sin ralentización
+- Almacenamiento que puede expandirse desde gigabytes hasta terabytes de información
+- Procesamiento capaz de manejar cientos de datasets nuevos diariamente durante períodos de alta actividad
+- Cobertura nacional con tiempos de respuesta rápidos desde cualquier provincia
+
+**Mecanismos de escalabilidad:**
+El sistema utilizará escalado automático, que significa que cuando detecta mayor actividad, automáticamente asigna más recursos computacionales (servidores adicionales) para mantener el rendimiento. Cada componente puede crecer independientemente según su demanda específica, y el sistema se optimiza continuamente basándose en los patrones de uso reales de los costarricenses.
+
+#### 2.5.2 Mantenibilidad
+
+La mantenibilidad se refiere a la facilidad con que el sistema puede ser actualizado, corregido y mejorado a lo largo del tiempo sin interrumpir el servicio a los usuarios.
+Un sistema nacional debe poder evolucionar constantemente. Las regulaciones cambian, las necesidades del país se transforman, y la tecnología avanza. Data Pura Vida debe adaptarse a estos cambios sin afectar su operación diaria.
+
+**Compromisos de mantenibilidad:**
+
+- Resolución de problemas críticos en máximo cuatro horas
+- Implementación de mejoras sin interrumpir el servicio a usuarios
+- Capacidad de revertir cambios problemáticos en menos de quince minutos
+- Monitoreo proactivo que detecta problemas antes de que afecten a los usuarios
+
+**Estrategias de mantenimiento:**
+El sistema utiliza una arquitectura modular, lo que significa que cada componente puede actualizarse independientemente sin afectar los demás. Los despliegues son automatizados con validación previa, y existe documentación que se actualiza automáticamente. El sistema incluye observabilidad completa, que es la capacidad de monitorear en tiempo real el rendimiento, errores y patrones de uso.
+
+#### 2.5.3 Reutilización
+
+La reutilización maximiza el aprovechamiento de cada funcionalidad desarrollada, permitiendo que sea utilizada en múltiples componentes del sistema para optimizar recursos y garantizar consistencia.
+Con recursos públicos limitados, cada desarrollo debe aprovecharse al máximo. Cuando se crea una funcionalidad para validar documentos costarricenses, esta debe servir para todo el sistema, no solo para una parte específica.
+
+**Componentes reutilizables principales:**
+
+- Sistema de autenticación unificado que permite un solo acceso para toda la plataforma
+- Validadores específicos para documentos costarricenses (cédulas, IBAN, registros tributarios)
+- Biblioteca de componentes visuales que garantiza interfaces consistentes
+- Herramientas de cifrado estandarizadas para protección de datos
+- APIs (interfaces de programación) comunes para integraciones con sistemas externos
+
+**Beneficios de la reutilización:**
+
+- Desarrollo significativamente más rápido al aprovechar funcionalidades ya construidas y probadas
+- Experiencia de usuario consistente en todos los componentes
+- Mantenimiento simplificado donde un cambio se propaga automáticamente
+- Mejora continua de la calidad a medida que los componentes se refinan con el uso
+
+#### 2.5.4 Eficiencia
+
+La eficiencia busca optimizar el uso de recursos computacionales y financieros para ofrecer el mejor rendimiento posible con el menor costo operativo, utilizando responsablemente los recursos públicos.
+El sistema debe proporcionar respuestas rápidas y una experiencia fluida mientras utiliza los recursos de manera inteligente, evitando desperdicios y optimizando costos.
+
+**Objetivos de eficiencia:**
+
+- Tiempos de respuesta que los usuarios perciban como instantáneos para operaciones comunes
+- Uso óptimo de la capacidad de los servidores, manteniendo un balance eficiente
+- Almacenamiento inteligente con compresión automática para reducir costos
+- Escalado dinámico que ajusta recursos según la demanda real
+
+**Estrategias de optimización:**
+El sistema implementa caché multicapa, que mantiene los datos más consultados en memoria de acceso rápido para respuestas inmediatas. Utiliza consultas optimizadas diseñadas para ser eficientes incluso con millones de registros, y compresión automática que reduce el espacio de almacenamiento sin pérdida de información. Incluye balanceo de carga inteligente que distribuye las consultas entre múltiples servidores para evitar sobrecargas.
+
+#### 2.5.5 Claridad y Gestión de Complejidad
+
+La claridad asegura que un sistema técnicamente sofisticado sea comprensible y fácil de usar tanto para usuarios finales como para desarrolladores que lo mantienen.
+Data Pura Vida debe ocultar su complejidad técnica detrás de interfaces simples e intuitivas. Los usuarios no deben necesitar conocimiento técnico para aprovechar sus capacidades.
+
+**Principios de claridad:**
+
+- Interfaces consistentes con navegación predecible y uniforme en toda la plataforma
+- Mensajes comprensibles que explican claramente qué está ocurriendo, especialmente en casos de error
+- Documentación automática que se mantiene actualizada sin intervención manual
+- Configuración organizada de forma lógica y comprensible
+
+**Gestión de complejidad:**
+El sistema utiliza separación de responsabilidades, donde cada componente tiene una función específica y bien definida. Implementa abstracciones útiles que ocultan la complejidad técnica detrás de interfaces simples, y aplica patrones reconocibles con soluciones consistentes para problemas similares. Incluye escalamiento gradual que presenta funcionalidades básicas primero y avanzadas después.
+
+**Implementación práctica:**
+Las APIs (interfaces de programación) utilizan nomenclatura semánticamente clara que explica exactamente qué hacen. El manejo de errores es estructurado, proporcionando mensajes que incluyen qué ocurrió y cómo solucionarlo. La arquitectura se organiza en capas claras que separan presentación, lógica de negocio y datos.
+
+#### 2.5.6 Compromisos Consolidados del Sistema
+
+**Disponibilidad y Confiabilidad:**
+
+Data Pura Vida garantiza alta disponibilidad, manteniéndose operativo prácticamente todo el tiempo con interrupciones mínimas. En caso de problemas mayores, el sistema se restaura completamente en pocas horas. Mantiene integridad total de datos, asegurando que toda la información almacenada y procesada sea consistente y confiable.
+
+**Rendimiento y Capacidad:**
+
+El sistema soporta miles de usuarios trabajando simultáneamente sin degradación del servicio. Proporciona tiempos de respuesta rápidos para todas las operaciones típicas y maneja grandes volúmenes de datos sin afectar el rendimiento. Durante períodos de alta actividad, puede procesar cientos de datasets nuevos por hora.
+
+**Calidad y Mantenimiento:**
+
+Garantiza resolución rápida de problemas críticos y permite actualizaciones sin interrumpir el servicio. Mantiene alta cobertura de pruebas automatizadas para asegurar la calidad del código y documentación completa y actualizada de todas las funcionalidades.
+
+**Monitoreo y Mejora Continua:**
+
+El sistema incluye monitoreo continuo que observa su funcionamiento las 24 horas, con alertas automáticas que notifican inmediatamente ante cualquier degradación del servicio. Implementa métricas de negocio para seguimiento de adopción, uso y satisfacción de usuarios, y mantiene auditoría completa con registro de todas las operaciones para cumplimiento regulatorio.
+Este framework de aspectos de calidad asegura que Data Pura Vida sea técnicamente sólido, operacionalmente eficiente y útil para servir como ecosistema nacional de datos de Costa Rica.
 
 ## 3. Stack Tecnológico
 
