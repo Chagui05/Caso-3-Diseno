@@ -1689,10 +1689,39 @@ Las APIs (interfaces de programación) utilizan nomenclatura semánticamente cla
 
 En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas utilizadas, así como sus restricciones y licencias
 
-- Herramientas para Frontend, Backend, Data
-- Herramientas para AI
-- que sistemas de Terceros, Cloud y Protocolos se usarán
-- Herramientas para testing y DevOps
+### Frontend
+- **React.js**: Un framework de javascript especializado en web apps 
+- **Vite**: Empaquetador de react. 
+- **Tailwind CSS**: Librería para acelerar la creación de estilos mediante utilidades predefinidas.
+- **Axios**: Libreria de javascript que permite hacer llamadas a rest APIs.
+- **Formik + Yup**: Dos librerías de Javascript que harán la escritura de formularios más simple. Formik para la estructura de formularios, Yup para validación
+- **Cognito**: Servicio de AWS que será usado para el registro de personas. 
+- **Plotly**: Librería para gráficos interactivos y avanzados con soporte para fuentes dinámicas y control total. [aquí](https://www.chartjs.org/docs/latest/samples/information.html) 
+
+### Backend
+- **Python**: Lenguaje de programación versatil, con variedad de librerías y frameworks especializados en ETL e IA.
+- **FastAPI**: Framework asíncrono en Python ideal para construir APIs rápidas y escalables.
+- **RabbitMQ**: Broker de mensajería para comunicación asíncrona entre módulos backend.
+- **EKS**: Servicio de Kubernetes gestionado por AWS para despliegue escalable y seguro del backend.
+- **Apache Spark**: Framework especializado en procesamiento distribuido para ETL, validación y transformación de datos (usando PySpark).
+- **Apache Airflow**:Orquestador de workflows para automatizar y monitorear procesos ETL con Spark, asegurando orden, trazabilidad y escalabilidad.
+- **Helm**: Herramienta para gestionar despliegues Kubernetes mediante plantillas dinámicas.
+- **Docker**: Será usado para crear imágenes de los distintos módulos del backend.
+
+### Data
+
+s3, para almacenar documentos legales de las empresas, y también para hostear el sitio web
+
+aurorar puede ser, es relaciona, escalable y rapida
+### AI
+
+hugging face para modelos ya entrenados que nos puedan servir (all-mpnet-base-v2 genera embeddings que podría servir para entrenar IA)
+### sistemas de Terceros
+SumSub, para las pruebas de vida, kycm y aml
+### Cloud 
+
+### DevOps y Testing
+Prometheus, Grafana, terraform, github actions
 
 ## 4. Diseño de los componentes
 
@@ -1763,3 +1792,4 @@ Este si es general de todos los componentes
 
 - Validar que el diseño cubre todos los requerimientos funcionales y no funcionales del sistema
 - Identificar ventajas y desventajas del diseño, proponiendo mitigaciones a los riesgos y limitaciones
+https://es.shein.com/50pcs-Programmer-And-Computer-Application-Style-Waterproof-Stickers-Graffiti-And-Vinyl-Self-Adhesive-Stickers-With-Children-Safety-Certificate-Suitable-For-DIY-On-Suitcases-Water-Bottles-Phones-Laptops-Skateboards-Luggage-Helmets-And-More-Laptop-Stickers-Stickers-Stickers-For-Laptop-Engineer-Gift-Mobile-Stickers-Self-Adhesive-Graffiti-Stickers-p-34710539.html?src_identifier=st%3D2%60sc%3Dsoftware%60sr%3D0%60ps%3D1&src_module=search&src_tab_page_id=page_search1748217135480&mallCode=1&pageListType=4
