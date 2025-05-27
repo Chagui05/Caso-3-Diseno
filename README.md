@@ -1000,7 +1000,8 @@ module.exports = {
 
 ### 2.3 Sistema de Versionamiento
 
-Para el versionamiento de los distintos componentes de Data Pura Vida manejaremos un solo repositorio en GitHub, utilizando una enfoque de GitHub Flow con las siguientes ramas:
+Para el versionamiento de los distintos componentes de Data Pura Vida manejaremos un solo repositorio en GitHub, utilizando un enfoque inspirado en Git Flow, adaptado para flujos modernos con automatización CI/CD, de la siguiente forma:
+
 
 - main: rama estable lista para production.
 
@@ -1012,6 +1013,25 @@ Para el versionamiento de los distintos componentes de Data Pura Vida manejaremo
 
 Todo cambio realizado en las ramas de feature y hotfix, una vez estén listos, se deben fusionar a la rama dev, donde se ejecutarán las pruebas correspondientes. Luego, cuando todo esté aprobado, se harán merge a la rama main para que se realice el despliegue a producción.
 
+
+#### Versionado 
+Se seguirá un esquema de versionado semántico usando la notación MAJOR.MINOR.PATCH, por ejemplo: 2.3.1. Esto permitirá comunicar de forma clara el tipo de cambios introducidos:
+
+MAJOR: Se incrementa cuando hay cambios incompatibles con versiones anteriores.
+
+MINOR: Se incrementa al agregar funcionalidades nuevas que mantienen compatibilidad.
+
+PATCH: Se incrementa al aplicar correcciones de errores menores o mejoras no disruptivas.
+
+Ejemplos:
+
+Cambiar la estructura del modelo de datos → 2.0.0
+
+Agregar una nueva funcionalidad al generador de dashboards → 2.1.0
+
+Corregir un bug en la visualización de gráficos → 2.1.1
+
+#### Estructura del repositorio 
 A continuación, esta será la estructura del repositorio:
 
 ```bash
