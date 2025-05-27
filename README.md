@@ -513,8 +513,8 @@ Esta es la normativa nacional fundamental que rige la protección de datos perso
 
 El principio del consentimiento de información se regie por dos puntos importantes, a continuación, se mencionan los dos puntos y su aplicación dentro de la plataforma:
 
-**Punto 1 - Obligación de informar**
-Durante el proceso de registro en **Bio Registro Verde**, el sistema debe presentar de forma destacada y fácil de entender la siguiente información:
+  **Punto 1 - Obligación de informar**
+  Durante el proceso de registro en **Bio Registro Verde**, el sistema debe presentar de forma destacada y fácil de entender la siguiente información:
 
 - La existencia de la base de datos **Data Pura Vida**.
 
@@ -590,7 +590,7 @@ Los requerimientos de **Feliz Compartiendo Datos** se alinean con el Artículo 6
 
 - La capacidad de restringir acceso a datos por límites de tiempo, volumen o frecuencia de consulta asegura que el acceso y uso de los datos se realice únicamente para la finalidad acordada y bajo las condiciones definidas por el titular.
 
-#### ARTÍCULO 14 - Transferencia de datos personales, regla general:
+##### ARTÍCULO 14 - Transferencia de datos personales, regla general:
 
 Si bien la "comercialización" dentro del ecosistema se enfoca en el acceso y consumo interno, el Artículo 20 es una consideración preventiva. Si la plataforma habilitara en el futuro transferencias a entidades o servicios fuera de Costa Rica (por ejemplo, para alimentar modelos de IA en la nube en otros países), se deberían cumplir las condiciones establecidas por este artículo, que incluyen el consentimiento del titular y garantías de seguridad adecuadas para los datos transferidos.
 
@@ -760,6 +760,137 @@ Implementación de MFA, whitelists de IPs y control de acceso estricto para prot
 Uso de IA para normalización, relación de datos y detección de duplicidades, reforzando la calidad y eficiencia de la gobernanza de datos.
 
 La implementación de **Data Pura Vida** no solo debe enfocarse en la funcionalidad, sino que debe tener la privacidad y seguridad integradas desde el diseño. El cumplimiento de la Ley 8968 es mandatorio para operar en Costa Rica. La incorporación de principios del GDPR y ISO 27001 garantizará un nivel de protección de datos de clase mundial y facilitará la confianza, mientras que las directrices de la OCDE proporcionarán la base para una gobernanza de datos efectiva y una promoción responsable del intercambio y uso de la información.
+
+#### 5. Checklist para el Equipo de Desarrollo de "Data Pura Vida"
+
+Este checklist tiene como objetivo presentar los requisitos legales y de seguridad de **Data Pura Vida** en acciones concretas para el equipo de desarrollo, asegurando el cumplimiento con la Ley 8968, GDPR, ISO/IEC 27001 y los principios de la OCDE.
+
+##### Datalake
+###### Cifrado de Datos:
+- [ ] Implementar cifrado en reposo para todos los datos sensibles en el Datalake.
+- [ ] Implementar cifrado en tránsito para todas las comunicaciones hacia y desde el Datalake.
+- [ ] Asegurar que los campos específicos marcados como sensibles puedan ser cifrados a nivel de campo.
+
+###### Control de Acceso:
+- [ ] Configurar RBAC (Role-Based Access Control) para todos los usuarios y servicios que interactúan con el Datalake, otorgando el mínimo privilegio necesario.
+- [ ] Implementar RLS (Row-Level Security) para asegurar que los usuarios solo puedan ver las filas de datos a las que tienen autorización explícita.
+- [ ] Asegurar que ningún ingeniero o personal técnico pueda acceder a los datos en claro sin autorización.
+
+###### Calidad y Gobernanza de Datos:
+- [ ] Implementar mecanismos de validación de datos en el punto de entrada para asegurar la calidad y exactitud.
+- [ ] Desarrollar y aplicar algoritmos de IA para normalización, relación de datos y detección de duplicidades.
+
+
+###### Auditoría y Trazabilidad:
+- [ ] Implementar auditoría detallada de todas las operaciones de CRUD (Crear, Leer, Actualizar, Borrar) en el Datalake, registrando usuario, acción, fecha, hora y efecto.
+- [ ] Mantener un historial de consumo de datos por parte de los usuarios y servicios.
+
+##### Backend API
+###### Seguridad de la API:
+- [ ] Proteger la API con whitelist de IPs (si aplica, para IPs institucionales o de Costa Rica).
+- [ ] Implementar un robusto sistema de validación de tokens (ej. JWT) para todas las solicitudes.
+- [ ] Exigir Multi-Factor Authentication (MFA) para el acceso a la API para usuarios administrativos o con privilegios elevados.
+
+###### Gestión de Credenciales y Criptografía:
+- [ ] Desarrollar módulos separados para la gestión de credenciales, firmas y cifrado de datos.
+- [ ] Implementar el sistema de llave tripartita para la protección de identidades y datos asociados.
+
+###### Registro y Monitoreo:
+- [ ] Asegurar la trazabilidad y registro de cada transacción que pase por la API.
+- [ ] Implementar monitoreo continuo de la API para detectar actividades anómalas o intentos de acceso no autorizado.
+
+###### Transferencia de Datos:
+- [ ] Si hay transferencia de datos fuera de Costa Rica, asegurar que se cumplen las garantías de seguridad.
+
+##### Interfaz de Usuario (UI) - Bio Registro Verde
+###### Consentimiento Informado (Ley 8968 Artículo. 5, GDPR Artículos. 6 y 7):
+- [ ] Diseñar una sección clara y destacada en el registro para informar sobre:
+  - La existencia de "Data Pura Vida" y su finalidad.
+  - Los destinatarios de los datos.
+  - La obligatoriedad de ciertos datos y sus consecuencias.
+  - Los derechos ARCO y cómo ejercerlos.
+
+- [ ] Implementar un checkbox explícito de "Acepto los Términos y Condiciones y la Política de Privacidad" que el usuario debe marcar activamente.
+- [ ] Almacenar de forma segura la documentación del consentimiento vinculada al registro del usuario.
+
+###### Autenticación y Validación:
+- [ ] Integrar identidad digital, biometría o prueba de vida en el proceso de autenticación inicial.
+- [ ] Implementar MFA para el acceso de los usuarios a sus cuentas.
+- [ ] Integrar validación documental automatizada por IA para verificar la completitud y validez de documentos (ej. cédulas, etc.).
+
+###### Derechos ARCO (Acceso, Rectificación, Cancelación y Oposición) (Ley 8968 Artículo. 7, GDPR Artículos. 15-21):
+- [ ] Proporcionar un mecanismo claro y accesible en el perfil del usuario para:
+  - Acceder a sus datos personales.
+  - Rectificar datos inexactos.
+  - Solicitar la eliminación de datos (Derecho al Olvido), con la lógica de negocio asociada.
+
+- [ ] Si aplica, ofrecer opciones para limitar el tratamiento y ejercer la portabilidad de datos.
+- [ ] Considerar el derecho a oponerse a decisiones basadas únicamente en procesamiento automatizado si la IA afecta decisiones legales significativas sobre el usuario.
+
+###### Privacidad de Datos (Ley 8968 Artículo. 6, GDPR Artículo. 25):
+- [ ] Asegurar que sistema integre la privacidad desde el inicio (ej. el cifrado de datos, el control granular de acceso, la minimización de datos por defecto).
+
+##### Interfaz de Usuario (UI) - Feliz Compartiendo Datos
+###### Autodeterminación Informativa (Ley 8968 Artículo. 4):
+- [ ] Desarrollar funcionalidades para que el usuario pueda:
+Decidir qué datasets compartir.
+  - Configurar la visibilidad del dataset (público/privado).
+  - Definir el modelo de acceso (gratuito/pagado).
+  - Establecer control granular sobre el acceso por institución, persona o grupo de actores.
+
+- [ ] Permitir la selección de campos específicos a cifrar dentro del dataset compartido.
+
+- [ ] Habilitar la capacidad de restringir el acceso a datos por límites de tiempo, volumen o frecuencia de consulta.
+
+###### Interoperabilidad (Principios OCDE):
+- [ ] Soportar múltiples formatos de carga y mecanismos de conexión para datasets.
+
+##### Interfaz de Usuario (UI) - Descubriendo Costa Rica
+
+###### Seguridad en Visualización (Ley 8968 Artículo. 10):
+- [ ] Bloquear la descarga directa de datos desde los dashboards o visualizaciones.
+- [ ] Impedir la exportación de gráficos y contenidos a formatos externos.
+- [ ] Asegurar que la visualización de datos solo sea posible dentro del entorno seguro del portal.
+
+###### Control Granular y Personalización:
+- [ ] Permitir la construcción de dashboards personalizables por los usuarios.
+- [ ] Asegurar que la visibilidad granular aplicada en "Feliz Compartiendo Datos" se refleje correctamente en las visualizaciones.
+
+##### Seguridad General y Operaciones
+###### Políticas y Procedimientos (ISO 27001 A.5, A.6, A.8):
+- [ ] Colaborar con el equipo de PM/Seguridad para la implementación de las políticas de seguridad de la información.
+- [ ] Asegurar que el personal de desarrollo (ingenieros, backoffice) cumpla con los controles de seguridad antes, durante y después del empleo.
+
+###### Controles de Acceso Lógico (ISO 27001 A.11):
+- [ ] Restringir el acceso al portal solo desde direcciones IP ubicadas en Costa Rica o a través de listas blancas de IPs institucionales.
+
+
+
+
+###### Monitoreo y Gestión de Incidentes (ISO 27001 A.10.10, A.13, GDPR Artículos. 33 y 34):
+- [ ] Implementar monitoreo de sistemas y gestión de logs para todas las plataformas.
+- [ ] Desarrollar un proceso claro y automatizado para la detección, reporte y respuesta a incidentes de seguridad.
+- [ ] Preparar la capacidad técnica para notificar brechas de seguridad a la autoridad de control (PRODHAB, DPA de la UE) y a los interesados dentro de los plazos establecidos (ej. 72 horas para GDPR).
+
+##### Cifrado General (ISO 27001 A.12.3):
+- [ ] Asegurar el uso de cifrado para todos los datos en reposo y en tránsito a través de la plataforma.
+
+###### Pruebas de Seguridad:
+- [ ] Realizar pruebas de penetración y escaneos de vulnerabilidades de forma regular.
+- [ ] Incluir pruebas de seguridad en el ciclo de vida de desarrollo de software.
+
+###### Continuidad del Negocio (ISO 27001 A.14.1):
+- [ ] Implementar planes de respaldo y recuperación para todos los componentes críticos del sistema.
+
+##### Gobernanza de Datos y Cumplimiento
+###### Auditoría Interna y Externa:
+- [ ] Estar preparado para auditorías internas y externas para demostrar el cumplimiento con la Ley 8968, GDPR e ISO 27001.
+- [ ] Asegurar la disponibilidad de evidencias (logs, configuraciones, políticas) para procesos legales o regulatorios.
+
+
+###### Documentación:
+- [ ] Mantener una documentación actualizada de la arquitectura de seguridad, controles implementados y flujos de datos.
+
 
 ### 2.2 Prácticas de Manejo de Código
 
