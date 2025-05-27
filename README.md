@@ -1696,7 +1696,7 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 - **Axios**: Libreria de javascript que permite hacer llamadas a rest APIs.
 - **Formik + Yup**: Dos librerías de Javascript que harán la escritura de formularios más simple. Formik para la estructura de formularios, Yup para validación
 - **Cognito**: Servicio de AWS que será usado para el registro de personas. 
-- **Plotly**: Librería para gráficos interactivos y avanzados con soporte para fuentes dinámicas y control total. [aquí](https://www.chartjs.org/docs/latest/samples/information.html) 
+- **Plotly**: Librería para gráficos interactivos y avanzados con soporte para fuentes dinámicas y control total. Presione [aquí](https://www.chartjs.org/docs/latest/samples/information.html) para ver los gráficos que ofrecen.
 
 ### Backend
 - **Python**: Lenguaje de programación versatil, con variedad de librerías y frameworks especializados en ETL e IA.
