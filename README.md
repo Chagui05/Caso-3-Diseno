@@ -1849,4 +1849,3 @@ Este si es general de todos los componentes
 
 - Validar que el diseño cubre todos los requerimientos funcionales y no funcionales del sistema
 - Identificar ventajas y desventajas del diseño, proponiendo mitigaciones a los riesgos y limitaciones
-https://es.shein.com/50pcs-Programmer-And-Computer-Application-Style-Waterproof-Stickers-Graffiti-And-Vinyl-Self-Adhesive-Stickers-With-Children-Safety-Certificate-Suitable-For-DIY-On-Suitcases-Water-Bottles-Phones-Laptops-Skateboards-Luggage-Helmets-And-More-Laptop-Stickers-Stickers-Stickers-For-Laptop-Engineer-Gift-Mobile-Stickers-Self-Adhesive-Graffiti-Stickers-p-34710539.html?src_identifier=st%3D2%60sc%3Dsoftware%60sr%3D0%60ps%3D1&src_module=search&src_tab_page_id=page_search1748217135480&mallCode=1&pageListType=4
