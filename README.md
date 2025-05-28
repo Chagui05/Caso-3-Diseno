@@ -1485,26 +1485,32 @@ jobs:
           --set image.tag=latest
 ```
 
-### 2.4 Sistemas de Teceros
+### 2.4 Sistemas de Terceros
 
-Durante el desarrollo y la integración de la plataforma Data Pura Vida, se contempla el uso de múltiples sistemas de terceros para asegurar funcionalidades clave relacionadas con identidad, autenticación integración de datos y procesamiento inteligente.
-Se describen los principales
+Durante el desarrollo e integración de la plataforma Data Pura Vida, se contempla el uso de múltiples sistemas de terceros que habilitan funciones clave como autenticación, verificación de identidad, procesamiento inteligente y orquestación de datos. A continuación, se describen los principales:
 
-- Protocolos de Autenticación
+#### Protocolos de Autenticación
 
-  - OAuth2: Protocolo estándar que será utilizado para la autorización segura entre los componentes del frontend y backend, así como para acceso de terceros a APIs protegidas
-  - JWT (Json web token): Para la transmisión segura de credenciales y validación de sesiones dentro del ecosistema, especialmente útil en el acceso a dashboards, APIs y servicios personalizados.
-  - MFA: Es la autenticación multifactor mediante integración con servicios externos como Google Autheticator, Auth0 para asegurar una autenticación robusta y fortalecer los proceso de login y administración de cuentas.
+- OAuth2: Protocolo estándar utilizado para autorización segura entre frontend, backend y terceros que acceden a APIs protegidas.
+- JWT (JSON Web Token): Para transmisión segura de credenciales y validación de sesiones, especialmente en dashboards y servicios personalizados.
+- MFA: Autenticación multifactor implementada mediante servicios externos como Google Authenticator o Auth0, fortaleciendo el inicio de sesión y la gestión de cuentas.
 
-- Verificación de identidad y Seguridad
-  - SumSub: Plataforma externa utilizada para la verificación de identidad (KYC), para validación documental automatica y prueba de vida para personas físicas y representantes institucionales
+#### Verificación de Identidad y Seguridad
 
--Cloud Provider General
+- SumSub: Plataforma externa para verificación de identidad (KYC), validación documental automática y prueba de vida para personas físicas o representantes institucionales.
 
-- AWS: Plataforma en la nube seleccionada para desplegar componentes de la solución. Se utilizarán servicios específicos de AWS para hosting, bases de datos, control de acceos, colas de eventos, API exposure y otros detallados más adelante.
+#### Proveedor de Nube
 
-- Inteligencia Artificial y Recomendaciones
-  - HiggingFace / GPT Recommender: Se explorar diferentes integraciones para ofrecer recomendaciones de datasets relevantes a los usuarios mediante modelos preentrenados
+- AWS: Plataforma seleccionada para el despliegue de componentes, incluyendo servicios de hosting, bases de datos, colas de eventos, control de accesos, API Gateway, y otros servicios específicos como S3, Lambda, DynamoDB, etc.
+
+#### Inteligencia Artificial y Recomendaciones
+
+- Hugging Face / GPT Recommender: Integraciones exploradas para generar recomendaciones de datasets mediante modelos preentrenados de lenguaje natural.
+
+#### Orquestación y Flujos de Datos
+
+- Google Cloud Workflows y BigQuery: Se valorará el uso de servicios de Google para tareas específicas de integración de datos y análisis en el datalake, incluyendo procesamiento por lotes, consultas distribuidas y automatización de flujos de datos complejos.
+
 
 ### 2.5 Aspectos de Calidad/SLA
 
