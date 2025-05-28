@@ -322,6 +322,7 @@ Este blueprint se organiza en siete fases principales:
 
 ### 1.5 Plan de ejecución del proyecto
 
+#### Plan de Diseño
 El proyecto se estructura en cinco hitos principales que marcarán su progreso:
 
 - Planeamiento del Proyecto
@@ -339,6 +340,197 @@ Dentro de cada hito se contemplan varias tareas. Cada integrante del equipo debe
 Además, como se indicó anteriormente, se realizarán reuniones semanales para verificar que el proyecto avance conforme al plan establecido.
 
 Además, como se dijo previamente, se harán reuniones semanales para verificar que el proyecto se esté realizando según lo dice el plan.
+
+#### Plan de Ejecución para Desarrolladores 
+
+Este plan indica cómo avanzar progresivamente en la construcción del sistema, desde preparar el entorno hasta desplegar y probar los módulos principales. No detalla cómo funciona cada módulo, sino cómo se implementan y conectan entre sí, con sus respectivos entregables por etapa.
+
+
+
+##### 1. Preparación del Entorno de Desarrollo
+
+**Objetivo:** Sentar las bases para que todo el equipo trabaje de forma coordinada, segura y replicable.
+
+**Actividades:**
+- Establecer repositorio con control de versiones.
+- Configurar ambientes separados para desarrollo, pruebas y producción.
+- Montar infraestructura local (contenedores, redes internas, secretos).
+- Habilitar flujos básicos de CI/CD y documentación técnica inicial.
+
+**Entregables:**
+- Repositorio con estructura base.
+- Manual de instalación local y buenas prácticas.
+- Plantilla de CI/CD con al menos una validación básica.
+- Ambiente de desarrollo replicable con un comando (ej. Docker Compose).
+
+
+##### 2. Implementación del Módulo de Registro (Bioregistro Verde)
+
+**Objetivo:** Habilitar la incorporación de personas físicas y jurídicas a la plataforma.
+
+**Actividades:**
+- Crear formulario de registro adaptativo por tipo de entidad.
+- Implementar simulaciones de validación automática y revisión manual.
+- Gestionar jerarquías usuario–organización y generación de llaves.
+- Activar sistema de notificaciones y control geográfico básico.
+
+**Entregables:**
+- Flujo funcional de registro completo.
+- Formulario con lógica adaptativa por entidad.
+- Simulación de validaciones automáticas y manuales.
+- Sistema de emisión de llaves y notificación por correo.
+
+##### 3. Habilitar el Centro de Carga de Datos
+
+**Objetivo:** Permitir a los usuarios cargar datasets desde distintas fuentes.
+
+**Actividades:**
+- Desarrollar interfaz de carga de archivos (CSV, Excel, JSON).
+- Capturar metadatos básicos (nombre, descripción, privacidad, etc.).
+- Simular conexión con bases de datos externas.
+- Almacenar cargas en espacio temporal con trazabilidad.
+
+**Entregables:**
+- Módulo de carga funcional con validaciones mínimas.
+- Interfaz para configuración de metadatos y privacidad.
+- Log de cargas realizadas para trazabilidad.
+- Cargas almacenadas provisionalmente.
+
+##### 4. Desarrollar el Motor de Transformación (ETDL)
+
+**Objetivo:** Procesar los datos cargados, limpiarlos y convertirlos a un formato interno.
+
+**Actividades:**
+- Validar estructura y contenido de cada carga.
+- Aplicar lógica básica de transformación (normalización, fechas, duplicados).
+- Generar versiones limpias de los datos.
+- Conectar a almacenamiento de datos validado (La Bóveda).
+
+**Entregables:**
+- Flujo de transformación activo con trazabilidad.
+- Reportes de validación y errores por dataset.
+- Datos transformados almacenados de forma estructurada.
+- Métricas básicas del proceso (tiempo, éxito, errores).
+
+
+
+##### 5. Configurar el Almacén Central (La Bóveda)
+
+**Objetivo:** Consolidar y proteger los datos procesados para su consumo posterior.
+
+**Actividades:**
+- Crear repositorio único para los datasets internos.
+- Implementar segmentación de acceso por rol, entidad y tipo de dato.
+- Establecer cifrado básico en tránsito y reposo.
+- Documentar relaciones entre datasets si aplica.
+
+**Entregables:**
+- Sistema de almacenamiento central con control de accesos.
+- Datasets organizados y protegidos.
+- Trazabilidad de acceso a cada dataset.
+- Esquema inicial de relaciones entre datasets (si corresponde).
+
+##### 6. Activar la Visualización y los Dashboards
+
+**Objetivo:** Permitir a los usuarios explorar datos mediante gráficos sin exportarlos.
+
+**Actividades:**
+- Crear constructor básico de dashboards con tablas y gráficos.
+- Activar vistas previas con datos ficticios y reales.
+- Controlar consumo (frecuencia, volumen, consultas).
+- Habilitar compartir dashboards con otros usuarios.
+
+**Entregables:**
+- Módulo visual con constructor de dashboards funcional.
+- Dashboards guardables y compartibles.
+- Lógica de límites de uso aplicada.
+- Registro de interacciones y consultas realizadas.
+
+
+
+##### 7. Simular el Consumo para Modelos de IA
+
+**Objetivo:** Simular acceso regulado a datasets por sistemas externos autorizados.
+
+**Actividades:**
+- Definir reglas de uso y límites por usuario y contexto.
+- Habilitar endpoints simulados para "entrenamiento" de IA.
+- Registrar y auditar cada consulta o consumo.
+- Aplicar restricciones estrictas para evitar abuso.
+
+**Entregables:**
+- API simulada para consumo por IA.
+- Sistema de seguimiento y límites aplicado.
+- Log de accesos con usuario, contexto y volumen consultado.
+- Validación de cumplimiento de reglas definidas.
+
+
+
+##### 8. Prototipar el Marketplace de Datos
+
+**Objetivo:** Permitir explorar, adquirir y acceder a datasets bajo condiciones.
+
+**Actividades:**
+- Crear buscador y navegador de datasets públicos y pagos.
+- Mostrar precios, términos y opciones de compra.
+- Simular proceso de adquisición y activación de accesos.
+- Gestionar historial de compras y permisos vigentes.
+
+**Entregables:**
+- Interfaz funcional del marketplace.
+- Flujo de compra simulado con activación de acceso.
+- Historial de transacciones por usuario.
+- Permisos temporales aplicados tras cada compra.
+
+##### 9. Activar el Backoffice Administrativo
+
+**Objetivo:** Brindar herramientas de gestión y supervisión al equipo administrador.
+
+**Actividades:**
+- Crear panel seguro para personal autorizado.
+- Visualizar registros, cargas y actividad por componente.
+- Permitir aprobación/rechazo de registros y cargas.
+- Generar reportes y estadísticas de uso.
+
+**Entregables:**
+- Panel de administración con control de usuarios y datos.
+- Visualización de actividad y estado del sistema.
+- Herramientas para revisión y auditoría básica.
+- Generación de reportes automáticos.
+
+##### 10. Pruebas Integradas y Simulación de Casos Reales
+
+**Objetivo:** Asegurar que todo funcione de forma integrada.
+
+**Actividades:**
+- Simular flujos completos: registro → carga → transformación → consumo.
+- Usar casos reales o sintéticos para testear extremos del sistema.
+- Validar reglas de permisos, límites y visualización.
+- Documentar fallos, mejoras y tiempos de respuesta.
+
+**Entregables:**
+- Casos de prueba documentados.
+- Resultados de pruebas con observaciones.
+- Validación de flujos completos con usuarios simulados.
+- Lista de bugs o ajustes para corregir.
+
+
+##### 11. Despliegue Controlado y Evaluación
+
+**Objetivo:** Publicar la plataforma en un entorno accesible para validación final.
+
+**Actividades:**
+- Preparar un entorno de pruebas compartido (local o nube).
+- Desplegar todos los módulos de forma conectada.
+- Habilitar usuarios de prueba para feedback externo.
+- Preparar una demo pública o privada para presentación.
+
+**Entregables:**
+- Versión desplegada en entorno de pruebas.
+- Acceso limitado para usuarios externos (testers/docentes).
+- Feedback recolectado para iteración.
+- Material de presentación o demo funcional lista.
+
 
 ### 1.6 WBS del sistema
 
