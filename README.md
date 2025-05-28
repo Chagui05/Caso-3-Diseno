@@ -1732,7 +1732,54 @@ SumSub, para las pruebas de vida, kycm y aml
 ### Cloud 
 
 ### DevOps y Testing
-Prometheus, Grafana, terraform, github actions
+#### Infraestructura como Código (IaC)
+
+- **AWS CloudFormation:** plantilla oficial de AWS para definir infraestructura como código. 
+
+- **Terraform:** herramienta para definir y aprovisionar la infraestructura en AWS mediante archivos .tf, asegurando consistencia entre ambientes y facilitando el versionamiento y rollback de cambios.
+
+- **Helm:** gestor de paquetes para Kubernetes que permite definir despliegues mediante chart templates reutilizables, simplificando el despliegue de servicios backend.
+
+#### Integración y Despliegue Continuo (CI/CD)
+
+- **Github:** Para guardar codigo y control de versiones.
+
+- **AWS CodePipeline:** herramienta nativa de AWS para construir pipelines de integración y despliegue continuo. 
+
+- **GitHub Actions:** seguirá siendo utilizado como integrador externo, especialmente para validar PRs, ejecutar linters, y disparar eventos hacia CodePipeline mediante webhooks.
+
+#### Observabilidad y Monitoreo
+
+- **AWS CloudWatch:** permite monitorear y supervisar toda la infraestructura desplegada en AWS, como RDS, DynamoDB y S3. Dado que todo el alojamiento en la nube se realizará en AWS, no es necesario utilizar otras herramientas externas como DataDog o Prometheus.
+
+- **Grafana + CloudWatch:** para dashboards visuales personalizados directamente desde CloudWatch Metrics.
+
+#### Pruebas Automatizadas
+
+- **Pytest:** framework de pruebas para Python usado en pruebas unitarias para el backend.
+
+- **Jest :** para pruebas unitarias de componentes React en el frontend.
+
+- **AWS Load Testing:** para hacer pruebas de carga en la aplicación.
+
+- **Postman + Newman:** se usarán para pruebas manuales y automáticas de la API REST. Newman permite integrar las colecciones en el CI.
+
+#### Validación de Código y Estilo
+
+- **ESLint:** verificación automática de estilo y seguridad en el frontend, con reglas personalizadas ancladas en el repositorio (.eslintrc.js).
+
+- **Amazon CodeGuru Reviewer:** analiza código Python, detectando problemas de rendimiento y vulnerabilidades usando machine learning.
+
+- **SonarQube:** se usará para realizar análisis estático del código backend y frontend, identificando automáticamente bugs, vulnerabilidades y malas prácticas. Estará integrado al pipeline de CI/CD para bloquear pull requests con problemas críticos y generar reportes de calidad y seguridad.
+
+#### Seguridad
+
+- **AWS Secrets Manager:** gestión segura de claves API, credenciales y tokens con rotación automática y control de acceso granular.
+
+- **Dependabot:** para monitoreo de paquetes vulnerables desde GitHub. Se integra con CodePipeline para ejecutar pruebas de validación al actualizar dependencias.
+
+
+
 
 ## 4. Diseño de los componentes
 
