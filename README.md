@@ -1697,6 +1697,8 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 - **Formik + Yup**: Dos librerías de Javascript que harán la escritura de formularios más simple. Formik para la estructura de formularios, Yup para validación
 - **Cognito**: Servicio de AWS que será usado para el registro de personas. 
 - **Plotly**: Librería para gráficos interactivos y avanzados con soporte para fuentes dinámicas y control total. Presione [aquí](https://www.chartjs.org/docs/latest/samples/information.html) para ver los gráficos que ofrecen.
+- **AWS S3:** Servicio de almacenamiento escalable donde se alojan los archivos estáticos de la aplicación React (HTML, CSS, JS, imágenes, etc.).
+- **AWS Cloudfront:**  Red de distribución de contenido (CDN) que entrega los archivos desde S3 con baja latencia y alta velocidad, mejorando el rendimiento y la disponibilidad global.
 
 ### Backend
 - **Python**: Lenguaje de programación versatil, con variedad de librerías y frameworks especializados en ETL e IA.
@@ -1711,24 +1713,21 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 ### Data
 
 - **PostgreSQL:** Almacenamiento relacional de datos estructurados, ideal para usuarios y clientes.
-
 - **DynamoDB:** Base de datos NoSQL para gestionar metadatos dinámicos y de alto rendimiento.
-
 - **AWS S3:** Almacenamiento de objetos escalable y seguro para grandes volúmenes de datos no estructurados, como archivos.
-
-- **AWS Glue:** Servicio ETL gestionado para la transformación y preparación de datos en flujos automatizados.
-
-- **AWS Lake Formation:** Servicio para gobernanza y seguridad centralizada de datalakes, con gestión de permisos y control de acceso.
-
+- **AWS Glue:** Servicio ETL gestionado para la transformación y preparación de datos en flujos automatizados.*tentativo, puede que prefiramos implementar nuestro propio cluster de spark en EKS organizado con airflow.
 - **AWS SageMaker:** Plataforma integral para crear, entrenar y desplegar modelos de machine learning de forma segura y escalable.
-
 - **AWS KMS (Key Management Service):** Servicio de administración de claves criptográficas para cifrar y proteger datos sensibles en todos los servicios de AWS.
 
 ### AI
 
 hugging face para modelos ya entrenados que nos puedan servir (all-mpnet-base-v2 genera embeddings que podría servir para entrenar IA)
-### sistemas de Terceros
-SumSub, para las pruebas de vida, kycm y aml
+### Sistemas de Terceros
+
+- **SumSub:** Sistema para poder realizar las comprobaciones KYC, AML y sdk para realizar pruebas de vida.
+- **AWS:** Será nuestro cloud provider, y usaremos distintos servicios como S3, Glue, Cognito, etc.
+- **Stripe:** Sistema que permite manejar los pagos dentro de nuestro sitio web.
+- **Hugging Face:** Fuente para usar módelos de IA ya entrenados.
 ### Cloud 
 
 ### DevOps y Testing
