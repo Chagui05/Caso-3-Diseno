@@ -687,6 +687,26 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 3. **GitHub**: Commits, documentación y versiones
 4. **Reuniones semanales**: Revisión manual de KPIs y ajustes
 
+
+### Herramientas para AI
+
+A continuación, se detallan las principales herramientas seleccionadas para la capa de inteligencia artificial dentro de Data Pura Vida. Estas herramientas permitirán flujos inteligentes y el entrenamiento de modelos:
+
+| Herramienta                  | Propósito principal                                                      | Licencia / Versión     |
+|-----------------------------|---------------------------------------------------------------------------|------------------------|
+| **Hugging Face Transformers** | Uso de modelos preentrenados (ej. all-mpnet-base-v2) para generar embeddings semánticos de texto. | Apache 2.0 / v4.38     |
+| **LangChain**               | Orquestación de agentes inteligentes y manejo de flujos de lenguaje natural. | MIT / v0.1.14          |
+| **OpenAI (GPT-4)**          | Procesamiento de lenguaje natural, generación de texto y clasificación semántica. | API Comercial (GPT-4)  |
+| **Amazon SageMaker**        | Entrenamiento, ajuste fino y despliegue de modelos personalizados de machine learning. | AWS Managed            |
+
+
+Estas herramientas serán utilizadas para tareas como:
+- Validación inteligente de documentos.
+- Clasificación automática de datasets y columnas.
+- Generación de sugerencias y dashboards automáticos.
+- Procesamiento de texto y contexto dentro del motor ETDL.
+
+
 ## 2. Supuestos del proyecto
 
 ### 2.1 Estándares y Regulaciones
