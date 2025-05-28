@@ -1710,9 +1710,20 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 
 ### Data
 
-s3, para almacenar documentos legales de las empresas, y también para hostear el sitio web
+- **PostgreSQL:** Almacenamiento relacional de datos estructurados, ideal para usuarios y clientes.
 
-aurorar puede ser, es relaciona, escalable y rapida
+- **DynamoDB:** Base de datos NoSQL para gestionar metadatos dinámicos y de alto rendimiento.
+
+- **AWS S3:** Almacenamiento de objetos escalable y seguro para grandes volúmenes de datos no estructurados, como archivos.
+
+- **AWS Glue:** Servicio ETL gestionado para la transformación y preparación de datos en flujos automatizados.
+
+- **AWS Lake Formation:** Servicio para gobernanza y seguridad centralizada de datalakes, con gestión de permisos y control de acceso.
+
+- **AWS SageMaker:** Plataforma integral para crear, entrenar y desplegar modelos de machine learning de forma segura y escalable.
+
+- **AWS KMS (Key Management Service):** Servicio de administración de claves criptográficas para cifrar y proteger datos sensibles en todos los servicios de AWS.
+
 ### AI
 
 hugging face para modelos ya entrenados que nos puedan servir (all-mpnet-base-v2 genera embeddings que podría servir para entrenar IA)
