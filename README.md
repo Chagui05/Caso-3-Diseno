@@ -688,23 +688,6 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 4. **Reuniones semanales**: Revisión manual de KPIs y ajustes
 
 
-### Herramientas para AI
-
-A continuación, se detallan las principales herramientas seleccionadas para la capa de inteligencia artificial dentro de Data Pura Vida. Estas herramientas permitirán flujos inteligentes y el entrenamiento de modelos:
-
-| Herramienta                  | Propósito principal                                                      | Licencia / Versión     |
-|-----------------------------|---------------------------------------------------------------------------|------------------------|
-| **Hugging Face Transformers** | Uso de modelos preentrenados (ej. all-mpnet-base-v2) para generar embeddings semánticos de texto. | Apache 2.0 / v4.38     |
-| **LangChain**               | Orquestación de agentes inteligentes y manejo de flujos de lenguaje natural. | MIT / v0.1.14          |
-| **OpenAI (GPT-4)**          | Procesamiento de lenguaje natural, generación de texto y clasificación semántica. | API Comercial (GPT-4)  |
-| **Amazon SageMaker**        | Entrenamiento, ajuste fino y despliegue de modelos personalizados de machine learning. | AWS Managed            |
-
-
-Estas herramientas serán utilizadas para tareas como:
-- Validación inteligente de documentos.
-- Clasificación automática de datasets y columnas.
-- Generación de sugerencias y dashboards automáticos.
-- Procesamiento de texto y contexto dentro del motor ETDL.
 
 
 ## 2. Supuestos del proyecto
@@ -1939,7 +1922,11 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 
 ### AI
 
-Hugging face para modelos ya entrenados que nos puedan servir (all-mpnet-base-v2 genera embeddings que podría servir para entrenar IA)
+- **Hugging Face Transformers:** Uso de modelos preentrenados (ej. all-mpnet-base-v2) para generar embeddings semánticos de texto. 
+- **LangChain:** Orquestación de agentes inteligentes y manejo de flujos de lenguaje natural. 
+- **OpenAI (GPT-4):** Procesamiento de lenguaje natural, generación de texto y clasificación semántica. 
+- **Amazon SageMaker**: Entrenamiento, ajuste fino y despliegue de modelos personalizados de machine learning. 
+
 ### Sistemas de Terceros
 
 - **SumSub:** Sistema para poder realizar las comprobaciones KYC, AML y sdk para realizar pruebas de vida.
@@ -2081,6 +2068,29 @@ Este si es general de todos los componentes
 ### Diagrama General del Backend
 
 Este si es general de todos los componentes
+
+### 4.1. Bioregistro Verde 
+
+#### Análisis del Componente
+
+#### Diseño de la Arquitectura
+
+
+Authentication platform
+Client Architecture
+
+Visual Components
+Patterns & Principles:
+Toolkits and standards:
+
+Object design patterns
+
+External services
+
+Project structure
+
+
+
 
 ## 5. Validación de los requerimientos
 
