@@ -1939,14 +1939,33 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 
 ### AI
 
-hugging face para modelos ya entrenados que nos puedan servir (all-mpnet-base-v2 genera embeddings que podría servir para entrenar IA)
+Hugging face para modelos ya entrenados que nos puedan servir (all-mpnet-base-v2 genera embeddings que podría servir para entrenar IA)
 ### Sistemas de Terceros
 
 - **SumSub:** Sistema para poder realizar las comprobaciones KYC, AML y sdk para realizar pruebas de vida.
 - **AWS:** Será nuestro cloud provider, y usaremos distintos servicios como S3, Glue, Cognito, etc.
 - **Stripe:** Sistema que permite manejar los pagos dentro de nuestro sitio web.
 - **Hugging Face:** Fuente para usar módelos de IA ya entrenados.
+
 ### Cloud 
+#### **Proveedor Principal**
+- **Amazon Web Services (AWS)**: Plataforma de computación en la nube para toda la infraestructura de Data Pura Vida.
+
+
+#### Servicios de Computación 
+- **Amazon EKS:** Kubernetes gestionado para contenedores del backend
+- **AWS Lambda:** Funciones serverless para procesos específicos
+
+#### **Servicios de Red**
+- **AWS Application Load Balancer:** Balanceador de carga
+- **Amazon CloudFront:** CDN para contenido estático
+- **AWS VPC:** Red privada virtual para aislar recursos
+
+#### **Servicios de Gestión**
+- **AWS IAM:** Gestión de identidades y permisos
+- **AWS CloudWatch:** Monitoreo y métricas (ya definido en DevOps)
+- **AWS CloudTrail:** Auditoría de acciones
+
 
 ### DevOps y Testing
 #### Infraestructura como Código (IaC)
