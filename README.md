@@ -323,6 +323,7 @@ Este blueprint se organiza en siete fases principales:
 ### 1.5 Plan de ejecución del proyecto
 
 #### Plan de Diseño
+
 El proyecto se estructura en cinco hitos principales que marcarán su progreso:
 
 - Planeamiento del Proyecto
@@ -341,40 +342,41 @@ Además, como se indicó anteriormente, se realizarán reuniones semanales para 
 
 Además, como se dijo previamente, se harán reuniones semanales para verificar que el proyecto se esté realizando según lo dice el plan.
 
-#### Plan de Ejecución para Desarrolladores 
+#### Plan de Ejecución para Desarrolladores
 
 Este plan indica cómo avanzar progresivamente en la construcción del sistema, desde preparar el entorno hasta desplegar y probar los módulos principales. No detalla cómo funciona cada módulo, sino cómo se implementan y conectan entre sí, con sus respectivos entregables por etapa.
-
-
 
 ##### 1. Preparación del Entorno de Desarrollo
 
 **Objetivo:** Sentar las bases para que todo el equipo trabaje de forma coordinada, segura y replicable.
 
 **Actividades:**
+
 - Establecer repositorio con control de versiones.
 - Configurar ambientes separados para desarrollo, pruebas y producción.
 - Montar infraestructura local (contenedores, redes internas, secretos).
 - Habilitar flujos básicos de CI/CD y documentación técnica inicial.
 
 **Entregables:**
+
 - Repositorio con estructura base.
 - Manual de instalación local y buenas prácticas.
 - Plantilla de CI/CD con al menos una validación básica.
 - Ambiente de desarrollo replicable con un comando (ej. Docker Compose).
-
 
 ##### 2. Implementación del Módulo de Registro (Bioregistro Verde)
 
 **Objetivo:** Habilitar la incorporación de personas físicas y jurídicas a la plataforma.
 
 **Actividades:**
+
 - Crear formulario de registro adaptativo por tipo de entidad.
 - Implementar simulaciones de validación automática y revisión manual.
 - Gestionar jerarquías usuario–organización y generación de llaves.
 - Activar sistema de notificaciones y control geográfico básico.
 
 **Entregables:**
+
 - Flujo funcional de registro completo.
 - Formulario con lógica adaptativa por entidad.
 - Simulación de validaciones automáticas y manuales.
@@ -385,12 +387,14 @@ Este plan indica cómo avanzar progresivamente en la construcción del sistema, 
 **Objetivo:** Permitir a los usuarios cargar datasets desde distintas fuentes.
 
 **Actividades:**
+
 - Desarrollar interfaz de carga de archivos (CSV, Excel, JSON).
 - Capturar metadatos básicos (nombre, descripción, privacidad, etc.).
 - Simular conexión con bases de datos externas.
 - Almacenar cargas en espacio temporal con trazabilidad.
 
 **Entregables:**
+
 - Módulo de carga funcional con validaciones mínimas.
 - Interfaz para configuración de metadatos y privacidad.
 - Log de cargas realizadas para trazabilidad.
@@ -401,30 +405,32 @@ Este plan indica cómo avanzar progresivamente en la construcción del sistema, 
 **Objetivo:** Procesar los datos cargados, limpiarlos y convertirlos a un formato interno.
 
 **Actividades:**
+
 - Validar estructura y contenido de cada carga.
 - Aplicar lógica básica de transformación (normalización, fechas, duplicados).
 - Generar versiones limpias de los datos.
 - Conectar a almacenamiento de datos validado (La Bóveda).
 
 **Entregables:**
+
 - Flujo de transformación activo con trazabilidad.
 - Reportes de validación y errores por dataset.
 - Datos transformados almacenados de forma estructurada.
 - Métricas básicas del proceso (tiempo, éxito, errores).
-
-
 
 ##### 5. Configurar el Almacén Central (La Bóveda)
 
 **Objetivo:** Consolidar y proteger los datos procesados para su consumo posterior.
 
 **Actividades:**
+
 - Crear repositorio único para los datasets internos.
 - Implementar segmentación de acceso por rol, entidad y tipo de dato.
 - Establecer cifrado básico en tránsito y reposo.
 - Documentar relaciones entre datasets si aplica.
 
 **Entregables:**
+
 - Sistema de almacenamiento central con control de accesos.
 - Datasets organizados y protegidos.
 - Trazabilidad de acceso a cada dataset.
@@ -435,48 +441,50 @@ Este plan indica cómo avanzar progresivamente en la construcción del sistema, 
 **Objetivo:** Permitir a los usuarios explorar datos mediante gráficos sin exportarlos.
 
 **Actividades:**
+
 - Crear constructor básico de dashboards con tablas y gráficos.
 - Activar vistas previas con datos ficticios y reales.
 - Controlar consumo (frecuencia, volumen, consultas).
 - Habilitar compartir dashboards con otros usuarios.
 
 **Entregables:**
+
 - Módulo visual con constructor de dashboards funcional.
 - Dashboards guardables y compartibles.
 - Lógica de límites de uso aplicada.
 - Registro de interacciones y consultas realizadas.
-
-
 
 ##### 7. Simular el Consumo para Modelos de IA
 
 **Objetivo:** Simular acceso regulado a datasets por sistemas externos autorizados.
 
 **Actividades:**
+
 - Definir reglas de uso y límites por usuario y contexto.
 - Habilitar endpoints simulados para "entrenamiento" de IA.
 - Registrar y auditar cada consulta o consumo.
 - Aplicar restricciones estrictas para evitar abuso.
 
 **Entregables:**
+
 - API simulada para consumo por IA.
 - Sistema de seguimiento y límites aplicado.
 - Log de accesos con usuario, contexto y volumen consultado.
 - Validación de cumplimiento de reglas definidas.
-
-
 
 ##### 8. Prototipar el Marketplace de Datos
 
 **Objetivo:** Permitir explorar, adquirir y acceder a datasets bajo condiciones.
 
 **Actividades:**
+
 - Crear buscador y navegador de datasets públicos y pagos.
 - Mostrar precios, términos y opciones de compra.
 - Simular proceso de adquisición y activación de accesos.
 - Gestionar historial de compras y permisos vigentes.
 
 **Entregables:**
+
 - Interfaz funcional del marketplace.
 - Flujo de compra simulado con activación de acceso.
 - Historial de transacciones por usuario.
@@ -487,12 +495,14 @@ Este plan indica cómo avanzar progresivamente en la construcción del sistema, 
 **Objetivo:** Brindar herramientas de gestión y supervisión al equipo administrador.
 
 **Actividades:**
+
 - Crear panel seguro para personal autorizado.
 - Visualizar registros, cargas y actividad por componente.
 - Permitir aprobación/rechazo de registros y cargas.
 - Generar reportes y estadísticas de uso.
 
 **Entregables:**
+
 - Panel de administración con control de usuarios y datos.
 - Visualización de actividad y estado del sistema.
 - Herramientas para revisión y auditoría básica.
@@ -503,34 +513,36 @@ Este plan indica cómo avanzar progresivamente en la construcción del sistema, 
 **Objetivo:** Asegurar que todo funcione de forma integrada.
 
 **Actividades:**
+
 - Simular flujos completos: registro → carga → transformación → consumo.
 - Usar casos reales o sintéticos para testear extremos del sistema.
 - Validar reglas de permisos, límites y visualización.
 - Documentar fallos, mejoras y tiempos de respuesta.
 
 **Entregables:**
+
 - Casos de prueba documentados.
 - Resultados de pruebas con observaciones.
 - Validación de flujos completos con usuarios simulados.
 - Lista de bugs o ajustes para corregir.
-
 
 ##### 11. Despliegue Controlado y Evaluación
 
 **Objetivo:** Publicar la plataforma en un entorno accesible para validación final.
 
 **Actividades:**
+
 - Preparar un entorno de pruebas compartido (local o nube).
 - Desplegar todos los módulos de forma conectada.
 - Habilitar usuarios de prueba para feedback externo.
 - Preparar una demo pública o privada para presentación.
 
 **Entregables:**
+
 - Versión desplegada en entorno de pruebas.
 - Acceso limitado para usuarios externos (testers/docentes).
 - Feedback recolectado para iteración.
 - Material de presentación o demo funcional lista.
-
 
 ### 1.6 WBS del sistema
 
@@ -588,18 +600,18 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 
 #### Riesgos para el Diseño de Data Pura Vida
 
-| ID      | Categoría         | Riesgo                                               | Descripción Detallada                                                                                                                                                                           | Probabilidad        | Impacto             | Clasificación   | Estrategia     | Plan de Respuesta                                                                                                                                                                 |
-| ------- | ----------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ------------------- | --------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **R01** | **Diseño**        | **Complejidad arquitectónica del ecosistema**        | Diseñar una arquitectura que integre efectivamente portal web, API backend, datalake, backoffice y múltiples sistemas de seguridad requiere experiencia en arquitecturas distribuidas complejas | **Muy Alta (100%)** | **Muy Alto (100%)** | **🔴 EXTREMO**  | **MITIGAR**    | **Prevención:** Definir patrones arquitectónicos estándar, revisiones semanales, división en capas<br>**Contingencia:** Consultoría externa, arquitectura monolítica simplificada |
-| **R02** | **Alcance**       | **Subestimación del alcance técnico**                | El sistema requiere diseñar más de 50 componentes técnicos diferentes incluyendo motor ETDL con IA, cifrado tripartito, validación biométrica y procesamiento de millones de registros          | **Alta (80%)**      | **Alto (80%)**      | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Descomponer en historias simples, Planning Poker, estimación por horas<br>**Contingencia:** Re-priorización MoSCoW, reducción a MVP                               |
-| **R03** | **Documentación** | **Inconsistencias en la documentación técnica**      | Generar documentación técnica coherente entre arquitectura de alto nivel, especificaciones de APIs, modelos de datos, diagramas de seguridad y patrones de integración                          | **Alta (80%)**      | **Alto (80%)**      | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Templates estándar, peer review, checklist calidad<br>**Contingencia:** Auditoría semanal, refactoring documental                                                 |
-| **R04** | **Tiempo**        | **Cronograma optimista para la complejidad**         | El tiempo asignado puede ser insuficiente para diseñar completamente todos los componentes técnicos con el nivel de detalle requerido para un sistema de esta magnitud                          | **Muy Alta (100%)** | **Medio (60%)**     | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Re-estimación semanal, burndown charts, escalación automática<br>**Contingencia:** Priorización dinámica, redistribución de tareas                                |
-| **R05** | **Técnico**       | **Complejidad del motor ETDL con IA**                | Especificar técnicamente un motor que procese automáticamente múltiples formatos, detecte duplicados, relacione datos y aplique transformaciones inteligentes es altamente complejo             | **Media (60%)**     | **Muy Alto (100%)** | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Spike 16 horas, prototipo con 3 casos, arquitectura modular<br>**Contingencia:** Motor simplificado sin IA, integración Talend/NiFi                               |
-| **R06** | **Seguridad**     | **Diseño de sistema de cifrado tripartito**          | Especificar correctamente un sistema de llaves criptográficas divididas entre tres custodios, incluyendo protocolos de recuperación y validación mancomunada                                    | **Baja (40%)**      | **Muy Alto (100%)** | **🟠 ALTO**     | **TRANSFERIR** | **Prevención:** Consulta expertos, estándares FIPS 140-2, validación externa<br>**Contingencia:** Cifrado HSM tradicional, esquema dual                                           |
-| **R07** | **Integración**   | **Interfaces entre componentes mal definidas**       | Riesgo de que las especificaciones de APIs, contratos de datos y protocolos de comunicación entre portal, backend y datalake no sean completamente compatibles                                  | **Media (60%)**     | **Alto (80%)**      | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Contratos OpenAPI 3.0, reuniones bi-semanales, diagramas secuencia<br>**Contingencia:** Workshop alineación 4 horas, rediseño contratos                           |
-| **R08** | **Escalabilidad** | **Arquitectura no preparada para la carga esperada** | El diseño puede no contemplar adecuadamente el manejo de millones de registros, miles de usuarios concurrentes y procesamiento de grandes volúmenes de datos                                    | **Baja (40%)**      | **Medio (60%)**     | **🟡 MODERADO** | **ACEPTAR**    | **Prevención:** Análisis capacidad inicial, documentar recomendaciones<br>**Contingencia:** Roadmap escalabilidad futura, patrones horizontales                                   |
-| **R09** | **Recursos**      | **Disponibilidad limitada del Product Owner**        | El Product Owner puede no estar disponible para validar decisiones arquitectónicas críticas o para resolver ambigüedades en los requerimientos técnicos                                         | **Media (60%)**     | **Bajo (40%)**      | **🟡 MODERADO** | **ACEPTAR**    | **Prevención:** Agenda fija martes/viernes, decisiones escritas, timeboxing 24h<br>**Contingencia:** Escalación stakeholders, decisiones equipo con validación posterior          |
-| **R10** | **Coordinación**  | **Diseños de componentes desconectados**             | Los diferentes integrantes del equipo pueden diseñar sus componentes sin suficiente coordinación, resultando en interfaces incompatibles o duplicación de funcionalidades                       | **Media (60%)**     | **Medio (60%)**     | **🟡 MODERADO** | **MITIGAR**    | **Prevención:** Sincronización semanal viernes, documentación GitHub, daily stand-ups<br>**Contingencia:** Workshop alineación medio día, rediseño interfaces                     |
+| ID      | Categoría         | Riesgo                                               | Descripción Detallada                                                                                                                                                                           | Probabilidad        | Impacto             | Clasificación   | Estrategia     | Plan de Respuesta                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------- | ----------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ------------------- | --------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **R01** | **Diseño**        | **Complejidad arquitectónica del ecosistema**        | Diseñar una arquitectura que integre efectivamente portal web, API backend, datalake, backoffice y múltiples sistemas de seguridad requiere experiencia en arquitecturas distribuidas complejas | **Muy Alta (100%)** | **Muy Alto (100%)** | **🔴 EXTREMO**  | **MITIGAR**    | **Prevención:** Definir máximo 5 patrones arquitectónicos (Semana 1), crear ADRs (Architecture Decision Records) para cada decisión, revisión arquitectónica obligatoria cada viernes 1h con validación técnica<br>**Contingencia:** Crear spike de 16h para diseñar arquitectura simplificada (3 capas: Frontend-API-Data), eliminar microservicios y usar monolito modular, reducir integraciones complejas a APIs REST estándar |
+| **R02** | **Alcance**       | **Subestimación del alcance del diseño**             | El tiempo asignado puede ser insuficiente para diseñar completamente todos los componentes técnicos con el nivel de detalle requerido para un sistema de esta magnitud                          | **Muy Alta (100%)** | **Medio (60%)**     | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Planning Poker diario 30min, re-estimación miércoles, time tracking obligatorio en ClickUp, descomponer tareas en máximo 8h cada una<br>**Contingencia:** Si desvío > 150% en 3 tareas: reducir nivel de detalle en diagramas de secuencia (de completos a conceptuales), simplificar especificaciones APIs (menos endpoints), priorizar componentes críticos primero, redistribuir trabajo en 1 día               |
+| **R03** | **Documentación** | **Inconsistencias en la documentación técnica**      | Generar documentación técnica coherente entre arquitectura de alto nivel, especificaciones de APIs, modelos de datos, diagramas de seguridad y patrones de integración                          | **Alta (80%)**      | **Alto (80%)**      | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Templates estándar GitHub, peer review obligatorio, checklist calidad por componente<br>**Contingencia:** Auditoría documental semanal viernes 2h, refactoring inmediato de documentos inconsistentes, responsable: Santiago Chaves                                                                                                                                                                                |
+| **R04** | **Tiempo**        | **Cronograma optimista para la complejidad**         | El tiempo asignado puede ser insuficiente para diseñar completamente todos los componentes técnicos con el nivel de detalle requerido para un sistema de esta magnitud                          | **Muy Alta (100%)** | **Medio (60%)**     | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Re-estimación semanal con burndown charts, escalación automática si > 20% desvío, buffer de 2 días por semana<br>**Contingencia:** Redistribuir tareas inmediatamente, asignar 2 personas a componentes críticos (Bio Registro y La Bóveda), reducir documentación detallada a documentación funcional, completar diseño básico de todos los componentes                                                           |
+| **R05** | **Técnico**       | **Complejidad del motor ETDL con IA**                | Especificar técnicamente un motor que procese automáticamente múltiples formatos, detecte duplicados, relacione datos y aplique transformaciones inteligentes es altamente complejo             | **Media (60%)**     | **Muy Alto (100%)** | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Spike 16h Apache Spark + PySpark (Luis David), prototipo 3 casos (CSV→PostgreSQL, JSON→S3, API→DynamoDB), validar 10MB en <30min<br>**Contingencia:** Motor simplificado con AWS Glue + transformaciones predefinidas, o integración Talend Open Studio (setup 1 semana)                                                                                                                                           |
+| **R06** | **Seguridad**     | **Diseño de sistema de cifrado tripartito**          | Especificar correctamente un sistema de llaves criptográficas divididas entre tres custodios, incluyendo protocolos de recuperación y validación mancomunada                                    | **Baja (40%)**      | **Muy Alto (100%)** | **🟠 ALTO**     | **TRANSFERIR** | **Prevención:** Consulta expertos criptografía (8h consultoría), documentar estándares FIPS 140-2, validación externa con especialista<br>**Contingencia:** Implementar cifrado HSM tradicional AWS KMS, esquema dual en lugar de tripartito, mantiene seguridad pero reduce complejidad                                                                                                                                           |
+| **R07** | **Integración**   | **Interfaces entre componentes mal definidas**       | Riesgo de que las especificaciones de APIs, contratos de datos y protocolos de comunicación entre portal, backend y datalake no sean completamente compatibles                                  | **Media (60%)**     | **Alto (80%)**      | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Contratos OpenAPI 3.0 obligatorios, reuniones sync bi-semanales martes/viernes, diagramas de secuencia por flujo<br>**Contingencia:** Workshop alineación 4h si incompatibilidades detectadas, rediseño contratos en 2 días, validación cruzada inmediata                                                                                                                                                          |
+| **R08** | **Escalabilidad** | **Arquitectura no preparada para la carga esperada** | El diseño puede no contemplar adecuadamente el manejo de millones de registros, miles de usuarios concurrentes y procesamiento de grandes volúmenes de datos                                    | **Baja (40%)**      | **Medio (60%)**     | **🟡 MODERADO** | **MITIGAR**    | **Prevención:** Definir límites técnicos concretos por componente (Bio Registro: 100 req/min, La Bóveda: 10GB/día), especificar patrones de escalabilidad (load balancers, auto-scaling), calcular capacidad mínima requerida<br>**Contingencia:** Rediseñar arquitectura con clustering activo/pasivo, implementar sharding en diseño de BD, especificar CDN y caching layers, definir estrategia de particionamiento horizontal  |
+| **R09** | **Recursos**      | **Disponibilidad limitada del Product Owner**        | El Product Owner puede no estar disponible para validar decisiones arquitectónicas críticas o para resolver ambigüedades en los requerimientos técnicos                                         | **Media (60%)**     | **Bajo (40%)**      | **🟡 MODERADO** | **ACEPTAR**    | **Prevención:** Agenda fija martes/viernes, decisiones escritas en Slack, timeboxing 24h para respuestas<br>**Contingencia:** Escalación a stakeholders si > 48h sin respuesta, decisiones técnicas por equipo con validación posterior, documentar en GitHub para trazabilidad                                                                                                                                                    |
+| **R10** | **Coordinación**  | **Diseños de componentes desconectados**             | Los diferentes integrantes del equipo pueden diseñar sus componentes sin suficiente coordinación, resultando en interfaces incompatibles o duplicación de funcionalidades                       | **Media (60%)**     | **Medio (60%)**     | **🟡 MODERADO** | **MITIGAR**    | **Prevención:** Sincronización semanal viernes 1h, documentación centralizada GitHub, daily stand-ups 15min<br>**Contingencia:** Workshop alineación medio día si interfaces incompatibles, rediseño coordinado 3 días máximo, matriz de dependencias actualizada                                                                                                                                                                  |
 
 ### 1.8 Definición de KPIs
 
@@ -687,8 +699,28 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 3. **GitHub**: Commits, documentación y versiones
 4. **Reuniones semanales**: Revisión manual de KPIs y ajustes
 
+<<<<<<< Updated upstream
 
+=======
 
+### Herramientas para AI
+
+A continuación, se detallan las principales herramientas seleccionadas para la capa de inteligencia artificial dentro de Data Pura Vida. Estas herramientas permitirán flujos inteligentes y el entrenamiento de modelos:
+
+| Herramienta                   | Propósito principal                                                                               | Licencia / Versión    |
+| ----------------------------- | ------------------------------------------------------------------------------------------------- | --------------------- |
+| **Hugging Face Transformers** | Uso de modelos preentrenados (ej. all-mpnet-base-v2) para generar embeddings semánticos de texto. | Apache 2.0 / v4.38    |
+| **LangChain**                 | Orquestación de agentes inteligentes y manejo de flujos de lenguaje natural.                      | MIT / v0.1.14         |
+| **OpenAI (GPT-4)**            | Procesamiento de lenguaje natural, generación de texto y clasificación semántica.                 | API Comercial (GPT-4) |
+| **Amazon SageMaker**          | Entrenamiento, ajuste fino y despliegue de modelos personalizados de machine learning.            | AWS Managed           |
+
+Estas herramientas serán utilizadas para tareas como:
+
+- Validación inteligente de documentos.
+- Clasificación automática de datasets y columnas.
+- Generación de sugerencias y dashboards automáticos.
+- Procesamiento de texto y contexto dentro del motor ETDL.
+  > > > > > > > Stashed changes
 
 ## 2. Supuestos del proyecto
 
@@ -708,8 +740,8 @@ Esta es la normativa nacional fundamental que rige la protección de datos perso
 
 El principio del consentimiento de información se regie por dos puntos importantes, a continuación, se mencionan los dos puntos y su aplicación dentro de la plataforma:
 
-  **Punto 1 - Obligación de informar**
-  Durante el proceso de registro en **Bio Registro Verde**, el sistema debe presentar de forma destacada y fácil de entender la siguiente información:
+**Punto 1 - Obligación de informar**
+Durante el proceso de registro en **Bio Registro Verde**, el sistema debe presentar de forma destacada y fácil de entender la siguiente información:
 
 - La existencia de la base de datos **Data Pura Vida**.
 
@@ -961,45 +993,57 @@ La implementación de **Data Pura Vida** no solo debe enfocarse en la funcionali
 Este checklist tiene como objetivo presentar los requisitos legales y de seguridad de **Data Pura Vida** en acciones concretas para el equipo de desarrollo, asegurando el cumplimiento con la Ley 8968, GDPR, ISO/IEC 27001 y los principios de la OCDE.
 
 ##### Datalake
+
 ###### Cifrado de Datos:
+
 - [ ] Implementar cifrado en reposo para todos los datos sensibles en el Datalake.
 - [ ] Implementar cifrado en tránsito para todas las comunicaciones hacia y desde el Datalake.
 - [ ] Asegurar que los campos específicos marcados como sensibles puedan ser cifrados a nivel de campo.
 
 ###### Control de Acceso:
+
 - [ ] Configurar RBAC (Role-Based Access Control) para todos los usuarios y servicios que interactúan con el Datalake, otorgando el mínimo privilegio necesario.
 - [ ] Implementar RLS (Row-Level Security) para asegurar que los usuarios solo puedan ver las filas de datos a las que tienen autorización explícita.
 - [ ] Asegurar que ningún ingeniero o personal técnico pueda acceder a los datos en claro sin autorización.
 
 ###### Calidad y Gobernanza de Datos:
+
 - [ ] Implementar mecanismos de validación de datos en el punto de entrada para asegurar la calidad y exactitud.
 - [ ] Desarrollar y aplicar algoritmos de IA para normalización, relación de datos y detección de duplicidades.
 
-
 ###### Auditoría y Trazabilidad:
+
 - [ ] Implementar auditoría detallada de todas las operaciones de CRUD (Crear, Leer, Actualizar, Borrar) en el Datalake, registrando usuario, acción, fecha, hora y efecto.
 - [ ] Mantener un historial de consumo de datos por parte de los usuarios y servicios.
 
 ##### Backend API
+
 ###### Seguridad de la API:
+
 - [ ] Proteger la API con whitelist de IPs (si aplica, para IPs institucionales o de Costa Rica).
 - [ ] Implementar un robusto sistema de validación de tokens (ej. JWT) para todas las solicitudes.
 - [ ] Exigir Multi-Factor Authentication (MFA) para el acceso a la API para usuarios administrativos o con privilegios elevados.
 
 ###### Gestión de Credenciales y Criptografía:
+
 - [ ] Desarrollar módulos separados para la gestión de credenciales, firmas y cifrado de datos.
 - [ ] Implementar el sistema de llave tripartita para la protección de identidades y datos asociados.
 
 ###### Registro y Monitoreo:
+
 - [ ] Asegurar la trazabilidad y registro de cada transacción que pase por la API.
 - [ ] Implementar monitoreo continuo de la API para detectar actividades anómalas o intentos de acceso no autorizado.
 
 ###### Transferencia de Datos:
+
 - [ ] Si hay transferencia de datos fuera de Costa Rica, asegurar que se cumplen las garantías de seguridad.
 
 ##### Interfaz de Usuario (UI) - Bio Registro Verde
+
 ###### Consentimiento Informado (Ley 8968 Artículo. 5, GDPR Artículos. 6 y 7):
+
 - [ ] Diseñar una sección clara y destacada en el registro para informar sobre:
+
   - La existencia de "Data Pura Vida" y su finalidad.
   - Los destinatarios de los datos.
   - La obligatoriedad de ciertos datos y sus consecuencias.
@@ -1009,12 +1053,15 @@ Este checklist tiene como objetivo presentar los requisitos legales y de segurid
 - [ ] Almacenar de forma segura la documentación del consentimiento vinculada al registro del usuario.
 
 ###### Autenticación y Validación:
+
 - [ ] Integrar identidad digital, biometría o prueba de vida en el proceso de autenticación inicial.
 - [ ] Implementar MFA para el acceso de los usuarios a sus cuentas.
 - [ ] Integrar validación documental automatizada por IA para verificar la completitud y validez de documentos (ej. cédulas, etc.).
 
 ###### Derechos ARCO (Acceso, Rectificación, Cancelación y Oposición) (Ley 8968 Artículo. 7, GDPR Artículos. 15-21):
+
 - [ ] Proporcionar un mecanismo claro y accesible en el perfil del usuario para:
+
   - Acceder a sus datos personales.
   - Rectificar datos inexactos.
   - Solicitar la eliminación de datos (Derecho al Olvido), con la lógica de negocio asociada.
@@ -1023,12 +1070,16 @@ Este checklist tiene como objetivo presentar los requisitos legales y de segurid
 - [ ] Considerar el derecho a oponerse a decisiones basadas únicamente en procesamiento automatizado si la IA afecta decisiones legales significativas sobre el usuario.
 
 ###### Privacidad de Datos (Ley 8968 Artículo. 6, GDPR Artículo. 25):
+
 - [ ] Asegurar que sistema integre la privacidad desde el inicio (ej. el cifrado de datos, el control granular de acceso, la minimización de datos por defecto).
 
 ##### Interfaz de Usuario (UI) - Feliz Compartiendo Datos
+
 ###### Autodeterminación Informativa (Ley 8968 Artículo. 4):
+
 - [ ] Desarrollar funcionalidades para que el usuario pueda:
-Decidir qué datasets compartir.
+      Decidir qué datasets compartir.
+
   - Configurar la visibilidad del dataset (público/privado).
   - Definir el modelo de acceso (gratuito/pagado).
   - Establecer control granular sobre el acceso por institución, persona o grupo de actores.
@@ -1038,54 +1089,62 @@ Decidir qué datasets compartir.
 - [ ] Habilitar la capacidad de restringir el acceso a datos por límites de tiempo, volumen o frecuencia de consulta.
 
 ###### Interoperabilidad (Principios OCDE):
+
 - [ ] Soportar múltiples formatos de carga y mecanismos de conexión para datasets.
 
 ##### Interfaz de Usuario (UI) - Descubriendo Costa Rica
 
 ###### Seguridad en Visualización (Ley 8968 Artículo. 10):
+
 - [ ] Bloquear la descarga directa de datos desde los dashboards o visualizaciones.
 - [ ] Impedir la exportación de gráficos y contenidos a formatos externos.
 - [ ] Asegurar que la visualización de datos solo sea posible dentro del entorno seguro del portal.
 
 ###### Control Granular y Personalización:
+
 - [ ] Permitir la construcción de dashboards personalizables por los usuarios.
 - [ ] Asegurar que la visibilidad granular aplicada en "Feliz Compartiendo Datos" se refleje correctamente en las visualizaciones.
 
 ##### Seguridad General y Operaciones
+
 ###### Políticas y Procedimientos (ISO 27001 A.5, A.6, A.8):
+
 - [ ] Colaborar con el equipo de PM/Seguridad para la implementación de las políticas de seguridad de la información.
 - [ ] Asegurar que el personal de desarrollo (ingenieros, backoffice) cumpla con los controles de seguridad antes, durante y después del empleo.
 
 ###### Controles de Acceso Lógico (ISO 27001 A.11):
+
 - [ ] Restringir el acceso al portal solo desde direcciones IP ubicadas en Costa Rica o a través de listas blancas de IPs institucionales.
 
-
-
-
 ###### Monitoreo y Gestión de Incidentes (ISO 27001 A.10.10, A.13, GDPR Artículos. 33 y 34):
+
 - [ ] Implementar monitoreo de sistemas y gestión de logs para todas las plataformas.
 - [ ] Desarrollar un proceso claro y automatizado para la detección, reporte y respuesta a incidentes de seguridad.
 - [ ] Preparar la capacidad técnica para notificar brechas de seguridad a la autoridad de control (PRODHAB, DPA de la UE) y a los interesados dentro de los plazos establecidos (ej. 72 horas para GDPR).
 
 ##### Cifrado General (ISO 27001 A.12.3):
+
 - [ ] Asegurar el uso de cifrado para todos los datos en reposo y en tránsito a través de la plataforma.
 
 ###### Pruebas de Seguridad:
+
 - [ ] Realizar pruebas de penetración y escaneos de vulnerabilidades de forma regular.
 - [ ] Incluir pruebas de seguridad en el ciclo de vida de desarrollo de software.
 
 ###### Continuidad del Negocio (ISO 27001 A.14.1):
+
 - [ ] Implementar planes de respaldo y recuperación para todos los componentes críticos del sistema.
 
 ##### Gobernanza de Datos y Cumplimiento
+
 ###### Auditoría Interna y Externa:
+
 - [ ] Estar preparado para auditorías internas y externas para demostrar el cumplimiento con la Ley 8968, GDPR e ISO 27001.
 - [ ] Asegurar la disponibilidad de evidencias (logs, configuraciones, políticas) para procesos legales o regulatorios.
 
-
 ###### Documentación:
-- [ ] Mantener una documentación actualizada de la arquitectura de seguridad, controles implementados y flujos de datos.
 
+- [ ] Mantener una documentación actualizada de la arquitectura de seguridad, controles implementados y flujos de datos.
 
 ### 2.2 Prácticas de Manejo de Código
 
@@ -1328,7 +1387,6 @@ module.exports = {
 
 Para el versionamiento de los distintos componentes de Data Pura Vida manejaremos un solo repositorio en GitHub, utilizando un enfoque inspirado en Git Flow, adaptado para flujos modernos con automatización CI/CD, de la siguiente forma:
 
-
 - main: rama estable lista para production.
 
 - dev: rama de integración en ella se corren los tests
@@ -1339,8 +1397,8 @@ Para el versionamiento de los distintos componentes de Data Pura Vida manejaremo
 
 Todo cambio realizado en las ramas de feature y hotfix, una vez estén listos, se deben fusionar a la rama dev, donde se ejecutarán las pruebas correspondientes. Luego, cuando todo esté aprobado, se harán merge a la rama main para que se realice el despliegue a producción.
 
+#### Versionado
 
-#### Versionado 
 Se seguirá un esquema de versionado semántico usando la notación MAJOR.MINOR.PATCH, por ejemplo: 2.3.1. Esto permitirá comunicar de forma clara el tipo de cambios introducidos:
 
 MAJOR: Se incrementa cuando hay cambios incompatibles con versiones anteriores.
@@ -1357,7 +1415,8 @@ Agregar una nueva funcionalidad al generador de dashboards → 2.1.0
 
 Corregir un bug en la visualización de gráficos → 2.1.1
 
-#### Estructura del repositorio 
+#### Estructura del repositorio
+
 A continuación, esta será la estructura del repositorio:
 
 ```bash
@@ -1493,7 +1552,6 @@ Durante el desarrollo e integración de la plataforma Data Pura Vida, se contemp
 #### Orquestación y Flujos de Datos
 
 - Google Cloud Workflows y BigQuery: Se valorará el uso de servicios de Google para tareas específicas de integración de datos y análisis en el datalake, incluyendo procesamiento por lotes, consultas distribuidas y automatización de flujos de datos complejos.
-
 
 ### 2.5 Aspectos de Calidad/SLA
 
@@ -1891,17 +1949,19 @@ Las APIs (interfaces de programación) utilizan nomenclatura semánticamente cla
 En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas utilizadas, así como sus restricciones y licencias
 
 ### Frontend
-- **React.js**: Un framework de javascript especializado en web apps 
-- **Vite**: Empaquetador de react. 
+
+- **React.js**: Un framework de javascript especializado en web apps
+- **Vite**: Empaquetador de react.
 - **Tailwind CSS**: Librería para acelerar la creación de estilos mediante utilidades predefinidas.
 - **Axios**: Libreria de javascript que permite hacer llamadas a rest APIs.
 - **Formik + Yup**: Dos librerías de Javascript que harán la escritura de formularios más simple. Formik para la estructura de formularios, Yup para validación
-- **Cognito**: Servicio de AWS que será usado para el registro de personas. 
+- **Cognito**: Servicio de AWS que será usado para el registro de personas.
 - **Plotly**: Librería para gráficos interactivos y avanzados con soporte para fuentes dinámicas y control total. Presione [aquí](https://www.chartjs.org/docs/latest/samples/information.html) para ver los gráficos que ofrecen.
 - **AWS S3:** Servicio de almacenamiento escalable donde se alojan los archivos estáticos de la aplicación React (HTML, CSS, JS, imágenes, etc.).
-- **AWS Cloudfront:**  Red de distribución de contenido (CDN) que entrega los archivos desde S3 con baja latencia y alta velocidad, mejorando el rendimiento y la disponibilidad global.
+- **AWS Cloudfront:** Red de distribución de contenido (CDN) que entrega los archivos desde S3 con baja latencia y alta velocidad, mejorando el rendimiento y la disponibilidad global.
 
 ### Backend
+
 - **Python**: Lenguaje de programación versatil, con variedad de librerías y frameworks especializados en ETL e IA.
 - **FastAPI**: Framework asíncrono en Python ideal para construir APIs rápidas y escalables.
 - **RabbitMQ**: Broker de mensajería para comunicación asíncrona entre módulos backend.
@@ -1916,16 +1976,20 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 - **PostgreSQL:** Almacenamiento relacional de datos estructurados, ideal para usuarios y clientes.
 - **DynamoDB:** Base de datos NoSQL para gestionar metadatos dinámicos y de alto rendimiento.
 - **AWS S3:** Almacenamiento de objetos escalable y seguro para grandes volúmenes de datos no estructurados, como archivos.
-- **AWS Glue:** Servicio ETL gestionado para la transformación y preparación de datos en flujos automatizados.*tentativo, puede que prefiramos implementar nuestro propio cluster de spark en EKS organizado con airflow.
+- **AWS Glue:** Servicio ETL gestionado para la transformación y preparación de datos en flujos automatizados.\*tentativo, puede que prefiramos implementar nuestro propio cluster de spark en EKS organizado con airflow.
 - **AWS SageMaker:** Plataforma integral para crear, entrenar y desplegar modelos de machine learning de forma segura y escalable.
 - **AWS KMS (Key Management Service):** Servicio de administración de claves criptográficas para cifrar y proteger datos sensibles en todos los servicios de AWS.
 
 ### AI
 
-- **Hugging Face Transformers:** Uso de modelos preentrenados (ej. all-mpnet-base-v2) para generar embeddings semánticos de texto. 
-- **LangChain:** Orquestación de agentes inteligentes y manejo de flujos de lenguaje natural. 
-- **OpenAI (GPT-4):** Procesamiento de lenguaje natural, generación de texto y clasificación semántica. 
-- **Amazon SageMaker**: Entrenamiento, ajuste fino y despliegue de modelos personalizados de machine learning. 
+<<<<<<< Updated upstream
+
+- **Hugging Face Transformers:** Uso de modelos preentrenados (ej. all-mpnet-base-v2) para generar embeddings semánticos de texto.
+- **LangChain:** Orquestación de agentes inteligentes y manejo de flujos de lenguaje natural.
+- **OpenAI (GPT-4):** Procesamiento de lenguaje natural, generación de texto y clasificación semántica.
+- # **Amazon SageMaker**: Entrenamiento, ajuste fino y despliegue de modelos personalizados de machine learning.
+  Hugging face para modelos ya entrenados que nos puedan servir (all-mpnet-base-v2 genera embeddings que podría servir para entrenar IA)
+  > > > > > > > Stashed changes
 
 ### Sistemas de Terceros
 
@@ -1934,30 +1998,34 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 - **Stripe:** Sistema que permite manejar los pagos dentro de nuestro sitio web.
 - **Hugging Face:** Fuente para usar módelos de IA ya entrenados.
 
-### Cloud 
+### Cloud
+
 #### **Proveedor Principal**
+
 - **Amazon Web Services (AWS)**: Plataforma de computación en la nube para toda la infraestructura de Data Pura Vida.
 
+#### Servicios de Computación
 
-#### Servicios de Computación 
 - **Amazon EKS:** Kubernetes gestionado para contenedores del backend
 - **AWS Lambda:** Funciones serverless para procesos específicos
 
 #### **Servicios de Red**
+
 - **AWS Application Load Balancer:** Balanceador de carga
 - **Amazon CloudFront:** CDN para contenido estático
 - **AWS VPC:** Red privada virtual para aislar recursos
 
 #### **Servicios de Gestión**
+
 - **AWS IAM:** Gestión de identidades y permisos
 - **AWS CloudWatch:** Monitoreo y métricas (ya definido en DevOps)
 - **AWS CloudTrail:** Auditoría de acciones
 
-
 ### DevOps y Testing
+
 #### Infraestructura como Código (IaC)
 
-- **AWS CloudFormation:** plantilla oficial de AWS para definir infraestructura como código. 
+- **AWS CloudFormation:** plantilla oficial de AWS para definir infraestructura como código.
 
 - **Terraform:** herramienta para definir y aprovisionar la infraestructura en AWS mediante archivos .tf, asegurando consistencia entre ambientes y facilitando el versionamiento y rollback de cambios.
 
@@ -1967,7 +2035,7 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 
 - **Github:** Para guardar codigo y control de versiones.
 
-- **AWS CodePipeline:** herramienta nativa de AWS para construir pipelines de integración y despliegue continuo. 
+- **AWS CodePipeline:** herramienta nativa de AWS para construir pipelines de integración y despliegue continuo.
 
 - **GitHub Actions:** seguirá siendo utilizado como integrador externo, especialmente para validar PRs, ejecutar linters, y disparar eventos hacia CodePipeline mediante webhooks.
 
@@ -2000,9 +2068,6 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 - **AWS Secrets Manager:** gestión segura de claves API, credenciales y tokens con rotación automática y control de acceso granular.
 
 - **Dependabot:** para monitoreo de paquetes vulnerables desde GitHub. Se integra con CodePipeline para ejecutar pruebas de validación al actualizar dependencias.
-
-
-
 
 ## 4. Diseño de los componentes
 
@@ -2069,12 +2134,11 @@ Este si es general de todos los componentes
 
 Este si es general de todos los componentes
 
-### 4.1. Bioregistro Verde 
+### 4.1. Bioregistro Verde
 
 #### Análisis del Componente
 
 #### Diseño de la Arquitectura
-
 
 Authentication platform
 Client Architecture
@@ -2088,9 +2152,6 @@ Object design patterns
 External services
 
 Project structure
-
-
-
 
 ## 5. Validación de los requerimientos
 
