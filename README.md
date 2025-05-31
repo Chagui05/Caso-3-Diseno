@@ -699,28 +699,6 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 3. **GitHub**: Commits, documentación y versiones
 4. **Reuniones semanales**: Revisión manual de KPIs y ajustes
 
-<<<<<<< Updated upstream
-
-=======
-
-### Herramientas para AI
-
-A continuación, se detallan las principales herramientas seleccionadas para la capa de inteligencia artificial dentro de Data Pura Vida. Estas herramientas permitirán flujos inteligentes y el entrenamiento de modelos:
-
-| Herramienta                   | Propósito principal                                                                               | Licencia / Versión    |
-| ----------------------------- | ------------------------------------------------------------------------------------------------- | --------------------- |
-| **Hugging Face Transformers** | Uso de modelos preentrenados (ej. all-mpnet-base-v2) para generar embeddings semánticos de texto. | Apache 2.0 / v4.38    |
-| **LangChain**                 | Orquestación de agentes inteligentes y manejo de flujos de lenguaje natural.                      | MIT / v0.1.14         |
-| **OpenAI (GPT-4)**            | Procesamiento de lenguaje natural, generación de texto y clasificación semántica.                 | API Comercial (GPT-4) |
-| **Amazon SageMaker**          | Entrenamiento, ajuste fino y despliegue de modelos personalizados de machine learning.            | AWS Managed           |
-
-Estas herramientas serán utilizadas para tareas como:
-
-- Validación inteligente de documentos.
-- Clasificación automática de datasets y columnas.
-- Generación de sugerencias y dashboards automáticos.
-- Procesamiento de texto y contexto dentro del motor ETDL.
-  > > > > > > > Stashed changes
 
 ## 2. Supuestos del proyecto
 
@@ -1982,14 +1960,12 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 
 ### AI
 
-<<<<<<< Updated upstream
-
 - **Hugging Face Transformers:** Uso de modelos preentrenados (ej. all-mpnet-base-v2) para generar embeddings semánticos de texto.
 - **LangChain:** Orquestación de agentes inteligentes y manejo de flujos de lenguaje natural.
 - **OpenAI (GPT-4):** Procesamiento de lenguaje natural, generación de texto y clasificación semántica.
-- # **Amazon SageMaker**: Entrenamiento, ajuste fino y despliegue de modelos personalizados de machine learning.
-  Hugging face para modelos ya entrenados que nos puedan servir (all-mpnet-base-v2 genera embeddings que podría servir para entrenar IA)
-  > > > > > > > Stashed changes
+- **Amazon SageMaker**: Entrenamiento, ajuste fino y despliegue de modelos personalizados de machine learning.
+- **Hugging face**: para modelos ya entrenados que nos puedan servir (all-mpnet-base-v2 genera embeddings que podría servir para entrenar IA)
+
 
 ### Sistemas de Terceros
 
@@ -2101,10 +2077,13 @@ Empresas de menor escala que operan en comercio, manufactura ligera, servicios d
 - **Documentos necesarios para Identificarla**:
   - Certificación de personería jurídica: Contiene la información de la empresa como su nombre, cédula jurídica, tipo de sociedad, nombre del representante.
   - Cédula del representante legal: Debe coincidir con el de la certificación de personería jurídica.
+  - Nombre y Apellido del representante.
   - Cédula jurídica: Debe coincidir con la certificación de personería jurídica.
+  - Correo Institucional: correo electrónico del encargado de la institución.
   - Acta Constitutiva y Estatutos: Es un acta que establece la existencia legal de la empresa.
   - Constancia de incripción en el PYME: Demuestra que está registrada en el MEIC y cumple los requisitos para ser PYME.
   - Departamento a Registrar: Se debe registrar a que departamento de la empresa pertenece el registro.
+
 
 
 **Sociedades Anónimas (S.A.)**
@@ -2113,13 +2092,16 @@ Empresas grandes con estructura formal, juntas directivas y accionistas. Comunes
 - **Datos potenciales**: operaciones financieras, productividad, logística, desempeño empresarial.
 - **Documentos necesarios para Identificarla**:
   - Certificación de personería jurídica: Contiene la información de la empresa como su nombre, cédula jurídica, tipo de sociedad, nombre del representante.
-  - Cédula del representante legal: Debe coincidir con el de la certificación de personería jurídica.
   - Cédula jurídica: Debe coincidir con la certificación de personería jurídica.
+  - Cédula del representante legal: Debe coincidir con el de la certificación de personería jurídica.
+  - Nombre y Apellido del representante.
+  - Correo Institucional: correo electrónico del encargado de la institución.
   - Estatutos sociales: Documento que establece la organización, funcionamiento, objeto social, entre otra información valiosa sobre la empresa.
   - Certificado de Registro Mercantil: Documento que certifica la inscripción de la empresa en el Registro Mercantil.
   - Certificado de Existencia: Documento legal que certifica la existencia de la empresa.
   - Documentación de los Accionistas: Acredite que efectivamente la empresa es activa y que tiene accionistas asociados a ella.
   - Departamento a Registrar: Se debe registrar a que departamento de la empresa pertenece el registro.
+
 
 #### **Empresas públicas y entes estatales**
 
@@ -2130,28 +2112,52 @@ Entidades que operan con fondos públicos y ofrecen servicios esenciales.
 Ejemplos: CCSS, ICE, INS, TSE.
 - **Actividad diaria**: prestación de servicios de salud, energía, seguros, agua, telecomunicaciones.
 - **Datos potenciales**: cobertura geográfica, consumo, atención médica, reclamos ciudadanos.
+- **Documentos necesarios para Identificarla**:
+  - Cédula Jurídica: adjuntar la cédula jurídica con el formato "4-000-NNNNNN"
+  - Nota oficial con membrete institucional: Nombre completo de la persona que actuará como representante de la institución, con firma digital de un funcionario autorizado.
+  - Cédula del representante legal: Debe coincidir con el de la certificación de personería jurídica.
+  - Nombre y Apellido del representante.
+  - Correo Institucional: correo electrónico del encargado de la institución.
+  - Acta de Resolución Interna: Un acta firmada que describa la resolución dada internamente en el ente estatal.
+  - Departamento a Registrar: Se debe registrar a que departamento de la empresa pertenece el registro.
 
 **Empresas estatales**
-
 Ejemplos: RECOPE, RACSA.
-
 - **Actividad diaria**: importación, distribución de bienes estratégicos, operación con entes reguladores.
 - **Datos potenciales**: consumo nacional, logística, demanda energética.
+- **Documentos necesarios para Identificarla**:
+  - Cédula Jurídica: adjuntar la cédula jurídica con el formato "3-NNN-NNNN"
+  - Certificación de personería jurídica: Contiene la información de la empresa como su nombre, cédula jurídica, nombre del representante.
+  - Nota oficial con membrete institucional: Nombre completo de la persona que actuará como representante de la institución, con firma digital de un funcionario autorizado.
+  - Cédula del representante legal: Debe coincidir con el de la certificación de personería jurídica.
+  - Nombre y Apellido del representante del órgano.
+  - Correo Institucional: correo electrónico del encargado de la institución.
+  - Acta de Resolución Interna: Un acta firmada que describa la resolución dada internamente en el ente estatal.
+  - Departamento a Registrar: Se debe registrar a que departamento de la empresa pertenece el registro.
 
 **Empresas municipales**
-
-Entidades creadas por municipalidades para servicios locales.
-
+Entidades creadas por municipalidades para servicios locales, un ejemplo es la ESPH (Empresa de Servicios Públicos de Heredia).
 - **Actividad diaria**: recolección de residuos, parqueo, mantenimiento urbano, servicios culturales.
 - **Datos potenciales**: desarrollo cantonal, planificación urbana, gestión ambiental.
+- **Documentos necesarios para Identificarla**:
+  - Cédula Jurídica: adjuntar la cédula jurídica.
+  - Certificación de personería jurídica: Contiene la información de la empresa como su nombre, cédula jurídica, nombre del representante.
+  - Nota oficial con membrete institucional: Nombre completo de la persona que actuará como representante de la institución, con firma digital de un funcionario autorizado.
+  - Cédula del representante legal: Debe coincidir con el de la certificación de personería jurídica.
+  - Nombre y Apellido del representante.
+  - Correo Institucional: correo electrónico del encargado de la institución.
+  - Acuerdo Municipal: Un acta firmada que describa la resolución dada internamente en el ente municipal.
 
-### Órganos del Poder Ejecutivo
 
+### **Órganos del Poder Ejecutivo**
 Ejemplos: MEP, MINAE, MOPT
-
 - **Actividad diaria**: Formulación e implementación de políticas públicas, ejecución de programas nacionales, regulación sectorial, gestión presupuestaria y administrativa.
-
 - **Datos potenciales**: Indicadores educativos, ambientales, de infraestructura y transporte; estadísticas de cobertura, acceso y calidad de servicios; y datos geoespaciales y sectoriales según competencia del ministerio.
+- **Documentos necesarios para Identificarla**:
+  - Oficio firmado por jefatura autorizada: Documento firmado por la jefatura con la autorización.
+  - Cédula del representante legal: Cédula del representante del órgano.
+  - Correo Institucional: correo electrónico del encargado de la institución.
+  - Nombre y Apellido del representante del órgano.
 
 
 #### **Cámaras y gremios**
@@ -2159,35 +2165,45 @@ Ejemplos: MEP, MINAE, MOPT
 Organizaciones que agrupan empresas o profesionales.
 
 **Cámaras empresariales**
-
-Ejemplos: Cámara de la Construcción, Cámara de Tecnologías de Información.
-
+Ejemplos: Cámara de la Construcción, Cámara de Tecnologías de Información, Cámara de Exportadores de Flores.
 - **Actividad diaria**: representación del sector, capacitaciones, generación de estudios y estadísticas.
 - **Datos potenciales**: empleo, productividad, retos sectoriales, inversión.
+- **Documentos necesarios para Identificarla**:
+  - Certificación de personería jurídica: Contiene la información de la empresa como su nombre, cédula jurídica, nombre del representante.
+  - Cédula Jurídica: adjuntar la cédula jurídica, que coincida con la de la certificación de personería jurídica.
+  - Carta firmada por el comité o jefatura: Oficio que demuestre autorización de la cámara empresarial.
+  - Cédula del representante legal: Debe coincidir con el de la certificación de personería jurídica.
+  - Nombre y Apellido del representante.
+  - Correo Institucional: correo electrónico del encargado de la institución.
 
 **Gremios profesionales o técnicos**
-
 Ejemplos: colegios de médicos, ingenieros, abogados.
-
 - **Actividad diaria**: certificación profesional, formación continua, vigilancia del ejercicio profesional.
 - **Datos potenciales**: matrícula, servicios ofrecidos, formación, cobertura geográfica.
-
+- **Documentos necesarios para Identificarla**:
+  - Certificación de personería jurídica: Contiene la información de la empresa como su nombre, cédula jurídica, nombre del representante.
+  - Cédula Jurídica: adjuntar la cédula jurídica, que coincida con la de la certificación de personería jurídica.
+  - Acta de asamblea constitutiva: Oficio que demuestre autorización de la cámara empresarial.
+  - Cédula del representante legal: Debe coincidir con el de la certificación de personería jurídica.
+  - Nombre y Apellido del representante.
+  - Correo Institucional: correo electrónico del encargado de la institución.
 
 #### **Universidades y centros académicos**
 
-Instituciones enfocadas en educación superior e investigación.
+Instituciones de educación superior, tanto públicas como privadas, dedicadas a la formación profesional, la investigación científica y la extensión social. Dentro de estas operan subdivisiones como facultades, escuelas y centros de investigación (CI).
 
 **Universidades públicas y privadas**
-
 - **Actividad diaria**: matrícula, gestión de carreras, proyectos de investigación y extensión.
 - **Datos potenciales**: rendimiento académico, estadísticas de graduación, impacto social.
+- **Documentos necesarios para Identificarla**:
+  - Cédula Jurídica: adjuntar la cédula jurídica, que coincida con la de la certificación de personería jurídica.
+  - Nombramiento Interno: Carta que oficializa el encargado de hacer el registro en la plataforma.
+  - Carta de la Unidad Interna: Oficio que da la autorización del unidad interna de la universidad:
+  - Unidad Interna: Escuela, Facultad, Centro de Investigación.
+  - Cédula del representante legal: Debe coincidir con el de la certificación de personería jurídica.
+  - Nombre y Apellido del representante.
+  - Correo Institucional: correo electrónico del encargado de la institución.
 
-**Escuelas, facultades y centros de investigación**
-
-Subdivisiones internas que desarrollan actividades académicas y científicas.
-
-- **Actividad diaria**: desarrollo de tesis, investigación aplicada, vinculación con comunidades.
-- **Datos potenciales**: encuestas, monitoreos ambientales, estudios técnicos o sociales.
 
 
 #### Diseño de la Arquitectura
