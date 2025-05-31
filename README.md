@@ -2071,60 +2071,148 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 
 ## 4. Diseño de los componentes
 
-A conitnuación cada una de estas secciones fue sacada del punto 7 de los documentos del repo del profe, hace falta aplicar cada uno de estos para todos los componentes del sistema.
+En esta sección se detallará el diseño de los componentes previamente definidos en la sección de planeamiento. A cada uno se le aplicará un análisis de frontend, backend y datos, según corresponda. Además, existe la posibilidad de incluir prototipos en forma de pruebas de concepto. También se especificará cómo se llevará a cabo el proceso de pruebas e integración, despliegue y mantenimiento.
 
-Además cabe aclarar que cada sección no aplica necesariamente para todos los componentes. Por ejemplo, el motor de transformación no ocupa realmente una sección de frontend ya que toda su funcionalidad ocurre en el backend.
+### 4.1. Bioregistro Verde
 
-### Análisis del Componente
+Este componente es el punto de entrada al sistema, tiene como propósito registrar distintos tipos de usuarios y adaptarse dinámicamente a sus requerimientos de autenticación.
 
-### Diseño de la Arquitectura
+Los tipos de usuarios que se podrán registrar en la plataforma son los siguientes :
 
-- Diseño del Frontend
-  - Que sistema de autenticación se usará
-  - Como se llevará a cabo el KYC, y la verificación de identidad
-  - Arquitectura del Client, N-Layer, Client Server, etc.
-  - Componentes Visuales.
-  - Patrones y Principios
-  - Toolkkits y Standards
-  - Estructura de carpetas del sistema
-- Diseño del Backend
-  - Definir porque el sistema tiene alta disponibilidad y como
-  - Definir porque tiene monitoreo y como
-  - Definir modelo de seguridad detallado: encriptación, auditoría, logging seguro.
-  - REST, GraphQL, gRPC, Monolithic, or Monolithic-MVC?
-  - Serverless, Cloud, On-Premise, or Hybrid?
-  - Service vs. Microservices?
-  - Event-Driven, Queues, Brokers, Producer/Consumer, Pub/Sub?
-  - API Gateway (Security & Scalability)?
-  - El de arquitectura considera donde sea necesario prácticas y patrones para AI. Unidad 8.
-- Diseño de los Datos
-  - Usar como base el proyecto anterior
-  - El diseño de datos considera donde sea necesario prácticas y patrones para AI. Unidad 8.
+- **Usuarios con Cédula Física**: Esto incluye a cualquier persona física que tenga cédula costarricense.
 
-### Prototipado
+- **Usuarios con Cédula Jurídica**: Esta capa incluye una amplia variedad de colectivos que pueden aportar datasets de valor.
+  - **Empresas privadas**: Incluye PYMES y Sociedades Anónimas (S.A).
+  - **Empresas públicas y entes estatales**: Abarca instituciones autónomas, empresas estatales, empresas municipales, y Ministerios.
+  - **Cámaras y gremios**: Incluye cámaras empresariales y gremios profesionales o técnicos.
+  - **Universidades y centros académicos**: Comprende universidades públicas y privadas, así como sus escuelas, facultades y centros de investigación.
 
-No hace falta implementarlo todo, seguramente solo una prueba de concepto para algunos
+Asimismo, se adjunta una descripción de que es cada uno de los colectivos listados junto con que aporte pueden dar a Data Pura Vida,que información se les va a solicitar para poder garantizar que son empresas verdaderas y solicitadas por sus representantes reales (Cabe aclarar que todo documento PDF debe venir con firma digital):
 
-### Implementación de Componentes
+#### **Empresas privadas**
 
-No hace falta implementarlo todo, seguramente solo una prueba de concepto para algunos
-solo si aplica:
+Organizaciones con fines de lucro que operan en sectores diversos. Se dividen principalmente en:
 
-- Incluir guías de integración (how to) y ejemplos de código funcional para los servicios principales
-- Incorporar pruebas de concepto, prototipos o ejemplos que guíen la futura ejecución y validen elecciones tecnológicas
+**PYMES (Pequeñas y Medianas Empresas)**:
+Empresas de menor escala que operan en comercio, manufactura ligera, servicios digitales, turismo, entre otros. Dentro de ellas pueden haber subdivisiones.
 
-### Pruebas e Integración
+- **Actividad diaria**: ventas, atención al cliente, manejo de inventario, facturación, pagos, operaciones locales.
+- **Datos potenciales**: consumo local, comportamiento de clientes, tiempos de entrega, cadenas de distribución.
+- **Documentos necesarios para Identificarla**:
+  - Certificación de personería jurídica: Contiene la información de la empresa como su nombre, cédula jurídica, tipo de sociedad, nombre del representante.
+  - Cédula del representante legal: Debe coincidir con el de la certificación de personería jurídica.
+  - Cédula jurídica: Debe coincidir con la certificación de personería jurídica.
+  - Acta Constitutiva y Estatutos: Es un acta que establece la existencia legal de la empresa.
+  - Constancia de incripción en el PYME: Demuestra que está registrada en el MEIC y cumple los requisitos para ser PYME.
+  - Departamento a Registrar: Se debe registrar a que departamento de la empresa pertenece el registro.
 
-Solo explicar como se hará
 
-solo si aplica:
+**Sociedades Anónimas (S.A.)**
+Empresas grandes con estructura formal, juntas directivas y accionistas. Comunes en construcción, industria, finanzas o tecnología.
+- **Actividad diaria**: operación por departamentos, contratación de proveedores, desarrollo de productos, comercio exterior.
+- **Datos potenciales**: operaciones financieras, productividad, logística, desempeño empresarial.
+- **Documentos necesarios para Identificarla**:
+  - Certificación de personería jurídica: Contiene la información de la empresa como su nombre, cédula jurídica, tipo de sociedad, nombre del representante.
+  - Cédula del representante legal: Debe coincidir con el de la certificación de personería jurídica.
+  - Cédula jurídica: Debe coincidir con la certificación de personería jurídica.
+  - Estatutos sociales: Documento que establece la organización, funcionamiento, objeto social, entre otra información valiosa sobre la empresa.
+  - Certificado de Registro Mercantil: Documento que certifica la inscripción de la empresa en el Registro Mercantil.
+  - Certificado de Existencia: Documento legal que certifica la existencia de la empresa.
+  - Documentación de los Accionistas: Acredite que efectivamente la empresa es activa y que tiene accionistas asociados a ella.
+  - Departamento a Registrar: Se debe registrar a que departamento de la empresa pertenece el registro.
 
-- Incluir guías de integración (how to) y ejemplos de código funcional para los servicios principales
-- Incorporar pruebas de concepto, prototipos o ejemplos que guíen la futura ejecución y validen elecciones tecnológicas
+#### **Empresas públicas y entes estatales**
 
-### Despliegue y Mantenimiento
+Entidades que operan con fondos públicos y ofrecen servicios esenciales.
 
-Solo explicar como se hará, tal véz una prueba de concepto
+**Instituciones autónomas**
+
+Ejemplos: CCSS, ICE, INS, TSE.
+- **Actividad diaria**: prestación de servicios de salud, energía, seguros, agua, telecomunicaciones.
+- **Datos potenciales**: cobertura geográfica, consumo, atención médica, reclamos ciudadanos.
+
+**Empresas estatales**
+
+Ejemplos: RECOPE, RACSA.
+
+- **Actividad diaria**: importación, distribución de bienes estratégicos, operación con entes reguladores.
+- **Datos potenciales**: consumo nacional, logística, demanda energética.
+
+**Empresas municipales**
+
+Entidades creadas por municipalidades para servicios locales.
+
+- **Actividad diaria**: recolección de residuos, parqueo, mantenimiento urbano, servicios culturales.
+- **Datos potenciales**: desarrollo cantonal, planificación urbana, gestión ambiental.
+
+### Órganos del Poder Ejecutivo
+
+Ejemplos: MEP, MINAE, MOPT
+
+- **Actividad diaria**: Formulación e implementación de políticas públicas, ejecución de programas nacionales, regulación sectorial, gestión presupuestaria y administrativa.
+
+- **Datos potenciales**: Indicadores educativos, ambientales, de infraestructura y transporte; estadísticas de cobertura, acceso y calidad de servicios; y datos geoespaciales y sectoriales según competencia del ministerio.
+
+
+#### **Cámaras y gremios**
+
+Organizaciones que agrupan empresas o profesionales.
+
+**Cámaras empresariales**
+
+Ejemplos: Cámara de la Construcción, Cámara de Tecnologías de Información.
+
+- **Actividad diaria**: representación del sector, capacitaciones, generación de estudios y estadísticas.
+- **Datos potenciales**: empleo, productividad, retos sectoriales, inversión.
+
+**Gremios profesionales o técnicos**
+
+Ejemplos: colegios de médicos, ingenieros, abogados.
+
+- **Actividad diaria**: certificación profesional, formación continua, vigilancia del ejercicio profesional.
+- **Datos potenciales**: matrícula, servicios ofrecidos, formación, cobertura geográfica.
+
+
+#### **Universidades y centros académicos**
+
+Instituciones enfocadas en educación superior e investigación.
+
+**Universidades públicas y privadas**
+
+- **Actividad diaria**: matrícula, gestión de carreras, proyectos de investigación y extensión.
+- **Datos potenciales**: rendimiento académico, estadísticas de graduación, impacto social.
+
+**Escuelas, facultades y centros de investigación**
+
+Subdivisiones internas que desarrollan actividades académicas y científicas.
+
+- **Actividad diaria**: desarrollo de tesis, investigación aplicada, vinculación con comunidades.
+- **Datos potenciales**: encuestas, monitoreos ambientales, estudios técnicos o sociales.
+
+
+#### Diseño de la Arquitectura
+
+##### Plataforma de Autenticación
+
+##### Arquitectura de Cliente
+
+##### Componentes Visuales
+
+
+##### Patrones y Principios
+
+##### Toolkits y Standards:
+
+##### Patrones de Diseño de Objetos
+
+##### Servicios Externos
+
+##### Estructura de Carpetas
+
+##### Diagrama del Front
+
+
+
 
 ### Diagrama General del Frontend
 
@@ -2134,24 +2222,7 @@ Este si es general de todos los componentes
 
 Este si es general de todos los componentes
 
-### 4.1. Bioregistro Verde
 
-#### Análisis del Componente
-
-#### Diseño de la Arquitectura
-
-Authentication platform
-Client Architecture
-
-Visual Components
-Patterns & Principles:
-Toolkits and standards:
-
-Object design patterns
-
-External services
-
-Project structure
 
 ## 5. Validación de los requerimientos
 
