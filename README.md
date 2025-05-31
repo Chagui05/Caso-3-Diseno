@@ -2149,7 +2149,7 @@ Entidades creadas por municipalidades para servicios locales, un ejemplo es la E
   - Acuerdo Municipal: Un acta firmada que describa la resolución dada internamente en el ente municipal.
 
 
-### **Órganos del Poder Ejecutivo**
+#### **Órganos del Poder Ejecutivo**
 Ejemplos: MEP, MINAE, MOPT
 - **Actividad diaria**: Formulación e implementación de políticas públicas, ejecución de programas nacionales, regulación sectorial, gestión presupuestaria y administrativa.
 - **Datos potenciales**: Indicadores educativos, ambientales, de infraestructura y transporte; estadísticas de cobertura, acceso y calidad de servicios; y datos geoespaciales y sectoriales según competencia del ministerio.
@@ -2200,6 +2200,7 @@ Instituciones de educación superior, tanto públicas como privadas, dedicadas a
   - Nombramiento Interno: Carta que oficializa el encargado de hacer el registro en la plataforma.
   - Carta de la Unidad Interna: Oficio que da la autorización del unidad interna de la universidad:
   - Unidad Interna: Escuela, Facultad, Centro de Investigación.
+  - Nombre de la unidad: Ingresar nombre específico.
   - Cédula del representante legal: Debe coincidir con el de la certificación de personería jurídica.
   - Nombre y Apellido del representante.
   - Correo Institucional: correo electrónico del encargado de la institución.
@@ -2209,6 +2210,17 @@ Instituciones de educación superior, tanto públicas como privadas, dedicadas a
 #### Diseño de la Arquitectura
 
 ##### Plataforma de Autenticación
+
+Primero se comentará como se realizará en el frontend el proceso de registro e inicio de sesión para personas físicas, ya que como tal los conjuntos no tienen un inicio de sesión, solo tienen creación de cuenta la cuál luego es manejada por personas físicas que la añaden a su cuenta personal.
+
+Ahora bien, ya que la plataforma será hosteada en AWS, usaremos AWS Cognito para realizar el registro de personas en la plataforma, y posteriormente también su inicio de sesión. Del servicio serán utilizadas las siguientes características:
+
+- Uso de JWT Tokens para poder autorizar el acceso a las APIS en EKS.
+- Usaremos Cognito User Pools que registren Email, Telefono, Cédula, Nombre y apellidos.
+- Usaremos Choice-based authentication para que los usuarios decidan como iniciar sesión (Contaseña, Email OTP o SMS OTP).
+- Además se usará MFA obligatoria con ya sea Email OTP o SMS OTP.
+- Usaremos
+
 
 ##### Arquitectura de Cliente
 
