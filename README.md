@@ -2019,7 +2019,7 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 
 - **AWS CloudWatch:** permite monitorear y supervisar toda la infraestructura desplegada en AWS, como RDS, DynamoDB y S3. Dado que todo el alojamiento en la nube se realizará en AWS, no es necesario utilizar otras herramientas externas como DataDog o Prometheus.
 
-- **Grafana + CloudWatch:** para dashboards visuales personalizados directamente desde CloudWatch Metrics.
+- **Grafana + CloudWatch + Prometheus:** para dashboards visuales personalizados directamente desde CloudWatch Metrics para los servicios de AWS, y Prometheus para los microservicios en EKS.
 
 #### Pruebas Automatizadas
 
@@ -2211,27 +2211,84 @@ Instituciones de educación superior, tanto públicas como privadas, dedicadas a
 
 ##### Plataforma de Autenticación
 
-Primero se comentará como se realizará en el frontend el proceso de registro e inicio de sesión para personas físicas, ya que como tal los conjuntos no tienen un inicio de sesión, solo tienen creación de cuenta la cuál luego es manejada por personas físicas que la añaden a su cuenta personal.
+Primero se describirá cómo se realizará en el frontend el proceso de registro e inicio de sesión para personas físicas, ya que los conjuntos no tienen un inicio de sesión propio, sino que solo cuentan con creación de cuenta, la cual es manejada posteriormente por personas físicas que la agregan a su cuenta personal.
 
-Ahora bien, ya que la plataforma será hosteada en AWS, usaremos AWS Cognito para realizar el registro de personas en la plataforma, y posteriormente también su inicio de sesión. Del servicio serán utilizadas las siguientes características:
+Dado que la plataforma será alojada en AWS, usaremos AWS Cognito para el registro y posterior inicio de sesión de las personas en la plataforma. Del servicio se utilizarán las siguientes características:
 
-- Uso de JWT Tokens para poder autorizar el acceso a las APIS en EKS.
-- Usaremos Cognito User Pools que registren Email, Telefono, Cédula, Nombre y apellidos.
-- Usaremos Choice-based authentication para que los usuarios decidan como iniciar sesión (Contaseña, Email OTP o SMS OTP).
-- Además se usará MFA obligatoria con ya sea Email OTP o SMS OTP.
-- Usaremos
+- Uso de JWT Tokens para autorizar el acceso a las APIs en EKS.
+- Uso de Cognito User Pools que registren email, teléfono, cédula, nombre y apellidos.
+- Uso de choice-based authentication para que los usuarios elijan cómo iniciar sesión (contraseña, Email OTP o SMS OTP).
+- Uso del AuthFlow de USER_PASSWORD_AUTH, que incluirá un MFA obligatorio con Email OTP o SMS OTP.
+- Uso del SDK de Cognito para agilizar este proceso. Sin embargo, el formulario de registro será manejado programáticamente por nosotros, ya que el estándar que ofrece Cognito no se adapta a nuestro caso de uso.
 
+No hay que dejar de lado que un paso muy importante en nuestro sistema es la captura de imagen de la cédula y la prueba de vida, para comprobar que la persona que solicita la cuenta sea real. Por lo tanto, en el flujo de registro de una persona física, este paso se realizará antes de autorizar el registro en el sistema por medio de cognito.
+
+Para implementar esta lógica se usará el sistema de terceros SumSub, ya que provee herramientas para:
+
+- Verificación de ID (cédula en nuestro caso).
+- Prueba de vida y detección de deepfake.
+- Prueba de dirección, para verificar que la dirección física del usuario sea real.
+- Revisión de AML.
+- Revisión de KYC.
+
+Para realizar todas estas tareas en nuestro frontend se utilizará el WebSDK que SumSub provee para React, que cuenta con todas las herramientas necesarias para implementar las opciones mencionadas.
+
+El proceso de registro de las empresas será distinto, ya que requiere realizar tres tareas principales:
+
+- Validación y completitud de los datos.
+- Validación de personas asignadas.
+- Asignación de llaves tripartitas.
+
+Por ello no se usará Cognito para las empresas. Sin embargo, para la validación SumSub ofrece una solución de KYB (Know Your Business), que permite:
+
+- Revisar el registro nacional para seleccionar la empresa.
+- Verificar al encargado del registro mediante prueba de vida y verificación de cédula.
+- Generar cuestionarios personalizados donde se pueden adjuntar documentos legales que SumSub aprobará.
+
+Por lo tanto, la validación de empresas también será implementada con SumSub. El almacenamiento de información y la delegación de llaves tripartitas serán discutidos más adelante en la sección del backend.
+
+Por otro lado, cabe aclarar que para poder llevar a cabo las validaciones con SumSub es necesario dirigirse a la página de SumSub y ahí generar flows. Los desarrolladores tendrán que crear estos flows con base en las especificaciones dadas sobre que información se le debe solicitar a cada tipo de usuario (los distintos tipos de jurídico y el físico)  que fue especificada previamente en este subcapítulo.
 
 ##### Arquitectura de Cliente
 
-##### Componentes Visuales
+Nuestra arquitectura de cliente consistirá en Client Side Rendering con rendering estático, con una única capa dedicada a la web. Esta decisión se toma porque los bundles de React generados en el build de cada proyecto serán almacenados en un bucket de S3, el cual será servido a los clientes mediante el CDN provisto por CloudFront.
 
+Además, para acceder al backend se utilizará una única API, desarrollada en FastAPI. Se entrará en más detalles de dicha API más adelante
 
-##### Patrones y Principios
-
-##### Toolkits y Standards:
 
 ##### Patrones de Diseño de Objetos
+
+
+##### Componentes Visuales
+
+**Patrones y Principios**
+
+- **Responsive Design**: Aunque el enfoque principal de nuestro sistema está en el uso desde web desktop, es importante implementar un diseño responsivo para que los usuarios puedan realizar el registro, prueba de vida y verificación de cédula de forma cómoda desde la cámara de sus celulares. Este diseño responsivo se logrará aprovechando las opciones que ofrece Tailwind CSS para distintos tamaños de pantalla, utilizando prefijos como sm:, md:, lg:, y xl:, que permiten adaptar los estilos según el dispositivo.
+
+- **SOLID**:
+  - Single Responsibility: Cada componente en el bioregistro solo tendrá una responsabilidad. Por ejemplo, el formulario que detecta si es persona física o un conjunto solo emplea esa tarea, o los componentes de verificación de SumSub son distintos y cada uno hace su propia tarea: uno para la prueba de vida, otro para la verificación de id, y así para todo componente.
+  - Open Closed Principle: Los componentes de registro son dinámicos y están separados, gracias a esto, si en un futuro se desea agregar otro tipo de organización, tan solo se debe desarrollar dicho componente y de ahí la conexión con el resto del flujo será directa.
+  - Liskov Substitution Principle: La herencia debe ser utilizada solo cuando es necesaria. Por ejemplo, para los formularios de documentos para empresas si es valioso usar una superclase, pero no tiene sentido agruparlos en una clase madre con el formulario de prueba de vida.
+  - Interface Segregation Principle: No usaremos una interfáz enorme para agrupar a todo tipo de formulario, solo si es necesario se definirán, y cuando se haga se haŕan lo más específicas posibles. Por ejemplo, una interfáz madre para los procesos de SumSub que ocupen uso de camara.
+  - Dependency Inversion Principle: Las clases nunca deben depender de implementaciones, deben usar las intefaces. Por ejemplo, la clase que agrupe los formularios para registro de organizaciones debe poder permitir cualquier tipo de cuestionario de documentos, independientemente de con que colectivo se este trabajando.
+
+- **Dry principle**: En la medida de lo posible se usará la menor cantidad de código repetido. Dos ejemplos de esto son: gracias a que usaremos atomic design, componentes como botones o labels serán reutilizado no solo en el bioregistro, pero en todo el sistema; y otro ejemplo es que tanto en el registro de colectivos como de personas se pide prueba de vida, entonces se utilizará la misma clase para manejar ambas tareas.
+
+- **Separation of Concern**:
+
+- **Atomic Design**: Este es un patrón muy común en React, y se verá reflejado porque los componentes serán creados empezando por átomos, como bótones e inputs; Luego con moléculas, que por ejemplo podría ser un item de formulario que tenga un label, botón e input; Para después crear Organismos como los Formularios Completo; Para que después se junten todos en una página que será la que finalmente renderize todo.
+
+- **MVVM**: Estamos usando React, así que MVC no era una opción, y el flujo que tenemos planeado de comunicación entre hooks y componentes se adapta a un MVVM. Se aplicará de la siguiente forma:
+  - Model: Lo implementaremos en la conexión con la API (serán funciones), y también en los objetos que luego se insertarán en la base de datos (no vamos a poner la lógica de negocio acá, como recomiendan empresas como Microsoft, para que nuestra app no viole el principio de responsabilidad única ni la separación de responsabilidades) como los distintos tipos de organización, o las personas físicos.
+  - View: Será toda la parte visual de los componentes, que van a seguir atomic design.
+  - ViewModel: Se implementará en los custom hooks reutilizables que gestionan la lógica de negocio.
+
+
+**Toolkits y Standards**:
+
+- **Vite**: Se usará como servidor local para el desarrollo, y también para hacer el bundle de la aplicación.
+- **React Router**: Herramienta que permite manejar un app de react por medio de rutas.
+- **ESlint**: Se usará para mantener un estándar de código y evitar errores comunes.
 
 ##### Servicios Externos
 
