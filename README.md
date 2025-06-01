@@ -714,7 +714,7 @@ Esta es la normativa nacional fundamental que rige la protección de datos perso
 
 ##### Bio Registro Verde:
 
-##### ARTÍCULO 5.- Principio de consentimiento informado:\*\*
+##### ARTÍCULO 5.- Principio de consentimiento informado:\*\*REST, GraphQL,
 
 El principio del consentimiento de información se regie por dos puntos importantes, a continuación, se mencionan los dos puntos y su aplicación dentro de la plataforma:
 
@@ -2099,7 +2099,6 @@ Empresas grandes con estructura formal, juntas directivas y accionistas. Comunes
   - Estatutos sociales: Documento que establece la organización, funcionamiento, objeto social, entre otra información valiosa sobre la empresa.
   - Certificado de Registro Mercantil: Documento que certifica la inscripción de la empresa en el Registro Mercantil.
   - Certificado de Existencia: Documento legal que certifica la existencia de la empresa.
-  - Documentación de los Accionistas: Acredite que efectivamente la empresa es activa y que tiene accionistas asociados a ella.
   - Departamento a Registrar: Se debe registrar a que departamento de la empresa pertenece el registro.
 
 
@@ -2207,7 +2206,7 @@ Instituciones de educación superior, tanto públicas como privadas, dedicadas a
 
 
 
-#### Diseño de la Arquitectura
+#### Diseño del Frontend
 
 ##### Plataforma de Autenticación
 
@@ -2258,6 +2257,14 @@ Además, para acceder al backend se utilizará una única API, desarrollada en F
 
 ##### Patrones de Diseño de Objetos
 
+A Continuación el diagrama de clases del frontend del Bioregistro:
+
+![Patrones de Diseño de Objetos](img/FrontBioregistro.png)
+
+- **Caja Verde**: La caja verde representa el patrón de Chain of Responsability. Está asociado a los distintos tipos de forms que existen en el sistema, y gracias a la naturaleza del CoR, permite declararlos dinámicamente. Inclusive, permite que si en un futuro se desea agregar otra capa, sea sumamente sencillo.
+- **Cajas Celeste**: Las cajas celestes representan el strategy pattern, ya que por medio de herencia se aisla los distintos tipos de forms para colectivos, y de colectivos.
+- **Caja Roja**: Esta caja roja cumple dos funciones, de Singleton y de Facade. De singleton porque de esta manera solo existe una instancia que se conecta al API en todo momento. Además funciona como Facade ya que aisla toda la lógica de conexión con el API del backend en una sola clase.
+
 
 ##### Componentes Visuales
 
@@ -2274,7 +2281,7 @@ Además, para acceder al backend se utilizará una única API, desarrollada en F
 
 - **Dry principle**: En la medida de lo posible se usará la menor cantidad de código repetido. Dos ejemplos de esto son: gracias a que usaremos atomic design, componentes como botones o labels serán reutilizado no solo en el bioregistro, pero en todo el sistema; y otro ejemplo es que tanto en el registro de colectivos como de personas se pide prueba de vida, entonces se utilizará la misma clase para manejar ambas tareas.
 
-- **Separation of Concern**:
+- **Separation of Concern**: Se cumple este principio ya que las distintas capas del frontend estarán bien definidas. En la capa de datos solo se gestionarán los objetos como personas y colectivos. Luego por medio de CustomHooks se gestionará la lógica del ViewModel, por ejemplo, las funciones como GetLivenessCheck o AttachPDF. Y Finalmente la capa de Vista se dedicará a tan solo eso, hacer el render de los componentes.
 
 - **Atomic Design**: Este es un patrón muy común en React, y se verá reflejado porque los componentes serán creados empezando por átomos, como bótones e inputs; Luego con moléculas, que por ejemplo podría ser un item de formulario que tenga un label, botón e input; Para después crear Organismos como los Formularios Completo; Para que después se junten todos en una página que será la que finalmente renderize todo.
 
@@ -2290,13 +2297,65 @@ Además, para acceder al backend se utilizará una única API, desarrollada en F
 - **React Router**: Herramienta que permite manejar un app de react por medio de rutas.
 - **ESlint**: Se usará para mantener un estándar de código y evitar errores comunes.
 
-##### Servicios Externos
 
 ##### Estructura de Carpetas
 
+``` bash
+frontend/
+├── public/                   #Assets como imagenes
+├── src/
+│   ├── api/                  #Acá estarán las funciones del API
+│   ├── model/                #Acá se almacenarán las clases del modelo
+│   │   ├── Person
+│   │   └── Collective
+│   ├── components/           #Atomic Design
+│   │   ├── atoms/            #Componentes más básicos
+│   │   │   ├── Button.jsx
+│   │   │   └── Icon.jsx
+│   │   │
+│   │   ├── molecules/
+│   │   │   └── FormItem.jsx
+│   │   │
+│   │   ├── organisms/
+│   │   │   ├── PersonalInfoForm.jsx
+│   │   │   └── ProofOfAddressForm.jsx
+│   │   │
+│   │   └── templates/
+│   │       ├── CollectiveForm.jsx
+│   │       └── PersonForm.jsx
+│   │
+│   ├── hooks/                 #ViewModel
+│   │   ├── useLivenessCheck.jsx
+│   │   └── useIdVerification.jsx
+│   │
+│   ├── contexts/              #Contexto del form, que datos han sido registrados
+│   │   └── FormContext.jsx
+│   │
+│   ├── pages/                 #Uso de las templates lista para formar una página completqa
+│   │   ├── MainRegister.jsx
+│   │   └── VerifyEmail.jsx
+│   │
+│   ├── styles/               #Tailwind
+│   │   └──globals.css        #Configuración de Tailwind
+│   │
+│   ├── utils/                #Funciones DRY
+│   │
+│   └── App.tsx               #Punto de Entrada
+│
+│
+└── tests/
+    ├── unit/
+    └── integration/
+```
+
 ##### Diagrama del Front
 
+#### Diseño del backend
 
+#####
+
+
+#### Diseño de los Datos
 
 
 ### Diagrama General del Frontend

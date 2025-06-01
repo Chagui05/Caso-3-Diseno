@@ -12,7 +12,6 @@ Además cabe aclarar que cada sección no aplica necesariamente para todos los c
 
 - Diseño del Frontend
   - Que sistema de autenticación se usará
-  - Como se llevará a cabo el KYC, y la verificación de identidad
   - Arquitectura del Client, N-Layer, Client Server, etc.
   - Componentes Visuales.
   - Patrones y Principios
