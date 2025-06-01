@@ -89,7 +89,7 @@ Es importante aclarar que en el diagrama II no se detalla paso a paso lo que hac
 
 Con el fin de lograr una arquitectura modular, segura y mantenible, el sistema se divide en macrocomponentes. Cada uno aborda un conjunto específico de requerimientos funcionales y no funcionales. En esta sección se listan los componentes y sus principales responsabilidades. La implementación técnica y subdivisión de estos se detalla más adelante en el documento.
 
-##### bioregistro verde
+##### Bioregistro
 
 Este módulo gestiona el proceso de incorporación de personas físicas y jurídicas a la plataforma. Abarca desde el llenado de formularios hasta la validación de identidad y la emisión de credenciales digitales. Debe cumplir con regulaciones AML y estándares avanzados de identidad digital.
 
@@ -131,7 +131,7 @@ Requerimientos:
 - Controlar accesos lógicos por entidad, usuario o tipo de dato.
 - Implementar control de acceso a nivel de rol (RBAC) y a nivel de fila (RLS) o equivalentes.
 
-##### Módulo de Ingesta de dato / posibles nombres: El Ingestor, Centro de Carga, Dock de Datos
+##### Centro de Carga
 
 Este módulo permite a los usuarios cargar sus datasets a la plataforma. Desde acá pueden definir qué datos desean cifrar, especificar el formato de origen y configurar otros parámetros clave para asegurar que la carga se procese correctamente.
 
@@ -152,7 +152,7 @@ Requerimientos:
 - Configurar parámetros para carga por deltas: campos diferenciales, frecuencia (timed pull) o mediante callbacks.
 - Habilitar control granular de acceso por institución, persona o grupo.
 
-##### Módulo de transformación de datos / posibles nombres: Motor de Transformación, Procesador ETDL
+##### Motor de Transformación
 
 Este módulo es clave para garantizar que los datasets se almacenen correctamente en la Bóveda. Se encarga de recibir datos desde distintas fuentes, validar que el formato coincida con el indicado en el formulario de ingesta y, en caso contrario, rechazar la carga. Una vez superada esta validación, aplica todo el proceso de ETDL y mapea los datos al formato interno de la Bóveda.
 
@@ -364,7 +364,7 @@ Este plan indica cómo avanzar progresivamente en la construcción del sistema, 
 - Plantilla de CI/CD con al menos una validación básica.
 - Ambiente de desarrollo replicable con un comando (ej. Docker Compose).
 
-##### 2. Implementación del Módulo de Registro (Bioregistro Verde)
+##### 2. Implementación del Bioregistro
 
 **Objetivo:** Habilitar la incorporación de personas físicas y jurídicas a la plataforma.
 
@@ -400,7 +400,7 @@ Este plan indica cómo avanzar progresivamente en la construcción del sistema, 
 - Log de cargas realizadas para trazabilidad.
 - Cargas almacenadas provisionalmente.
 
-##### 4. Desarrollar el Motor de Transformación (ETDL)
+##### 4. Desarrollar el Motor de Transformación
 
 **Objetivo:** Procesar los datos cargados, limpiarlos y convertirlos a un formato interno.
 
@@ -418,7 +418,7 @@ Este plan indica cómo avanzar progresivamente en la construcción del sistema, 
 - Datos transformados almacenados de forma estructurada.
 - Métricas básicas del proceso (tiempo, éxito, errores).
 
-##### 5. Configurar el Almacén Central (La Bóveda)
+##### 5. Configurar La Bóveda
 
 **Objetivo:** Consolidar y proteger los datos procesados para su consumo posterior.
 
@@ -606,7 +606,7 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 | **R02** | **Alcance**       | **Subestimación del alcance del diseño**             | El tiempo asignado puede ser insuficiente para diseñar completamente todos los componentes técnicos con el nivel de detalle requerido para un sistema de esta magnitud                          | **Muy Alta (100%)** | **Medio (60%)**     | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Planning Poker diario 30min, re-estimación miércoles, time tracking obligatorio en ClickUp, descomponer tareas en máximo 8h cada una<br>**Contingencia:** Si desvío > 150% en 3 tareas: reducir nivel de detalle en diagramas de secuencia (de completos a conceptuales), simplificar especificaciones APIs (menos endpoints), priorizar componentes críticos primero, redistribuir trabajo en 1 día               |
 | **R03** | **Documentación** | **Inconsistencias en la documentación técnica**      | Generar documentación técnica coherente entre arquitectura de alto nivel, especificaciones de APIs, modelos de datos, diagramas de seguridad y patrones de integración                          | **Alta (80%)**      | **Alto (80%)**      | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Templates estándar GitHub, peer review obligatorio, checklist calidad por componente<br>**Contingencia:** Auditoría documental semanal viernes 2h, refactoring inmediato de documentos inconsistentes, responsable: Santiago Chaves                                                                                                                                                                                |
 | **R04** | **Tiempo**        | **Cronograma optimista para la complejidad**         | El tiempo asignado puede ser insuficiente para diseñar completamente todos los componentes técnicos con el nivel de detalle requerido para un sistema de esta magnitud                          | **Muy Alta (100%)** | **Medio (60%)**     | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Re-estimación semanal con burndown charts, escalación automática si > 20% desvío, buffer de 2 días por semana<br>**Contingencia:** Redistribuir tareas inmediatamente, asignar 2 personas a componentes críticos (Bio Registro y La Bóveda), reducir documentación detallada a documentación funcional, completar diseño básico de todos los componentes                                                           |
-| **R05** | **Técnico**       | **Complejidad del motor ETDL con IA**                | Especificar técnicamente un motor que procese automáticamente múltiples formatos, detecte duplicados, relacione datos y aplique transformaciones inteligentes es altamente complejo             | **Media (60%)**     | **Muy Alto (100%)** | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Spike 16h Apache Spark + PySpark (Luis David), prototipo 3 casos (CSV→PostgreSQL, JSON→S3, API→DynamoDB), validar 10MB en <30min<br>**Contingencia:** Motor simplificado con AWS Glue + transformaciones predefinidas, o integración Talend Open Studio (setup 1 semana)                                                                                                                                           |
+| **R05** | **Técnico**       | **Complejidad del motor de transformación**                | Especificar técnicamente un motor que procese automáticamente múltiples formatos, detecte duplicados, relacione datos y aplique transformaciones inteligentes es altamente complejo             | **Media (60%)**     | **Muy Alto (100%)** | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Spike 16h Apache Spark + PySpark (Luis David), prototipo 3 casos (CSV→PostgreSQL, JSON→S3, API→DynamoDB), validar 10MB en <30min<br>**Contingencia:** Motor simplificado con AWS Glue + transformaciones predefinidas, o integración Talend Open Studio (setup 1 semana)                                                                                                                                           |
 | **R06** | **Seguridad**     | **Diseño de sistema de cifrado tripartito**          | Especificar correctamente un sistema de llaves criptográficas divididas entre tres custodios, incluyendo protocolos de recuperación y validación mancomunada                                    | **Baja (40%)**      | **Muy Alto (100%)** | **🟠 ALTO**     | **TRANSFERIR** | **Prevención:** Consulta expertos criptografía (8h consultoría), documentar estándares FIPS 140-2, validación externa con especialista<br>**Contingencia:** Implementar cifrado HSM tradicional AWS KMS, esquema dual en lugar de tripartito, mantiene seguridad pero reduce complejidad                                                                                                                                           |
 | **R07** | **Integración**   | **Interfaces entre componentes mal definidas**       | Riesgo de que las especificaciones de APIs, contratos de datos y protocolos de comunicación entre portal, backend y datalake no sean completamente compatibles                                  | **Media (60%)**     | **Alto (80%)**      | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Contratos OpenAPI 3.0 obligatorios, reuniones sync bi-semanales martes/viernes, diagramas de secuencia por flujo<br>**Contingencia:** Workshop alineación 4h si incompatibilidades detectadas, rediseño contratos en 2 días, validación cruzada inmediata                                                                                                                                                          |
 | **R08** | **Escalabilidad** | **Arquitectura no preparada para la carga esperada** | El diseño puede no contemplar adecuadamente el manejo de millones de registros, miles de usuarios concurrentes y procesamiento de grandes volúmenes de datos                                    | **Baja (40%)**      | **Medio (60%)**     | **🟡 MODERADO** | **MITIGAR**    | **Prevención:** Definir límites técnicos concretos por componente (Bio Registro: 100 req/min, La Bóveda: 10GB/día), especificar patrones de escalabilidad (load balancers, auto-scaling), calcular capacidad mínima requerida<br>**Contingencia:** Rediseñar arquitectura con clustering activo/pasivo, implementar sharding en diseño de BD, especificar CDN y caching layers, definir estrategia de particionamiento horizontal  |
@@ -712,9 +712,9 @@ Esta es la normativa nacional fundamental que rige la protección de datos perso
 
 ##### Aplicación a los Requerimientos de la Plataforma:
 
-##### Bio Registro Verde:
+##### Bioregistro:
 
-##### ARTÍCULO 5.- Principio de consentimiento informado:\*\*
+##### ARTÍCULO 5.- Principio de consentimiento informado:\*\*REST, GraphQL,
 
 El principio del consentimiento de información se regie por dos puntos importantes, a continuación, se mencionan los dos puntos y su aplicación dentro de la plataforma:
 
@@ -760,7 +760,7 @@ Aunque los requerimientos actuales del "Bio Registro Verde" no mencionan explíc
 
 Este artículo impone la obligación de proteger los datos de carácter personal y evitar su alteración, destrucción accidental o ilícita, pérdida, tratamiento o acceso no autorizado, así como cualquier otra acción contraria a esta ley al responsable de la base de datos.
 
-Los requerimientos de seguridad del **Bio Registro Verde** son una respuesta directa al Artículo 10 ( Seguridad de los datos):
+Los requerimientos de seguridad del **Bioregistro** son una respuesta directa al Artículo 10 ( Seguridad de los datos):
 
 - El uso de autenticación avanzada (identidad digital, biometría, prueba de vida, MFA) son medidas de seguridad lógicas para controlar el acceso.
 
@@ -1535,22 +1535,21 @@ Durante el desarrollo e integración de la plataforma Data Pura Vida, se contemp
 
 Para garantizar que **Data Pura Vida** funcione exitosamente como ecosistema nacional de datos de Costa Rica, se establecen cinco aspectos de calidad fundamentales con implementaciones técnicas específicas que guiarán el diseño y operación del sistema.
 
----
 
-## **2.5.1 Escalabilidad**
+#### **2.5.1 Escalabilidad**
 
 La escalabilidad es la capacidad del sistema para manejar un crecimiento progresivo de usuarios, datos y transacciones sin que se degrade el rendimiento o la calidad del servicio.
 
 Data Pura Vida debe comenzar con las instituciones públicas principales y crecer gradualmente hasta servir a miles de usuarios simultáneos, incluyendo ciudadanos, empresas, organizaciones sociales y entidades gubernamentales. El sistema debe soportar desde datasets iniciales de unas pocas instituciones hasta volúmenes masivos de información nacional.
 
-### **Capacidades de crecimiento requeridas:**
+**Capacidades de crecimiento requeridas:**
 
 - Soporte para miles de usuarios trabajando al mismo tiempo sin ralentización
 - Almacenamiento que puede expandirse desde gigabytes hasta terabytes de información
 - Procesamiento capaz de manejar cientos de datasets nuevos diariamente durante períodos de alta actividad
 - Cobertura nacional con tiempos de respuesta rápidos desde cualquier provincia
 
-### **Configuraciones técnicas específicas para escalabilidad:**
+**Configuraciones técnicas específicas para escalabilidad:**
 
 **Balanceador de Carga y Gateway:**
 El sistema utilizará un balanceador de carga configurado en la infraestructura cloud de AWS con parámetros específicos para garantizar distribución eficiente del tráfico:
@@ -1593,26 +1592,26 @@ Dado que modificar el diseño de modelos concurrentemente es peligroso, se imple
 - Tiempo límite de 60 minutos para operaciones de modificación de modelo
 - Cola de espera para modificaciones pendientes con prioridad FIFO
 
-### **Mecanismos de escalabilidad:**
+**Mecanismos de escalabilidad:**
 
 El sistema utilizará escalado automático, que significa que cuando detecta mayor actividad, automáticamente asigna más recursos computacionales (servidores adicionales) para mantener el rendimiento. Cada componente puede crecer independientemente según su demanda específica, y el sistema se optimiza continuamente basándose en los patrones de uso reales de los costarricenses.
 
----
 
-## **2.5.2 Mantenibilidad**
+
+#### **2.5.2 Mantenibilidad**
 
 La mantenibilidad se refiere a la facilidad con que el sistema puede ser actualizado, corregido y mejorado a lo largo del tiempo sin interrumpir el servicio a los usuarios.
 
 Un sistema nacional debe poder evolucionar constantemente. Las regulaciones cambian, las necesidades del país se transforman, y la tecnología avanza. Data Pura Vida debe adaptarse a estos cambios sin afectar su operación diaria.
 
-### **Compromisos de mantenibilidad:**
+**Compromisos de mantenibilidad:**
 
 - Resolución de problemas críticos en máximo cuatro horas
 - Implementación de mejoras sin interrumpir el servicio a usuarios
 - Capacidad de revertir cambios problemáticos en menos de quince minutos
 - Monitoreo proactivo que detecta problemas antes de que afecten a los usuarios
 
-### **Configuraciones técnicas específicas para mantenibilidad:**
+**Configuraciones técnicas específicas para mantenibilidad:**
 
 **Sistema de Monitoreo Integrado:**
 La observabilidad es la capacidad de entender el estado interno del sistema basándose en los datos que produce:
@@ -1649,19 +1648,17 @@ Los scripts que permiten evolucionar la estructura de la base de datos de forma 
 - Preservación de últimas 5 revisiones para reversión selectiva
 - Scripts de reversión semiautomáticos para cambios de base de datos
 
-### **Estrategias de mantenimiento:**
+**Estrategias de mantenimiento:**
 
 El sistema utiliza una arquitectura modular, lo que significa que cada componente puede actualizarse independientemente sin afectar los demás. Los despliegues son automatizados con validación previa, y existe documentación que se actualiza automáticamente. El sistema incluye observabilidad completa, que es la capacidad de monitorear en tiempo real el rendimiento, errores y patrones de uso.
 
----
-
-## **2.5.3 Reutilización**
+#### **2.5.3 Reutilización**
 
 La reutilización maximiza el aprovechamiento de cada funcionalidad desarrollada, permitiendo que sea utilizada en múltiples componentes del sistema para optimizar recursos y garantizar consistencia.
 
 Con recursos públicos limitados, cada desarrollo debe aprovecharse al máximo. Cuando se crea una funcionalidad para validar documentos costarricenses, esta debe servir para todo el sistema, no solo para una parte específica.
 
-### **Componentes reutilizables principales:**
+**Componentes reutilizables principales:**
 
 - Sistema de autenticación unificado que permite un solo acceso para toda la plataforma
 - Validadores específicos para documentos costarricenses (cédulas, IBAN, registros tributarios)
@@ -1669,7 +1666,7 @@ Con recursos públicos limitados, cada desarrollo debe aprovecharse al máximo. 
 - Herramientas de cifrado estandarizadas para protección de datos
 - APIs (interfaces de programación) comunes para integraciones con sistemas externos
 
-### **Configuraciones técnicas específicas para reutilización:**
+**Configuraciones técnicas específicas para reutilización:**
 
 **Librerías Compartidas según estructura del repositorio:**
 Basándose en el directorio /shared/ definido en el README:
@@ -1709,29 +1706,27 @@ Según directorio /infra/terraform/:
 - Límites de recursos de 1 CPU y 1Gi memoria máximo
 - Verificaciones de salud automáticas en endpoint /health con tiempo límite de 10 segundos
 
-### **Beneficios de la reutilización:**
+**Beneficios de la reutilización:**
 
 - Desarrollo significativamente más rápido al aprovechar funcionalidades ya construidas y probadas
 - Experiencia de usuario consistente en todos los componentes
 - Mantenimiento simplificado donde un cambio se propaga automáticamente
 - Mejora continua de la calidad a medida que los componentes se refinan con el uso
 
----
-
-## **2.5.4 Eficiencia**
+#### **2.5.4 Eficiencia**
 
 La eficiencia busca optimizar el uso de recursos computacionales y financieros para ofrecer el mejor rendimiento posible con el menor costo operativo, utilizando responsablemente los recursos públicos.
 
 El sistema debe proporcionar respuestas rápidas y una experiencia fluida mientras utiliza los recursos de manera inteligente, evitando desperdicios y optimizando costos.
 
-### **Objetivos de eficiencia:**
+**Objetivos de eficiencia:**
 
 - Tiempos de respuesta que los usuarios perciban como instantáneos para operaciones comunes
 - Uso óptimo de la capacidad de los servidores, manteniendo un balance eficiente
 - Almacenamiento inteligente con compresión automática para reducir costos
 - Escalado dinámico que ajusta recursos según la demanda real
 
-### **Configuraciones técnicas específicas para eficiencia:**
+**Configuraciones técnicas específicas para eficiencia:**
 
 **Optimización de Consultas de Base de Datos:**
 Optimización específica para La Bóveda, que debe almacenar datos en formato unificado independientemente del origen (relacional, documental, CSV, Excel):
@@ -1766,26 +1761,24 @@ Orquestación de contenedores según arquitectura seleccionada:
 - **Disparadores de escalado**: CPU mayor a 75% o Memoria mayor a 85%
 - **Comportamiento de escalado**: Máximo 1 instancia por escalado hacia arriba cada 2 minutos, máximo 1 por escalado hacia abajo cada 5 minutos
 
-### **Estrategias de optimización:**
+**Estrategias de optimización:**
 
 El sistema implementa caché multicapa, que mantiene los datos más consultados en memoria de acceso rápido para respuestas inmediatas. Utiliza consultas optimizadas diseñadas para ser eficientes incluso con millones de registros, y compresión automática que reduce el espacio de almacenamiento sin pérdida de información. Incluye balanceo de carga inteligente que distribuye las consultas entre múltiples servidores para evitar sobrecargas.
 
----
-
-## **2.5.5 Claridad y Gestión de Complejidad**
+#### **2.5.5 Claridad y Gestión de Complejidad**
 
 La claridad asegura que un sistema técnicamente sofisticado sea comprensible y fácil de usar tanto para usuarios finales como para desarrolladores que lo mantienen.
 
 Data Pura Vida debe ocultar su complejidad técnica detrás de interfaces simples e intuitivas. Los usuarios no deben necesitar conocimiento técnico para aprovechar sus capacidades.
 
-### **Principios de claridad:**
+**Principios de claridad:**
 
 - Interfaces consistentes con navegación predecible y uniforme en toda la plataforma
 - Mensajes comprensibles que explican claramente qué está ocurriendo, especialmente en casos de error
 - Documentación automática que se mantiene actualizada sin intervención manual
 - Configuración organizada de forma lógica y comprensible
 
-### **Configuraciones técnicas específicas para claridad:**
+**Configuraciones técnicas específicas para claridad:**
 
 **Diseño de APIs (Interfaces de Programación):**
 API RESTful (Transferencia de Estado Representacional) es un estilo arquitectónico para diseñar interfaces web que permite la comunicación entre sistemas de forma sencilla:
@@ -1843,19 +1836,17 @@ Configuración específica por ambiente:
 - **Gestión de secretos**: Servicios AWS para credenciales sensibles
 - **Variables de ambiente**: Configuración específica por ambiente sin valores fijos en código
 
-### **Gestión de complejidad:**
+**Gestión de complejidad:**
 
 El sistema utiliza separación de responsabilidades, donde cada componente tiene una función específica y bien definida. Implementa abstracciones útiles que ocultan la complejidad técnica detrás de interfaces simples, y aplica patrones reconocibles con soluciones consistentes para problemas similares. Incluye escalamiento gradual que presenta funcionalidades básicas primero y avanzadas después.
 
-### **Implementación práctica:**
+**Implementación práctica:**
 
 Las APIs (interfaces de programación) utilizan nomenclatura semánticamente clara que explica exactamente qué hacen. El manejo de errores es estructurado, proporcionando mensajes que incluyen qué ocurrió y cómo solucionarlo. La arquitectura se organiza en capas claras que separan presentación, lógica de negocio y datos.
 
----
+#### **2.5.6 Métricas y SLAs Específicos**
 
-## **2.5.6 Métricas y SLAs Específicos**
-
-### **Métricas de Rendimiento alineadas con requerimientos**
+**Métricas de Rendimiento alineadas con requerimientos**
 
 **SLAs de Tiempo de Respuesta:**
 
@@ -1871,7 +1862,7 @@ Las APIs (interfaces de programación) utilizan nomenclatura semánticamente cla
 - **Datasets grandes** (10-100MB): máximo 2 horas
 - **Datasets extra-grandes** (mayor a 100MB): máximo 8 horas con procesamiento por lotes
 
-### **SLAs de Disponibilidad para ecosistema nacional**
+**SLAs de Disponibilidad para ecosistema nacional**
 
 **Disponibilidad del Sistema:**
 
@@ -1881,7 +1872,7 @@ Las APIs (interfaces de programación) utilizan nomenclatura semánticamente cla
 - **Centro Visualización**: 99.0% tiempo activo (menor criticidad, más tolerante a fallas)
 - **Ventana de mantenimiento**: Domingos 02:00-06:00 GMT-6 (horario costarricense)
 
-### **Planificación de Capacidad específico para Costa Rica**
+**Planificación de Capacidad específico para Costa Rica**
 
 **Proyecciones de Crecimiento basadas en adopción nacional:**
 
@@ -1906,7 +1897,7 @@ Las APIs (interfaces de programación) utilizan nomenclatura semánticamente cla
 - 50TB almacenamiento (volumen significativo de datos históricos)
 - 100M llamadas de API mensuales
 
-### **Aseguramiento de Calidad específica para Costa Rica**
+#### **Aseguramiento de Calidad específica para Costa Rica**
 
 **Puertas de Calidad de Código:**
 
@@ -2019,7 +2010,7 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 
 - **AWS CloudWatch:** permite monitorear y supervisar toda la infraestructura desplegada en AWS, como RDS, DynamoDB y S3. Dado que todo el alojamiento en la nube se realizará en AWS, no es necesario utilizar otras herramientas externas como DataDog o Prometheus.
 
-- **Grafana + CloudWatch:** para dashboards visuales personalizados directamente desde CloudWatch Metrics.
+- **Grafana + CloudWatch + Prometheus:** para dashboards visuales personalizados directamente desde CloudWatch Metrics para los servicios de AWS, y Prometheus para los microservicios en EKS.
 
 #### Pruebas Automatizadas
 
@@ -2027,7 +2018,7 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 
 - **Jest :** para pruebas unitarias de componentes React en el frontend.
 
-- **AWS Load Testing:** para hacer pruebas de carga en la aplicación.
+- **Gatling:** para hacer pruebas de carga en la aplicación antes de poder pasarla a producción.
 
 - **Postman + Newman:** se usarán para pruebas manuales y automáticas de la API REST. Newman permite integrar las colecciones en el CI.
 
@@ -2048,6 +2039,12 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 ## 4. Diseño de los componentes
 
 En esta sección se detallará el diseño de los componentes previamente definidos en la sección de planeamiento. A cada uno se le aplicará un análisis de frontend, backend y datos, según corresponda. Además, existe la posibilidad de incluir prototipos en forma de pruebas de concepto. También se especificará cómo se llevará a cabo el proceso de pruebas e integración, despliegue y mantenimiento.
+
+Antes de comenzar cabe por dejar en claro algunas especificaciones generales que se verán a lo largo de todo el diseño de los componentes:
+
+- Todos los microservicios del backend estarán desplegados en un cluster de EKS.
+
+- Se tendrá un API general para todo el backend, para poder acceder a las funcionalidades de todos los microservicios se debde consultar a dicha API (será RESTful). Además, estará construida en FastAPI, para favorecernos de sus características asincrónicas que la hacen sumamente rápida y apta para manejar carga pesada. Estará desplegada en el cluster de EKS, como un deployment con N replicas (Antes de pasar a producción se le realizarán pruebas de carga con Gatling, para poder determinar exactamente cuantas replicas ocupará).
 
 ### 4.1. Bioregistro Verde
 
@@ -2099,7 +2096,6 @@ Empresas grandes con estructura formal, juntas directivas y accionistas. Comunes
   - Estatutos sociales: Documento que establece la organización, funcionamiento, objeto social, entre otra información valiosa sobre la empresa.
   - Certificado de Registro Mercantil: Documento que certifica la inscripción de la empresa en el Registro Mercantil.
   - Certificado de Existencia: Documento legal que certifica la existencia de la empresa.
-  - Documentación de los Accionistas: Acredite que efectivamente la empresa es activa y que tiene accionistas asociados a ella.
   - Departamento a Registrar: Se debe registrar a que departamento de la empresa pertenece el registro.
 
 
@@ -2149,7 +2145,7 @@ Entidades creadas por municipalidades para servicios locales, un ejemplo es la E
   - Acuerdo Municipal: Un acta firmada que describa la resolución dada internamente en el ente municipal.
 
 
-### **Órganos del Poder Ejecutivo**
+#### **Órganos del Poder Ejecutivo**
 Ejemplos: MEP, MINAE, MOPT
 - **Actividad diaria**: Formulación e implementación de políticas públicas, ejecución de programas nacionales, regulación sectorial, gestión presupuestaria y administrativa.
 - **Datos potenciales**: Indicadores educativos, ambientales, de infraestructura y transporte; estadísticas de cobertura, acceso y calidad de servicios; y datos geoespaciales y sectoriales según competencia del ministerio.
@@ -2200,34 +2196,163 @@ Instituciones de educación superior, tanto públicas como privadas, dedicadas a
   - Nombramiento Interno: Carta que oficializa el encargado de hacer el registro en la plataforma.
   - Carta de la Unidad Interna: Oficio que da la autorización del unidad interna de la universidad:
   - Unidad Interna: Escuela, Facultad, Centro de Investigación.
+  - Nombre de la unidad: Ingresar nombre específico.
   - Cédula del representante legal: Debe coincidir con el de la certificación de personería jurídica.
   - Nombre y Apellido del representante.
   - Correo Institucional: correo electrónico del encargado de la institución.
 
-
-
-#### Diseño de la Arquitectura
+#### Diseño del Frontend
 
 ##### Plataforma de Autenticación
 
+Primero se describirá cómo se realizará en el frontend el proceso de registro e inicio de sesión para personas físicas, ya que los conjuntos no tienen un inicio de sesión propio, sino que solo cuentan con creación de cuenta, la cual es manejada posteriormente por personas físicas que la agregan a su cuenta personal.
+
+Dado que la plataforma será alojada en AWS, usaremos AWS Cognito para el registro y posterior inicio de sesión de las personas en la plataforma. Del servicio se utilizarán las siguientes características:
+
+- Uso de JWT Tokens para autorizar el acceso a las APIs en EKS.
+- Uso de Cognito User Pools que registren email, teléfono, cédula, nombre y apellidos.
+- Uso de choice-based authentication para que los usuarios elijan cómo iniciar sesión (contraseña, Email OTP o SMS OTP).
+- Uso del AuthFlow de USER_PASSWORD_AUTH, que incluirá un MFA obligatorio con Email OTP o SMS OTP.
+- Uso del SDK de Cognito para agilizar este proceso. Sin embargo, el formulario de registro será manejado programáticamente por nosotros, ya que el estándar que ofrece Cognito no se adapta a nuestro caso de uso.
+
+No hay que dejar de lado que un paso muy importante en nuestro sistema es la captura de imagen de la cédula y la prueba de vida, para comprobar que la persona que solicita la cuenta sea real. Por lo tanto, en el flujo de registro de una persona física, este paso se realizará antes de autorizar el registro en el sistema por medio de cognito.
+
+Para implementar esta lógica se usará el sistema de terceros SumSub, ya que provee herramientas para:
+
+- Verificación de ID (cédula en nuestro caso).
+- Prueba de vida y detección de deepfake.
+- Prueba de dirección, para verificar que la dirección física del usuario sea real.
+- Revisión de AML.
+- Revisión de KYC.
+
+Para realizar todas estas tareas en nuestro frontend se utilizará el WebSDK que SumSub provee para React, que cuenta con todas las herramientas necesarias para implementar las opciones mencionadas.
+
+El proceso de registro de las empresas será distinto, ya que requiere realizar tres tareas principales:
+
+- Validación y completitud de los datos.
+- Validación de personas asignadas.
+- Asignación de llaves tripartitas.
+
+Por ello no se usará Cognito para las empresas. Sin embargo, para la validación SumSub ofrece una solución de KYB (Know Your Business), que permite:
+
+- Revisar el registro nacional para seleccionar la empresa.
+- Verificar al encargado del registro mediante prueba de vida y verificación de cédula.
+- Generar cuestionarios personalizados donde se pueden adjuntar documentos legales que SumSub aprobará.
+
+Por lo tanto, la validación de empresas también será implementada con SumSub. El almacenamiento de información y la delegación de llaves tripartitas serán discutidos más adelante en la sección del backend.
+
+Por otro lado, cabe aclarar que para poder llevar a cabo las validaciones con SumSub es necesario dirigirse a la página de SumSub y ahí generar flows. Los desarrolladores tendrán que crear estos flows con base en las especificaciones dadas sobre que información se le debe solicitar a cada tipo de usuario (los distintos tipos de jurídico y el físico)  que fue especificada previamente en este subcapítulo.
+
 ##### Arquitectura de Cliente
 
-##### Componentes Visuales
+Nuestra arquitectura de cliente consistirá en Client Side Rendering con rendering estático, con una única capa dedicada a la web. Esta decisión se toma porque los bundles de React generados en el build de cada proyecto serán almacenados en un bucket de S3, el cual será servido a los clientes mediante el CDN provisto por CloudFront.
 
+Por otro lado, uno de los requerimientos de este módulo es que solo puede ser accedido con IPs Costarricenses (El registro), por lo que cuando se desee acceder a la página de registro Cloudfront ejecutará un Lambda@Edge Function que revisará la IP del usuario y en caso de no ser de Costa Rica, no servirá dicha ruta del App.
 
-##### Patrones y Principios
+Además, para acceder al backend se utilizará una única API, desarrollada en FastAPI. Se entrará en más detalles de dicha API más adelante.
 
-##### Toolkits y Standards:
 
 ##### Patrones de Diseño de Objetos
 
-##### Servicios Externos
+A Continuación el diagrama de clases del frontend del Bioregistro:
+
+![Patrones de Diseño de Objetos](img/FrontBioregistro.png)
+
+- **Caja Verde**: La caja verde representa el patrón de Chain of Responsability. Está asociado a los distintos tipos de forms que existen en el sistema, y gracias a la naturaleza del CoR, permite declararlos dinámicamente. Inclusive, permite que si en un futuro se desea agregar otra capa, sea sumamente sencillo.
+- **Cajas Celeste**: Las cajas celestes representan el strategy pattern, ya que por medio de herencia se aisla los distintos tipos de forms para colectivos, y de colectivos.
+- **Caja Roja**: Esta caja roja cumple dos funciones, de Singleton y de Facade. De singleton porque de esta manera solo existe una instancia que se conecta al API en todo momento. Además funciona como Facade ya que aisla toda la lógica de conexión con el API del backend en una sola clase.
+
+
+##### Componentes Visuales
+
+**Patrones y Principios**
+
+- **Responsive Design**: Aunque el enfoque principal de nuestro sistema está en el uso desde web desktop, es importante implementar un diseño responsivo para que los usuarios puedan realizar el registro, prueba de vida y verificación de cédula de forma cómoda desde la cámara de sus celulares. Este diseño responsivo se logrará aprovechando las opciones que ofrece Tailwind CSS para distintos tamaños de pantalla, utilizando prefijos como sm:, md:, lg:, y xl:, que permiten adaptar los estilos según el dispositivo.
+
+- **SOLID**:
+  - Single Responsibility: Cada componente en el bioregistro solo tendrá una responsabilidad. Por ejemplo, el formulario que detecta si es persona física o un conjunto solo emplea esa tarea, o los componentes de verificación de SumSub son distintos y cada uno hace su propia tarea: uno para la prueba de vida, otro para la verificación de id, y así para todo componente.
+  - Open Closed Principle: Los componentes de registro son dinámicos y están separados, gracias a esto, si en un futuro se desea agregar otro tipo de organización, tan solo se debe desarrollar dicho componente y de ahí la conexión con el resto del flujo será directa.
+  - Liskov Substitution Principle: La herencia debe ser utilizada solo cuando es necesaria. Por ejemplo, para los formularios de documentos para empresas si es valioso usar una superclase, pero no tiene sentido agruparlos en una clase madre con el formulario de prueba de vida.
+  - Interface Segregation Principle: No usaremos una interfáz enorme para agrupar a todo tipo de formulario, solo si es necesario se definirán, y cuando se haga se haŕan lo más específicas posibles. Por ejemplo, una interfáz madre para los procesos de SumSub que ocupen uso de camara.
+  - Dependency Inversion Principle: Las clases nunca deben depender de implementaciones, deben usar las intefaces. Por ejemplo, la clase que agrupe los formularios para registro de organizaciones debe poder permitir cualquier tipo de cuestionario de documentos, independientemente de con que colectivo se este trabajando.
+
+- **Dry principle**: En la medida de lo posible se usará la menor cantidad de código repetido. Dos ejemplos de esto son: gracias a que usaremos atomic design, componentes como botones o labels serán reutilizado no solo en el bioregistro, pero en todo el sistema; y otro ejemplo es que tanto en el registro de colectivos como de personas se pide prueba de vida, entonces se utilizará la misma clase para manejar ambas tareas.
+
+- **Separation of Concern**: Se cumple este principio ya que las distintas capas del frontend estarán bien definidas. En la capa de datos solo se gestionarán los objetos como personas y colectivos. Luego por medio de CustomHooks se gestionará la lógica del ViewModel, por ejemplo, las funciones como GetLivenessCheck o AttachPDF. Y Finalmente la capa de Vista se dedicará a tan solo eso, hacer el render de los componentes.
+
+- **Atomic Design**: Este es un patrón muy común en React, y se verá reflejado porque los componentes serán creados empezando por átomos, como bótones e inputs; Luego con moléculas, que por ejemplo podría ser un item de formulario que tenga un label, botón e input; Para después crear Organismos como los Formularios Completo; Para que después se junten todos en una página que será la que finalmente renderize todo.
+
+- **MVVM**: Estamos usando React, así que MVC no era una opción, y el flujo que tenemos planeado de comunicación entre hooks y componentes se adapta a un MVVM. Se aplicará de la siguiente forma:
+  - Model: Lo implementaremos en la conexión con la API (serán funciones), y también en los objetos que luego se insertarán en la base de datos (no vamos a poner la lógica de negocio acá, como recomiendan empresas como Microsoft, para que nuestra app no viole el principio de responsabilidad única ni la separación de responsabilidades) como los distintos tipos de organización, o las personas físicos.
+  - View: Será toda la parte visual de los componentes, que van a seguir atomic design.
+  - ViewModel: Se implementará en los custom hooks reutilizables que gestionan la lógica de negocio.
+
+
+**Toolkits y Standards**:
+
+- **Vite**: Se usará como servidor local para el desarrollo, y también para hacer el bundle de la aplicación.
+- **React Router**: Herramienta que permite manejar un app de react por medio de rutas.
+- **ESlint**: Se usará para mantener un estándar de código y evitar errores comunes.
+
 
 ##### Estructura de Carpetas
 
+``` bash
+frontend/
+├── public/                   #Assets como imagenes
+├── src/
+│   ├── api/                  #Acá estarán las funciones del API
+│   ├── model/                #Acá se almacenarán las clases del modelo
+│   │   ├── Person
+│   │   └── Collective
+│   ├── components/           #Atomic Design
+│   │   ├── atoms/            #Componentes más básicos
+│   │   │   ├── Button.jsx
+│   │   │   └── Icon.jsx
+│   │   │
+│   │   ├── molecules/
+│   │   │   └── FormItem.jsx
+│   │   │
+│   │   ├── organisms/
+│   │   │   ├── PersonalInfoForm.jsx
+│   │   │   └── ProofOfAddressForm.jsx
+│   │   │
+│   │   └── templates/
+│   │       ├── CollectiveForm.jsx
+│   │       └── PersonForm.jsx
+│   │
+│   ├── hooks/                 #ViewModel
+│   │   ├── useLivenessCheck.jsx
+│   │   └── useIdVerification.jsx
+│   │
+│   ├── contexts/              #Contexto del form, que datos han sido registrados
+│   │   └── FormContext.jsx
+│   │
+│   ├── pages/                 #Uso de las templates lista para formar una página completqa
+│   │   ├── MainRegister.jsx
+│   │   └── VerifyEmail.jsx
+│   │
+│   ├── styles/               #Tailwind
+│   │   └──globals.css        #Configuración de Tailwind
+│   │
+│   ├── utils/                #Funciones DRY
+│   │
+│   └── App.tsx               #Punto de Entrada
+│
+│
+└── tests/
+    ├── unit/
+    └── integration/
+```
+
 ##### Diagrama del Front
 
+#### Diseño del backend
 
+#####
+
+
+#### Diseño de los Datos
 
 
 ### Diagrama General del Frontend
