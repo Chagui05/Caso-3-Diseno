@@ -2046,7 +2046,7 @@ Antes de comenzar cabe por dejar en claro algunas especificaciones generales que
 
 - Se tendrá un API general para todo el backend, para poder acceder a las funcionalidades de todos los microservicios se debde consultar a dicha API (será RESTful). Además, estará construida en FastAPI, para favorecernos de sus características asincrónicas que la hacen sumamente rápida y apta para manejar carga pesada. Estará desplegada en el cluster de EKS, como un deployment con N replicas (Antes de pasar a producción se le realizarán pruebas de carga con Gatling, para poder determinar exactamente cuantas replicas ocupará).
 
-### 4.1. Bioregistro 
+### 4.1. Bioregistro
 
 Este componente es el punto de entrada al sistema, tiene como propósito registrar distintos tipos de usuarios y adaptarse dinámicamente a sus requerimientos de autenticación.
 
@@ -2346,6 +2346,14 @@ frontend/
 ```
 
 ##### Diagrama del Front
+A continuación se presenta el diagrama del frontend de Bioregistro. En él se muestra cómo el contenido estático generado por React se almacena en un bucket de S3, donde residen todos los componentes visuales, su ViewModel a través de funciones y custom hooks, y las clases modelo como Person y Collective.
+
+También se indica que los componentes visuales están estilizados con Tailwind CSS. La interacción con el backend se realiza mediante el módulo apiConnector.
+
+Finalmente, se incluye una Lambda@Edge function que, antes de que CloudFront entregue el HTML, verifica si la IP de acceso corresponde a Costa Rica, como parte de un filtro geográfico.
+
+
+![image](img/DiagramaFrontRegistro.png)
 
 #### Diseño del backend
 
