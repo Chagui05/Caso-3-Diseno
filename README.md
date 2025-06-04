@@ -2357,7 +2357,75 @@ Finalmente, se incluye una Lambda@Edge function que, antes de que CloudFront ent
 
 #### Diseño del backend
 
-#####
+##### Sistema de Monitoreo
+El monitoreo del componente Bioregistro se implementará siguiendo una estrategia de observabilidad integral que permita supervisar en tiempo real el comportamiento, rendimiento y seguridad del microservicio. Esta estrategia se alinea con las tecnologías definidas en el stack tecnológico del proyecto.
+
+**Arquitectura de Observabilidad**
+El sistema de monitoreo se estructurará en tres pilares fundamentales que trabajarán de manera coordinada para proporcionar visibilidad completa del componente:
+
+**1. Métricas y Rendimiento**
+AWS CloudWatch será el servicio central para recopilar y almacenar métricas operacionales del Bioregistro. Se monitorizarán aspectos críticos como:
+
+- **Métricas de negocio:** Cantidad de registros procesados por tipo de entidad (personas físicas vs jurídicas), tasa de éxito en validaciones documentales, tiempo promedio del proceso completo de registro, y cantidad de llaves tripartitas generadas diariamente.
+- **Métricas de infraestructura:** Utilización de recursos del pod en EKS (CPU, memoria, red), latencia de las conexiones a bases de datos PostgreSQL y DynamoDB, y throughput de solicitudes HTTP procesadas.
+- **Métricas de integración:** Disponibilidad y tiempo de respuesta de servicios externos como SumSub y Cognito, tasa de fallos en llamadas a APIs externas, y volumen de datos intercambiados con sistemas de terceros.
+
+**Prometheus** complementará a **CloudWatch** recopilando métricas específicas del microservicio a través de un endpoint dedicado. Esto permitirá obtener métricas más granulares sobre el comportamiento interno de la aplicación, como contadores de operaciones específicas, histogramas de distribución de tiempos, y gauges para valores instantáneos.
+
+**2. Visualización y Dashboards**
+**Grafana** se utilizará como plataforma principal de visualización, integrándose tanto con CloudWatch como con Prometheus para crear dashboards interactivos que permitan:
+
+- **Dashboard operacional:** Vista en tiempo real del estado general del Bioregistro, mostrando registros activos, distribución geográfica de solicitudes (verificando cumplimiento de restricción de IPs costarricenses), y estado de salud de todos los componentes.
+- **Dashboard de validaciones:** Monitoreo específico del proceso de validación documental, incluyendo éxito/fallo de verificaciones con SumSub, tiempos de procesamiento de IA para validación de documentos, y distribución de tipos de documentos procesados.
+- **Dashboard de seguridad:** Seguimiento de eventos relacionados con seguridad como intentos de acceso no autorizados, generación y uso de llaves criptográficas, y auditoría de accesos a datos sensibles según requerimientos de la Ley 8968.
+
+**3. Logs y Trazabilidad**
+El sistema de logging aprovechará **CloudWatch Logs** para centralizar todos los registros generados por el Bioregistro. Se implementará un esquema de logging estructurado que facilite:
+
+- **Trazabilidad completa:** Cada transacción tendrá un identificador único de correlación que permitirá seguir su flujo desde el inicio del registro hasta la emisión de credenciales digitales.
+- **Auditoría regulatoria:** Logs específicos para cumplimiento normativo, registrando accesos a datos personales, modificaciones de información sensible, y ejercicio de derechos ARCO por parte de los usuarios.
+- **Diagnóstico de problemas:** Niveles de log diferenciados (INFO, WARN, ERROR) con contexto suficiente para identificar rápidamente la causa raíz de cualquier incidencia.
+
+**Sistema de Alertas y Notificaciones**
+Se configurará un sistema proactivo de alertas utilizando CloudWatch Alarms que notificará al equipo de operaciones cuando se detecten condiciones anómalas:
+**Alertas críticas (respuesta inmediata requerida):**
+- Fallo total del servicio o indisponibilidad del endpoint de health check
+- Tasa de error superior al 20% en ventana de 5 minutos
+- Fallo en la conexión con servicios críticos (Cognito, SumSub, bases de datos)
+- Detección de múltiples intentos de acceso desde IPs no autorizadas
+
+**Alertas de advertencia (revisión prioritaria):**
+- Degradación del rendimiento con latencias superiores a 3 segundos
+- Uso de recursos por encima del 80% de capacidad
+- Incremento inusual en validaciones fallidas
+- Acumulación de tareas en cola de procesamiento manual
+
+**Alertas informativas (seguimiento regular):**
+- Resumen diario de métricas operacionales
+- Reporte semanal de tendencias y patrones
+- Notificaciones de mantenimiento programado
+
+**Monitoreo de Cumplimiento y Seguridad**
+Dado el carácter sensible de los datos manejados por el Bioregistro, se implementarán controles específicos de monitoreo para garantizar el cumplimiento normativo:
+- **Seguimiento de consentimientos:** Monitoreo del ciclo de vida de los consentimientos otorgados por usuarios, incluyendo fechas de otorgamiento, actualizaciones y revocaciones.
+- **Auditoría de accesos:** Registro detallado de todos los accesos a datos personales, identificando quién accedió, cuándo, desde dónde y con qué propósito.
+- **Monitoreo de retención de datos:** Seguimiento automatizado de los períodos de retención de datos según las políticas establecidas, con alertas para datos próximos a expirar.
+- **Verificación de cifrado:** Monitoreo continuo del estado de cifrado de datos en tránsito y reposo, asegurando que no existan brechas de seguridad.
+
+**Health Checks y Disponibilidad**
+El microservicio implementará múltiples niveles de verificación de salud que serán monitoreados continuamente:
+
+- **Liveness probe:** Verificación básica de que el servicio está activo y respondiendo, ejecutada cada 10 segundos por Kubernetes.
+- **Readiness probe:** Verificación comprehensiva de que todas las dependencias están disponibles y el servicio puede procesar solicitudes, incluyendo conectividad con bases de datos, servicios externos y disponibilidad de recursos.
+- **Deep health checks:** Verificaciones periódicas más exhaustivas que validan la integridad de configuraciones, certificados SSL, y correcta operación de funciones críticas.
+
+**Análisis y Mejora Continua**
+El sistema de monitoreo no solo detectará problemas, sino que proporcionará insights para la mejora continua:
+
+- Análisis de tendencias: Identificación de patrones en el uso del sistema para optimizar recursos y predecir necesidades futuras.
+- Detección de anomalías: Uso de las capacidades de CloudWatch para identificar comportamientos inusuales que podrían indicar problemas emergentes.
+- Reportes de capacidad: Proyecciones basadas en datos históricos para planificar el crecimiento de la infraestructura.
+- Optimización de costos: Análisis del uso de recursos para identificar oportunidades de optimización sin comprometer el rendimiento.
 
 
 #### Diseño de los Datos
