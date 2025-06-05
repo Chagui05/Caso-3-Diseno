@@ -2410,9 +2410,8 @@ El backend del componente Bioregistro de Data Pura Vida está diseñado siguiend
 ##### Servicios de AWS y Configuración de Hardware
 El proyecto **Portal Data Pura Vida** utilizará una amplia gama de servicios de AWS para construir una plataforma robusta y segura. La asignación de hardware será flexible y se adaptará en tiempo real al consumo de los servicios.
 
-**Servicios de Computación**
 
-**Amazon EKS(Elastic Kubernetes Service)**
+**Amazon EKS(Elastic Kubernetes Service):**
 Se utilizará para desplegar los microservicios del backend. 
 
 **Configuración de Hardware:**
@@ -2423,7 +2422,7 @@ EKS abstrae la infraestructura subyacente. Se configurarán grupos de con instan
 - **Tipo de instancia:** t3.medium (2 vCPU, 4 GB RAM) o superior.
 - **Almacenamiento:** AWS S3 para almacenamiento de objetos y datasets.
 
-**AWS Lambda**
+**AWS Lambda:**
 Para funciones serverless que realicen tareas específicas y de corta duración, como el procesamiento de notificaciones o tareas de validación asíncronas. 
 
 **Configuración de Hardware:**  Aunque no gestionamos hardware directamente, sí configuraremos los recursos, como:
@@ -2434,24 +2433,24 @@ Para funciones serverless que realicen tareas específicas y de corta duración,
 - **Tiempo de espera:** 5s
 - **Retry attempts:** 1
 
-**Servicios de Red**
+**Servicios de Red:**
 
-**AWS Application Load Balancer (ALB)**
+**AWS Application Load Balancer (ALB):**
 Para distribuir el tráfico de entrada a los microservicios desplegados en EKS. 
 
 **Configuración de Hardware:** Es un servicio gestionado, no requiere configuración de hardware directa, ni recursos. Se dimensionará automáticamente.
 
-**AWS CloudFront**
+**AWS CloudFront:**
 Red de distribución de contenido para servir el frontend estático alojado en S3, mejorando la latencia y la disponibilidad global. 
 
 **Configuración de Hardware:** Servicio gestionado, no requiere configuración de hardware.
 
-**AWS VPC (Virtual Private Cloud)**
+**AWS VPC (Virtual Private Cloud):**
 Para aislar los recursos de la plataforma en una red virtual privada y segura. 
 
 **Configuración de Hardware:** Es un servicio lógico, no requiere configuración de hardware. Se diseñará con subredes públicas y privadas, tablas de enrutamiento y grupos de seguridad.
 
-**Servicios de Almacenamiento**
+**Servicios de Almacenamiento:**
 
 **Amazon S3 (Simple Storage Service):**
 
@@ -2462,16 +2461,18 @@ Almacenamiento escalable y seguro para grandes volúmenes de documentos cargados
 
 Sin embargo, al crear el bucket en el S3 el cifrado será un **SSE-S3**. Tambien al realizar carga de archivos se utilizará un tipo de almacenamiento **estándar**.
 
-**DynamoDB**
+**DynamoDB:**
 Base de datos NoSQL para gestionar metadatos dinámicos, configuraciones y datos de alto rendimiento que requieren baja latencia y alta concurrencia (ej., llaves de seguridad, registros de actividad). 
 
 **Configuración de Hardware:** Servicio completamente gestionado y serverless. La configuración se basa en las unidades de capacidad de lectura/escritura.
 
-**Servicios de Bases de Datos**
+**Servicios de Bases de Datos:**
 **DynamoDB:**
 Ya descrito en almacenamiento.
 
-**Servicios de IA**
+**Servicios de IA:**
+
+**AWS SageMaker:**
 Plataforma integral para crear, entrenar y desplegar modelos de machine learning personalizados (para validación de documentos con IA). 
 
 **Configuración de Hardware:** 
@@ -2482,26 +2483,26 @@ Plataforma integral para crear, entrenar y desplegar modelos de machine learning
 - **Algoritmo:** OCR + modelo de clasificación
 - **Almacenamiento de datos en S3**
 
-**Despliegue del modelo**
+**Despliegue del modelo:**
 - **Tipo de instancia:** ml.c5.large
 - **Modo de despliegue:** Real-time endpoint
 
 
 
-**Servicios de Seguridad y Cumplimiento**
-**AWS KMS (Key Management Service)**
+**Servicios de Seguridad y Cumplimiento:**
+**AWS KMS (Key Management Service):**
 Para la administración y protección de claves criptográficas utilizadas para cifrar datos sensibles. 
 
 **Configuración de Hardware:** Servicio gestionado, serverless. No requiere configuración de hardware.
 
-**AWS Secrets Manager**
+**AWS Secrets Manager:**
 Gestión segura de claves API, credenciales y tokens, con rotación automática. 
 
 **Configuración de Hardware:** Servicio gestionado, serverless. No requiere configuración de hardware.
 
 
-**Servicios de Gestión y Monitoreo**
-**AWS IAM (Identity and Access Management)**
+**Servicios de Gestión y Monitoreo:**
+**AWS IAM (Identity and Access Management):**
 Gestión de identidades y permisos para usuarios y servicios de AWS. 
 
 **Configuración de Hardware:** Servicio gestionado.
@@ -2516,8 +2517,8 @@ Auditoría de acciones realizadas en la cuenta de AWS.
 
 **Configuración de Hardware:** Servicio gestionado.
 
-**Servicios de Integración y ETL**
-**RabbitMQ (en EKS)**
+**Servicios de Integración y ETL:**
+**RabbitMQ (en EKS):**
 Broker de mensajería para comunicación asíncrona entre microservicios. Se desplegará como un StatefulSet en EKS. 
 
 **Configuración de Hardware:** 
@@ -2527,8 +2528,7 @@ Broker de mensajería para comunicación asíncrona entre microservicios. Se des
 
 
 
-
-Apache Airflow
+**Apache Airflow:**
 Orquestador de workflows para automatizar y monitorear procesos ETL con Spark
  
 **Configuración de Hardware:** 
@@ -2540,7 +2540,7 @@ Orquestador de workflows para automatizar y monitorear procesos ETL con Spark
 - **Número máximo de servidores web:** 3
 - **Recuento de programadores:** 3
 
-**AWS Glue**
+**AWS Glue:**
 Servicio ETL gestionado. Si se utiliza, puede reducir la necesidad de gestionar un clúster de Spark propio en EKS. 
 
 **Configuración de Hardware:** Servicio serverless, gestionado por AWS. Se paga por el tiempo de ejecución. No requiere configuración de hardware directa.
