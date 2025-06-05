@@ -1946,6 +1946,7 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 - **DynamoDB:** Base de datos NoSQL para gestionar metadatos dinámicos y de alto rendimiento.
 - **AWS S3:** Almacenamiento de objetos escalable y seguro para grandes volúmenes de datos no estructurados, como archivos.
 - **AWS Glue:** Servicio ETL gestionado para la transformación y preparación de datos en flujos automatizados.\*tentativo, puede que prefiramos implementar nuestro propio cluster de spark en EKS organizado con airflow.
+- **AWS RDS**: Es el servicio que AMazon ofrece para poder albergar bases de datos de PostgreSQL o MYSQL
 - **AWS SageMaker:** Plataforma integral para crear, entrenar y desplegar modelos de machine learning de forma segura y escalable.
 - **AWS KMS (Key Management Service):** Servicio de administración de claves criptográficas para cifrar y proteger datos sensibles en todos los servicios de AWS.
 
@@ -2429,6 +2430,56 @@ El sistema de monitoreo no solo detectará problemas, sino que proporcionará in
 
 
 #### Diseño de los Datos
+
+##### Topología de Datos
+
+  - **Tipo:** Base de Datos Replicada tipo OLTP, Almacenamiento de Objetos, Base de datos documental
+    - Vamos a utilizar RDS con PostgreSQL como almacenamiento OLTP de los usuarios y sus distintos tipos. Se usará un módelo master-slave con 2 read replicas en us-east-1 . Además se activará el Multi-AZ failover para permitir pasar el rol de master a una de replica lista para failover, esto nos dará alta disponibilidad. Estos respaldos se harán todos los días a las 2 de la mañana de costa rica y se guaradarán en un S3 bucket de respaldos.
+    - Utilizaremos un S3 Bucket como almacenamiento de objetos para guardar PDFs y documentos legales sobre las organizaciones.
+    - Usaremos DynamoDB como base de datos documental, en ella se almacenará la metadata correspondiente a los documentos en el S3. No utilizaremos los servicios de Global Tables ya que el acceso al sistema es principalmente desde Costa Rica. Por lo que solo usaremos 1 region: us-east-1.
+
+- **Tecnología Cloud**:
+  - RDS
+  - RDS
+  - CloudWatch: Para el monitoreo de dichos servicios de AWS
+
+- **Polítcias y Reglas**:
+  - Single-region: Solo se usará una región para RDS y DynamoDB, us-east-1
+  - Backups automáticos: Tanto RDS como Dynamo harán backups automáticos a las 2 de la mañana y lo subirán a un S3.
+  - Bacups cruzados: Para proteger los respaldos en caso de que la región de aws caiga (poco probable), se cargaran adicionalmente en un S3 Bucket en us-west-1. Esto se hará cada semana los viernes a las 2 de la mañana, ya que su prioridad es menor.
+  - Failover Automático: Dynamo tiene nativamente integrado la opción de hace failover. Con RDS se logrará por medio del uso de Multi-AZ.
+
+- **Beneficios**:
+  - Mantenernos en una sola región, reduce la latencia entre replicas de las bases de datos y baja el costo de la arquitectura.
+  - Tener backups automáticos, con regiones cruzadas permite tener el sistema listo para enfrentar cualquier caída en aws.
+  - Postgres es una Base de Datos open source por lo que no hace falta pagar licensias.
+  - DynamoDB es de las opciones de BD documental más veloces, además está completamente integrada con el ecosistema de aws, por lo que hacer respaldos o sacarle métricas es muy sencillo.
+  - DynamoDB está respaldado por AWS, por lo que ofrece un SLA del 99.999% y es 100% compatible con el resto de nuestros servicios en AWS.
+
+
+##### Tenency, Seguridad y Privacidad
+
+- **Modelo**: Singe-Access-Point
+
+  - En este caso la base de datos para los usarios y organizaciones no será multi-tenant ya que al ser un almacenamiento de registros no es necesario.
+
+  - Para acceder a la base de datos, implementaremos un Singe-Access-Point mediante una clase llamada RDSRepository.
+
+  - No se implementará validación mediante tokens JWT ni se utilizará Multi-Schema en esta base de datos, ya que está lógicamente aislada del resto del sistema, eliminando así cualquier posibilidad de intrusión o acceso no autorizado a datos sensibles o datasets.
+
+- **Encripción**: usaremos la libereria de python Fernet para encriptar los datos antes de pasarlos a la capa de persistencia.
+  - Metadata de las Organizaciones (detallada al inicio del capítulo de Bioregistro).
+  - Emails de los usuarios.
+  - Información de contacto de usuarios y organizaciones.
+  - Configuraciones de pago.
+
+- **Hashing**: usaremos la libereria de python bcrypt para encriptar los datos antes de pasarlos a la capa de persistencia.
+  - Contraseñas de usuarios.
+
+- **Cloud Technology**:
+  - Amazon Cognito para el registro de personas físicas.
+  - Amazon RDS para PostgreSQL con RLS.
+
 
 
 ### Diagrama General del Frontend
