@@ -2357,6 +2357,55 @@ Finalmente, se incluye una Lambda@Edge function que, antes de que CloudFront ent
 
 #### Diseño del backend
 
+#####  Explicación de las capas – Diseño del Backend del Bioregistro
+
+El backend del componente Bioregistro de Data Pura Vida está diseñado siguiendo principios de Clean Architecture, con separación clara de responsabilidades y desplegado como un microservicio independiente en EKS (AWS Kubernetes). A continuación se describen sus capas principales:
+
+##### Capas del Backend
+
+```plaintext
+[ API Layer (FastAPI Gateway) ]
+          ↓
+[ Service Layer (Application Logic) ]
+          ↓
+[ Domain Layer (Entities and Rules) ]
+          ↓
+[ Infrastructure Layer (Database, SumSub, Cognito, S3, RabbitMQ) ] 
+```
+---
+
+- ##### 1. API Layer (FastAPI)
+
+- Punto de entrada del sistema.
+- Expone rutas RESTful como `/register`, `/verify`, `/submit-docs`.
+- Gestiona validaciones superficiales de entrada (schemas con Pydantic).
+- Inyecta dependencias necesarias (servicios, repositorios).
+
+- ##### 2. Service Layer (Application Logic)
+
+- Contiene la lógica de negocio del Bioregistro: validaciones cruzadas, coordinación de flujos, llamadas a SDKs externos.
+- Ejemplos:
+  - Validar que el representante legal esté previamente registrado como persona física.
+  - Activar flujos de SumSub (KYC/KYB) y asociarlos al usuario.
+  - Generar y almacenar llaves criptográficas tripartitas para organizaciones.
+
+- ##### 3. Domain Layer (Modelos y Reglas del Negocio)
+
+- Define las entidades del sistema como `Persona`, `Organización`, `DocumentoLegal`, `ClaveTripartita`.
+- Aplica validaciones estructurales, reglas de integridad y eventos de dominio.
+- Estas clases no dependen de tecnologías externas ni del framework (independencia del dominio).
+
+- ##### 4. Infrastructure Layer
+
+- Conecta el dominio con el mundo externo.
+- Incluye:
+  - **PostgreSQL**: almacena usuarios, organizaciones y relaciones.
+  - **DynamoDB**: guarda estructuras más dinámicas como flujos temporales y metadatos de SumSub.
+  - **RabbitMQ**: cola de eventos para acciones asincrónicas (verificación, notificaciones).
+  - **S3**: almacenamiento de PDFs y evidencia de verificación.
+  - **Cognito**: autenticación de usuarios físicos con MFA.
+  - **SumSub SDK**: validación de identidad, prueba de vida y compliance KYC/KYB.
+
 
 ##### Servicios de AWS y Configuración de Hardware
 El proyecto **Portal Data Pura Vida** utilizará una amplia gama de servicios de AWS para construir una plataforma robusta y segura. La asignación de hardware será flexible y se adaptará en tiempo real al consumo de los servicios.
