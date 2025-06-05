@@ -30,15 +30,13 @@ Además cabe aclarar que cada sección no aplica necesariamente para todos los c
 
 ----
 - Diseño de los Datos: para esta sección usar la sección de diseño de la [capa de datos](https://github.com/vsurak/cursostec/blob/master/diseno/3.%20dise%C3%B1o%20de%20la%20l%C3%B3gica%20y%20los%20datos%2C%20o%20backend%20y%20data.md#dise%C3%B1o-de-la-capa-de-datos) del capítulo 3 del github del profe. También se puede usar como base el [Proyecto Pasado](https://github.com/Chagui05/Caso-2-diseno?tab=readme-ov-file#data-layer-design). En el documento de [semana 9](https://github.com/vsurak/cursostec/blob/master/diseno/week%209%20-10.md#week-9-1) el profe también comenta esta parte.
-  - Topología de Datos
-  - Motor de Base de Datos
+  - Topología de Datos, En esta sección también se debe mencionar que motor de base de datos se usará y como se implementación la Recuperación y Tolerancia a Fallos
   - Tenancy, Seguridad y Privacidad
-  - Recuperación de Datos y Protección del Sistema
   - Conexión a Base de datos
     - ORM, como usaremos el ORM
     - Connection Pool, como se usará el connection pool
     - Drivers
-  - Diseño para IA: El diseño de datos considera donde sea necesario prácticas y patrones para AI. [Unidad 8](https://github.com/vsurak/cursostec/blob/master/diseno/8.%20Tendencias%20en%20el%20dise%C3%B1o%20de%20software.md).
+  - Diseño para IA: El diseño de datos considera donde sea necesario prácticas y patrones para AI. [Unidad 8](https://github.com/vsurak/cursostec/blob/master/diseno/8.%20Tendencias%20en%20el%20dise%C3%B1o%20de%20software.md). (Solo si aplica)
   - Diagrama de Base de Datos
 
 ----

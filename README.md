@@ -2358,6 +2358,10 @@ Finalmente, se incluye una Lambda@Edge function que, antes de que CloudFront ent
 
 #### Diseño del backend
 
+##### Microservicios
+
+Ocupamos un módulo que haga la interacción con SumSub (los tipos de verificacion), Otro que haga el registro en RDS de las organizaciones y de las personas físicas, otro que guarde en S3 documentos legales y los linkee con un registro en Dynamo, otro que interactúe con cognito (mencionar que el id de las personas en cognito debe ser el mismo que en rds)... Esos son algunos que de fijo ocupamos
+
 ##### Sistema de Monitoreo
 El monitoreo del componente Bioregistro se implementará siguiendo una estrategia de observabilidad integral que permita supervisar en tiempo real el comportamiento, rendimiento y seguridad del microservicio. Esta estrategia se alinea con las tecnologías definidas en el stack tecnológico del proyecto.
 
@@ -2436,7 +2440,8 @@ El sistema de monitoreo no solo detectará problemas, sino que proporcionará in
   - **Tipo:** Base de Datos Replicada tipo OLTP, Almacenamiento de Objetos, Base de datos documental
     - Vamos a utilizar RDS con PostgreSQL como almacenamiento OLTP de los usuarios y sus distintos tipos. Se usará un módelo master-slave con 2 read replicas en us-east-1 . Además se activará el Multi-AZ failover para permitir pasar el rol de master a una de replica lista para failover, esto nos dará alta disponibilidad. Estos respaldos se harán todos los días a las 2 de la mañana de costa rica y se guaradarán en un S3 bucket de respaldos.
     - Utilizaremos un S3 Bucket como almacenamiento de objetos para guardar PDFs y documentos legales sobre las organizaciones.
-    - Usaremos DynamoDB como base de datos documental, en ella se almacenará la metadata correspondiente a los documentos en el S3. No utilizaremos los servicios de Global Tables ya que el acceso al sistema es principalmente desde Costa Rica. Por lo que solo usaremos 1 region: us-east-1.
+    - Usaremos DynamoDB como base de datos documental, en ella se almacenará la metadata correspondiente a los documentos en el S3, y también los distintos datos no estructurados que tienen los distintos colectivos. No utilizaremos los servicios de Global Tables ya que el acceso al sistema es principalmente desde Costa Rica. Por lo que solo usaremos 1 region: us-east-1.
+    - Cabe aclarar que el Id para las personas físicas será el mismo en Cognito y RDS, mientras que el Id de los colectivos será el mismo tanto en RDS como en Dynamo.
 
 - **Tecnología Cloud**:
   - RDS
@@ -2467,18 +2472,66 @@ El sistema de monitoreo no solo detectará problemas, sino que proporcionará in
 
   - No se implementará validación mediante tokens JWT ni se utilizará Multi-Schema en esta base de datos, ya que está lógicamente aislada del resto del sistema, eliminando así cualquier posibilidad de intrusión o acceso no autorizado a datos sensibles o datasets.
 
-- **Encripción**: usaremos la libereria de python Fernet para encriptar los datos antes de pasarlos a la capa de persistencia.
+  - También usaremos IAM de AWS para que los servicios solo puedan acceder a lo que deben. Por ejemplo solo el microservicio que guarda en la BD puede usar el kms:Encrypt en RDS y Dynamo.
+
+  - La base de datos en RDS no almacenará contraseñas, ya que su propósito no es gestionar el inicio de sesión, sino mantener un registro estructurado de las entidades registradas en la plataforma.
+
+- **Encripción**:
   - Metadata de las Organizaciones (detallada al inicio del capítulo de Bioregistro).
   - Emails de los usuarios.
   - Información de contacto de usuarios y organizaciones.
   - Configuraciones de pago.
 
-- **Hashing**: usaremos la libereria de python bcrypt para encriptar los datos antes de pasarlos a la capa de persistencia.
-  - Contraseñas de usuarios.
-
-- **Cloud Technology**:
+- **Cloud**:
   - Amazon Cognito para el registro de personas físicas.
   - Amazon RDS para PostgreSQL con RLS.
+  - Encryption at rest en DynamoDB gracias a AWS KMS
+  - Encryption at rest en RDS gracias a AWS KMS
+  - Encryption at rest en el S3 Buckets con SSE-S3, para que AWS KMS gestione las claves y cifrado
+  - AWS IAM.
+
+- **Beneficios**:
+  - Gracias a que solo abrá un single point of acces regulado con AWS IAM, la intrusión de un tercero a la base de datos de usuarios es muy poco probable.
+  - En caso de que alguién tenga acceso a la base de datos no podrá hacer nada ya que todo está encriptado.
+  - Cognito permite manejar de formar eficiente y agil el registro de personas físicas.
+
+##### Conexión a Base de datos
+
+- **Modelo**: Transaccional vía Statements / Store Procedures y ORM
+
+Usaremos SQLAlchemy como ORM para interactuar con PostgreSQL dentro de la aplicación. Además se usarán Store Procedures para operaciones más complejas como registrar a una organización y hacer las relaciones pertinentes con personas físicas.
+
+  - **Patrones de POO**:
+    - Factory: Usamos el patrón Factory para la creación de las clases RDSFactory, RDSRepository, DynamoFactory, DynamoRepository.
+
+
+  - **Beneficios**:
+    - El código es independiente del motor de base de datos relacional, lo que permite cambiarlo fácilmente si es necesario.
+    - El desarrollo es más ágil que escribir SQL puro.
+    - Se protege contra vulnerabilidades como SQL Injection.
+    - Se puede garantizar el cumplimiento de las propiedades ACID.
+
+- **Pool de Conexiones**
+Usaremos el pool integrado en SQLAlchemy (QueuePool), el cual es dinámico. El tamaño base del pool será de 10 conexiones, y podrá escalar hasta 15 conexiones simultáneas.
+
+  - **Beneficios**:
+    - La escalabilidad se ajusta bajo demanda.
+    - Proporciona mayor estabilidad en ambientes productivos.
+
+- **Drivers**
+Para PostgreSQL utilizaremos el driver nativo psycopg2, integrado con SQLAlchemy, lo cual ofrece mejor rendimiento. Para DynamoDB y S3 emplearemos boto3, un cliente interpretado ampliamente soportado en el ecosistema AWS.
+
+  - **Beneficios**:
+    - Aprovechamos lo mejor de cada entorno: para PostgreSQL un driver nativo rápido, y para DynamoDB/S3 un driver interpretado más portátil y flexible.
+
+
+##### Diagrama de Base de Datos
+
+A continuación se presenta el diagrama de base de datos correspondiente al módulo de bioregistro. En él se muestra cómo se gestionan tanto las personas físicas como los colectivos, incluyendo una relación muchos a muchos que permite registrar qué personas representan a cada colectivo. Para clasificar los tipos de colectivo, se utiliza una tabla catálogo.
+
+Aunque en RDS los colectivos comparten una estructura general para mantener la base simple y normalizada, es importante destacar que estos pueden tener campos específicos según su tipo. Por ejemplo, los ministerios no poseen cédula jurídica, a diferencia de otros colectivos. Por esta razón, se decidió almacenar la metadata variable de cada colectivo en DynamoDB, utilizando el mismo id que en RDS. Esto permite extender la información sin preocuparse por rigidez en el schema, manteniendo flexibilidad sin perder trazabilidad entre sistemas.
+
+![image](img/DiagramaBDBioregistro.png)
 
 
 
