@@ -2788,6 +2788,167 @@ class Registro(BaseModel):
 **4. Auditoría y Registro de Actividades**
 Se hará con el objetivo de monitorear en tiempo real y registrar de forma persistente todos los accesos, modificaciones y acciones críticas sobre los datos del Bioregistro, tanto por parte de usuarios humanos como de servicios automatizados.
 
+**Acciones que se auditarán**
+
+- Inicios y cierres de sesión con Cognito
+- Accesos exitosos y fallidos a endpoints sensibles del backend
+- Cambios de configuración y roles dentro del sistema
+- Accesos o intentos de acceso a recursos restringidos
+- Uso de claves KMS para cifrado/descifrado de datos sensibles
+- Acciones administrativas sobre recursos de AWS vinculados al Bioregistro
+
+**Implementación Técnica**
+
+###### Middleware de FastAPI
+Se desarrollará un middleware de auditoría personalizado que capture metadatos clave en cada interacción:
+
+  - IP de origen
+  - Usuario autenticado 
+  - Timestamp
+  - Endpoint accedido
+  - Método HTTP
+  - Código de respuesta (status code)
+  - Rol del usuario
+
+
+Los registros se almacenarán en DynamoDB, aprovechando su alto rendimiento y consulta eficiente para logs estructurados.
+
+Ejemplo:
+```json
+{
+  "PK": "user#1234",
+  "SK": "log#2025-06-05T17:42:13Z",
+  "endpoint": "/residente/456",
+  "action": "UPDATE",
+  "statusCode": 403,
+  "ip": "190.10.25.6",
+  "role": "PersonalAutorizado"
+}
+```
+###### AWS CloudWatch
+
+Se tiene una visualización en tiempo real de los logs generados por el backend. Se realiza la creación de alarmas automatizadas para eventos sospechosos o violaciones de políticas como las siguientes:
+- Más de 5 intentos fallidos de autenticación en 60 segundos.
+- Acceso masivo a datos de residentes por un mismo usuario.
+- Actividades fuera del horario laboral.
+
+###### Integración con AWS CloudTrail
+
+Para capturar eventos directamente desde el entorno AWS, se utilizará AWS CloudTrail como complemento de auditoría. Este registra todas las llamadas a la API de AWS, incluyendo:
+- Uso de AWS KMS
+- Acceso a buckets S3 con documentos biométricos
+- Cambios a roles, políticas y grupos de IAM
+
+Beneficios:
+
+- Trazabilidad completa de acciones en servicios críticos del backend
+- Integración con AWS KMS para detectar uso indebido de claves
+- Compatible con otros servicios de AWS para ejecutar consultas avanzadas sobre logs
+
+
+**5. Cifrado de Datos**
+El módulo Bioregistro maneja información sensible relacionada con la identidad de los residentes, como números de identificación, datos biométricos y documentos oficiales. Por ello, se implementa lo siguiente:
+
+| Tipo de Cifrado                            | Descripción                          | Aplicación en el Bioregistro           | Herramientas/Protocolos Usados | Caso de Uso |
+| ------------------------------ | --------------------------------- | -------- | ------------ | -------------- |
+| **Cifrado en Tránsito** | Protege los datos mientras se transmiten entre el cliente y el servidor. Evita intercepciones o manipulaciones.                 | Aplicado en todas las solicitudes HTTP entre frontend y backend, y entre backend y servicios como Amazon Cognito, PostgreSQL y RabbitMQ..    | TLS 1.3, HTTPS obligatorio con AWS Certificate Manager   |La adopción de HTTPS obligatorio será gestionada mediante certificados válidos y renovables (por ejemplo, con AWS Certificate Manager). |
+| **Cifrado en Reposo**   | Protege los datos almacenados en bases de datos o archivos para evitar acceso no autorizado.         | Aplica al almacenamiento de cédulas, datos biométricos y documentos subidos a S3 o PostgreSQL.    | AES-256, PostgreSQL TDE, S3 + SSE-KMS |Para almacenamiento de documentos e imágenes biométricas en Amazon S3, se aplicará cifrado del lado del servidor (SSE) con claves gestionadas por AWS Key Management Service (KMS). |
+
+**Uso de AWS KMS para Gestión de Claves**
+
+AWS KMS permitirá la centralización del manejo de claves de cifrado, incluyendo:
+- Rotación automática de claves
+- Control de acceso por política granular
+- Auditoría completa mediante integración con AWS CloudTrail
+- Cada operación de cifrado y descifrado queda registrada, permitiendo trazabilidad sobre qué usuario accedió a qué recurso, cuándo y con qué clave.
+
+
+**Protección Extendida**
+
+Se combinará cifrado del lado del cliente con el cifrado del lado del servidor, especialmente en flujos sensibles como subida de documentos biométricos desde el frontend. Esto permite que los datos ya lleguen cifrados a S3, agregando una capa adicional de defensa en caso de vulneración de acceso al bucket.
+
+
+**Verificación de Implementación**
+
+Se integran pruebas automáticas en los pipelines de CI para asegurar que:
+
+- Ninguna transmisión ocurra por HTTP.
+- Los datos almacenados no estén en texto plano.
+- Las operaciones de cifrado sean exitosas y rastreables en CloudWatch.
+
+Estas medidas aseguran la confidencialidad de los datos personales y fortalecen la postura de cumplimiento del proyecto con respecto a normativas como la Ley 8968 de Protección de la Persona frente al tratamiento de sus datos personales y estándares como ISO/IEC 27001.
+
+**6. Protección contra Abuso y Ataques**
+
+| Categoría                           | Estrategia                          | Herramienta / Tecnología            | Caso de uso 
+| ------------------------------ | --------------------------------- | -------- | ------------ |
+| **Limitación de tráfico** | 	Aplicar límites de solicitudes por IP por endpoint y método.                 | AWS API Gateway + FastAPI Middleware    | Evitar que un usuario o bot consulte masivamente los datos de residentes en un corto periodo.   |
+| **Bloqueo por patrones**   | Identificación de IPs con comportamiento malicioso y bloqueo automático.         | AWS WAF     | Bloqueo de IPs que intenten manipular repetidamente URLs como `/residente/1234/edit` |
+| **Protección contra bots**  | 	Detección de bots mediante análisis de headers y frecuencia. | Middleware personalizado + WAF     | Evita scraping automático de datos personales o intentos de acceso automatizado al registro. |
+| **Protección DoS/Brute Force**          | Prevención de ataques de denegación de servicio o fuerza bruta en login.     | AWS Shield + CloudWatch    | Resguarda el endpoint de autenticación Cognito usado por el personal autorizado. |
+| **Validación profunda de inputs**          | Inspección de JSON y parámetros de URL para detectar inyecciones     | Pydantic + validadores personalizados    | Prevenir que usuarios maliciosos inserten comandos o scripts en campos como nombre o dirección. |
+
+**7. Gestión de Secretos con AWS Secrets Manager**
+
+Se usará AWS Secrets Manager como proveedor principal para almacenar, cifrar y rotar automáticamente los secretos necesarios del backend. Este servicio permite:
+- Cifrado automático con AWS KMS de los valores sensibles.
+- Control de acceso detallado mediante políticas IAM por recurso.
+- Auditoría completa con AWS CloudTrail.
+- Integración directa desde FastAPI usando AWS SDK (boto3).
+
+| Nombre del Secreto  |	Contenido     |	Servicio  |	Rotación Automática  
+| ---------- | --- | ---| --- | 
+| `bioregistro/db_credentials`	| Usuario y contraseña para acceder a PostgreSQL	| PostgreSQL	| Activada cada 30 días
+| `bioregistro/jwt_signing_key`	| Llave privada para firmar JWT |	FastAPI auth middleware	|  Solo lectura
+| `bioregistro/rabbitmq_credentials` |	Usuario y contraseña para conectarse a RabbitMQ	| RabbitMQ (eventos)|  |	
+| `bioregistro/s3_upload_token` |	Token temporal para subida de archivos desde frontend	| S3 + Cognito	|  12h de disponibilidad | 
+
+Ejemplo de acceso seguro desde FastAPI
+
+```py
+import boto3
+import json
+
+def get_secret(secret_name):
+    client = boto3.client("secretsmanager", region_name="us-east-1")
+    response = client.get_secret_value(SecretId=secret_name)
+    return json.loads(response['SecretString'])
+
+db_creds = get_secret("bioregistro/db_credentials")
+DB_USER = db_creds["username"]
+DB_PASS = db_creds["password"]
+```
+
+Ejemplo de politicas de secretos con AWS IAM
+```json
+{
+  "Effect": "Allow",
+  "Principal": {
+    "AWS": "arn:aws:iam::123456789012:role/bioregistro-backend-role"
+  },
+  "Action": "secretsmanager:GetSecretValue",
+  "Resource": "*"
+}
+```
+
+**8. Política de Backup y Recuperación**
+
+La protección de la información crítica del módulo Bioregistro implica contar con una política de respaldo automatizada y confiable. Esta política toma en cuenta tanto los datos estructurados (en PostgreSQL) como los documentos y metadatos almacenados en otros servicios como Amazon S3 y DynamoDB. El objetivo principal es arantizar la disponibilidad y recuperación rápida ante pérdida de datos, errores humanos o ataques.
+
+| Recurso Crítico         | Servicio AWS            | Frecuencia de Backup               |  Tiempo de Retención                       |
+| ----------------------- | ----------------------- | ----------------------- | -------------------------- | 
+| PostgreSQL | **Amazon RDS**          | Diario (automático)   | 30 días                    | 
+| Documentos biométricos  | **Amazon S3**           | Versionado + replicación           |  Ilimitado   |
+| Metadatos JSON / Logs   | **Amazon DynamoDB**     | Backup continuo (PITR)             |  35 días            | 
+| Secrets y claves        | **AWS Secrets Manager** | Versionado automático              | Hasta eliminación | 
+
+**Procedimiento de Recuperación ante Incidente**
+1. Detección del incidente mediante alertas de CloudWatch.
+2. Validación del último snapshot válido en RDS o versión del objeto en S3.
+3. Restauración automática desde consola de AWS Backup, RDS o S3.
+4. Notificación y verificación de consistencia posterior al recovery.
+5. Registro de incidente en CloudWatch Logs.
+
 #### Diseño de los Datos
 
 ##### Topología de Datos
