@@ -2672,6 +2672,121 @@ El sistema de monitoreo no solo detectará problemas, sino que proporcionará in
 - Reportes de capacidad: Proyecciones basadas en datos históricos para planificar el crecimiento de la infraestructura.
 - Optimización de costos: Análisis del uso de recursos para identificar oportunidades de optimización sin comprometer el rendimiento.
 
+##### Modelo de seguridad detallado
+El módulo de Bioregistro maneja información altamente sensible relacionada con personas naturales y jurídicas (incluyendo representantes legales, personas con poder legal, etc.). Su backend será asegurado mediante un conjunto de mecanismos orientados a prevenir accesos no autorizados, garantizar integridad, confidencialidad, trazabilidad y disponibilidad continua de los datos.
+
+**1. Control de Acceso Granular**
+
+**OAuth2 + JWT:** Toda operación sobre el bioregistro requerirá un token válido con permisos específicos. Estas herramientas serán implementado en el frontend por parte de AWS Cognito, pero su flujo de trabajo seguirá en el backend.
+
+**RBAC (Role Based Access):** Se le otorgará permisos a los usuarios según el rol que desempeñen dentro del sistema; esto con el fin de limitar acceso a solo los recursos necesarios y evitar privilegios excesivos. Existiran 4 tipos de roles:
+
+| Rol del Usuario                            | Descripción                          | Permisos sobre recursos del Bioregistro           |
+| ------------------------------ | --------------------------------- | -------- | 
+| `bio:viewer` | Visualiza registros existentes                 | Lectura en PostgreSQL y DynamoDB    | 
+| `bio:editor `   | Crea y modifica registros, sin aprobarlos         | Lectura y escritura parcial     | 
+| `bio:approver`  | Aprueba, certifica o valida registros | Escritura total + validación cruzada     | 
+| `bio:admin`          | Gestión completa del módulo, incluyendo usuarios y configuración      | Acceso total y eliminación    | 
+
+
+
+**Asociacion de RBAC a las bases de datos del sistema:**
+- **PostgreSQL:** Usado para almacenar entidades estructuradas.
+  - Personas físicas/jurídicas, Certificados, Estados de validación, Trazas de auditoría
+  - Se usan los roles exactamente como en la tabla anterior. 
+  - En la capa de acceso, se verifica el rol antes de ejecutar consultas SQL.
+
+- **DynamoDB:** Usado para gestionar metadatos dinámicos y documentos JSON no estructurados.
+
+  - Información adjunta, Historial de verificación, Pruebas de vida o firmas electrónicas.
+  - En cada tabla DynamoDB, los accesos se segmentan con políticas AWS IAM condicionales según el rol (Condition: "bio:role" == "approver").
+
+Ejemplo flujo autenticación:
+```json
+{
+  "sub": "uuid",
+  "email": "usuario@dominio.com",
+  "custom:role": "bio:editor"
+}
+```
+
+**AWS Identity and Access Management (IAM):** Permite definir de manera segura quién puede acceder a qué recursos y con qué nivel de permisos dentro del entorno en la nube. La implementación se hará con con políticas por rol, usando etiquetas.
+
+
+| Caso de uso                            | Acción permitida                          | Servicio AWS           | Rol asociado
+| ------------------------------ | --------------------------------- | -------- | ------------ |
+| **Consulta de certificados validados** | `Vdynamodb:GetItem`, `Query`                 | DynamoDB    | `bio:viewer`, `bio:approver`   |
+| **Carga de archivos adjuntos**   | `s3:PutObject`, `GetObject`         | Bucket S3     | `bio:editor`, `bio:approver` |
+| **Lectura de llaves privadas**  | `secretsmanager:GetSecretValue` | Secrets Manager     | `bio:admin` |
+| **Acceso a logs de auditoría**          | `logs:FilterLogEvents`     | CloudWatch Logs    | `bio:admin`, `bio:approver` |
+
+
+Ejemplo politica por rol:
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["dynamodb:PutItem", "dynamodb:GetItem"],
+      "Resource": "arn:aws:dynamodb:::table/bioregistro_certificados"
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["s3:PutObject"],
+      "Resource": "arn:aws:s3:::bio-adjuntos/*"
+    }
+  ]
+}
+```
+**3. Validación de entradas**
+
+Para proteger el backend del Bioregistro, se implementarán validaciones estrictas de datos en todas las capas de entrada. Estas validaciones estarán directamente integradas en los endpoints de la API desarrollados con FastAPI, usando las capacidades de tipado y validación de Pydantic, reforzadas con validadores personalizados.
+
+La aplicación de esto sucede en los siguientes eventos:
+- En todos los endpoints RESTful del Bioregistro (registro, modificación, eliminación, consulta).
+- Cuando se integran datos desde archivos cargados con AWS Glue.
+- En validaciones internas antes de realizar operaciones sobre la base de datos.
+
+**Validaciones estructurales:**
+- Uso de tipos estrictos: `str`, `int`, `EmailStr`, `UUID`, `datetime`.
+- Validaciones de longitud y formato (Regex).
+
+Ejemplo de validación estructural: 
+```python
+from pydantic import BaseModel, Field, EmailStr
+class RegistroResidente(BaseModel):
+    cedula: str = Field(..., regex=r'^\d{9}$')
+    nombre: str = Field(..., max_length=60)
+    correo: EmailStr
+    telefono: str = Field(..., regex=r'^\d{8}$')
+    fechaNacimiento: str
+```
+**Prevención de Inyecciones:**
+- **SQL Injection:** al usar ORMs o query builders con `SQLALCHEMY`, evitando la concatenación de strings en queries.
+-**NoSQL Injection:** validación de claves primarias/secundarias con tipos y formatos válidos.
+
+
+**Validadores personalizados:**
+Se emplearán funciones decoradoras (@validator) para definir reglas de negocio complejas
+
+ejemplo: 
+```python
+from pydantic import validator
+class Registro(BaseModel):
+    fechaNacimiento: datetime
+    fechaDefuncion: Optional[datetime]
+
+    @validator("fechaDefuncion")
+    def check_fechas(cls, v, values):
+        if v and "fechaNacimiento" in values and v < values["fechaNacimiento"]:
+            raise ValueError("La fecha de defunción no puede ser anterior a la fecha de nacimiento.")
+        return v
+```
+
+
+**4. Auditoría y Registro de Actividades**
+Se hará con el objetivo de monitorear en tiempo real y registrar de forma persistente todos los accesos, modificaciones y acciones críticas sobre los datos del Bioregistro, tanto por parte de usuarios humanos como de servicios automatizados.
 
 #### Diseño de los Datos
 
