@@ -2363,245 +2363,6 @@ Finalmente, se incluye una Lambda@Edge function que, antes de que CloudFront ent
 
 Ocupamos un módulo que haga la interacción con SumSub (los tipos de verificacion), Otro que haga el registro en RDS de las organizaciones y de las personas físicas, otro que guarde en S3 documentos legales y los linkee con un registro en Dynamo, otro que interactúe con cognito (mencionar que el id de las personas en cognito debe ser el mismo que en rds)... Esos son algunos que de fijo ocupamos
 
-#####  Explicación de las capas – Diseño del Backend del Bioregistro
-
-El backend del componente Bioregistro de Data Pura Vida está diseñado siguiendo principios de Clean Architecture, con separación clara de responsabilidades y desplegado como un microservicio independiente en EKS (AWS Kubernetes). A continuación se describen sus capas principales:
-
-##### Capas del Backend
-
-```plaintext
-[ API Layer (FastAPI Gateway) ]
-          ↓
-[ Service Layer (Application Logic) ]
-          ↓
-[ Domain Layer (Entities and Rules) ]
-          ↓
-[ Infrastructure Layer (Database, SumSub, Cognito, S3, RabbitMQ) ] 
-```
----
-
-- ##### 1. API Layer (FastAPI)
-
-- Punto de entrada del sistema.
-- Expone rutas RESTful como `/register`, `/verify`, `/submit-docs`.
-- Gestiona validaciones superficiales de entrada (schemas con Pydantic).
-- Inyecta dependencias necesarias (servicios, repositorios).
-
-- ##### 2. Service Layer (Application Logic)
-
-- Contiene la lógica de negocio del Bioregistro: validaciones cruzadas, coordinación de flujos, llamadas a SDKs externos.
-- Ejemplos:
-  - Validar que el representante legal esté previamente registrado como persona física.
-  - Activar flujos de SumSub (KYC/KYB) y asociarlos al usuario.
-  - Generar y almacenar llaves criptográficas tripartitas para organizaciones.
-
-- ##### 3. Domain Layer (Modelos y Reglas del Negocio)
-
-- Define las entidades del sistema como `Persona`, `Organización`, `DocumentoLegal`, `ClaveTripartita`.
-- Aplica validaciones estructurales, reglas de integridad y eventos de dominio.
-- Estas clases no dependen de tecnologías externas ni del framework (independencia del dominio).
-
-- ##### 4. Infrastructure Layer
-
-- Conecta el dominio con el mundo externo.
-- Incluye:
-  - **PostgreSQL**: almacena usuarios, organizaciones y relaciones.
-  - **DynamoDB**: guarda estructuras más dinámicas como flujos temporales y metadatos de SumSub.
-  - **RabbitMQ**: cola de eventos para acciones asincrónicas (verificación, notificaciones).
-  - **S3**: almacenamiento de PDFs y evidencia de verificación.
-  - **Cognito**: autenticación de usuarios físicos con MFA.
-  - **SumSub SDK**: validación de identidad, prueba de vida y compliance KYC/KYB.
-
-
-##### Servicios de AWS y Configuración de Hardware
-El proyecto **Portal Data Pura Vida** utilizará una amplia gama de servicios de AWS para construir una plataforma robusta y segura. La asignación de hardware será flexible y se adaptará en tiempo real al consumo de los servicios.
-
-
-**Amazon EKS(Elastic Kubernetes Service):**
-Se utilizará para desplegar los microservicios del backend. 
-
-**Configuración de Hardware:**
-EKS abstrae la infraestructura subyacente. Se configurarán grupos de con instancias EC2. 
-
-- **Versión de Kubernetes:** 1.29 (o la más reciente compatible).
-- **Tipo de nodo:** Amazon EC2.
-- **Tipo de instancia:** t3.medium (2 vCPU, 4 GB RAM) o superior.
-- **Almacenamiento:** AWS S3 para almacenamiento de objetos y datasets.
-
-**AWS Lambda:**
-Para funciones serverless que realicen tareas específicas y de corta duración, como el procesamiento de notificaciones o tareas de validación asíncronas. 
-
-**Configuración de Hardware:**  Aunque no gestionamos hardware directamente, sí configuraremos los recursos, como:
-- **Memoria:** 1024 MB
-- **Arquitectura:** arm64
-- **Tiempo de ejecución:** Node.js 22.x
-- **Almacenamiento efímero:** 512MB
-- **Tiempo de espera:** 5s
-- **Retry attempts:** 1
-
-**Servicios de Red:**
-
-**AWS Application Load Balancer (ALB):**
-Para distribuir el tráfico de entrada a los microservicios desplegados en EKS. 
-
-**Configuración de Hardware:** Es un servicio gestionado, no requiere configuración de hardware directa, ni recursos. Se dimensionará automáticamente.
-
-**AWS CloudFront:**
-Red de distribución de contenido para servir el frontend estático alojado en S3, mejorando la latencia y la disponibilidad global. 
-
-**Configuración de Hardware:** Servicio gestionado, no requiere configuración de hardware.
-
-**AWS VPC (Virtual Private Cloud):**
-Para aislar los recursos de la plataforma en una red virtual privada y segura. 
-
-**Configuración de Hardware:** Es un servicio lógico, no requiere configuración de hardware. Se diseñará con subredes públicas y privadas, tablas de enrutamiento y grupos de seguridad.
-
-##### Microservicios en los Componentes
-El proyecto **Portal Data Pura Vida** se estructurará en microservicios, lo que permitirá una mayor flexibilidad, escalabilidad y mantenibilidad. La comunicación entre muchos de estos microservicios será Event-Driven, utilizando RabbitMQ como broker de mensajería para desacoplar los componentes y permitir un procesamiento asíncrono.
-
-**Microservicio: bioreg_auth_svc (Autenticación y Gestión de Usuarios)**
-
-**Descripción:** Maneja el registro, login y la gestión de perfiles de usuario. Interactúa con AWS Cognito para la autenticación y Cognito User Pools para almacenar los datos de usuario.
-
-**Funcionalidad:**
--   Registro de personas físicas y jurídicas.
-- Login de usuarios y organizaciones.
-- Gestión de perfiles (actualización de datos).
-- Asignación y revocación de llaves de seguridad para organizaciones.
-- Permite a una persona administrar múltiples organizaciones.
-
-**Herramientas:**
-- Python/FastAPI: Para la lógica de la API REST.
-- AWS Cognito SDK (Boto3): Para interactuar con Cognito para el registro, autenticación, MFA y gestión de usuarios.
-- PostgreSQL (RDS): Para almacenar datos diferenciados según el tipo de entidad (información personal, societaria, legal, tributaria) y la relación entre usuarios y organizaciones.
-- DynamoDB: Podría usarse para almacenar configuraciones dinámicas de formularios o metadatos de usuario con alta concurrencia.
-
-**Microservicio: bioreg_doc_validation_svc (Validación Documental con IA)**
-
-**Descripción:** Se encarga de recibir, almacenar y validar los documentos subidos por los usuarios (cédulas, actas, registros tributarios) utilizando inteligencia artificial.
-
-**Funcionalidad:**
-- Recepción y almacenamiento seguro de documentos en AWS S3.
-- Disparo de flujos de validación automática de documentos mediante IA.
-- Marcado de registros como "pendientes" y su posterior aprobación.
-
-**Herramientas:**
-- Python/FastAPI: Para exponer una API para la carga de documentos.
-- AWS S3 SDK: Para la carga y descarga de documentos.
-- AWS SageMaker SDK: Para invocar modelos de Machine Learning desplegados en SageMaker para el análisis de documentos.
-- Hugging Face Transformers: Para modelos preentrenados de embeddings semánticos que puedan ayudar en la clasificación y validación de texto en documentos.
-- LangChain / OpenAI (GPT-4): Para procesamiento de lenguaje natural y clasificación semántica de texto extraído de documentos.
-- RabbitMQ: Event-Driven: Una vez que un documento es cargado en S3, el bioreg_doc_validation_svc podría publicar un evento (document_uploaded) en RabbitMQ. Esto activaría un consumidor que iniciaría el proceso de validación por IA.
-
-**Microservicio: bioreg_kyc_aml_svc (Interacción con SumSub)**
-**Descripción:** Gestiona la interacción con el sistema de terceros SumSub para realizar las comprobaciones KYC (Know Your Customer) y AML (Anti-Money Laundering), incluyendo pruebas de vida y biometría.
-
-**Funcionalidad:**
-- Envío de datos de usuario y documentos a SumSub.
-- Gestión de las respuestas y resultados de SumSub (aprobado/rechazado).
-- Integración con el SDK de SumSub para pruebas de vida y biometría.
-
-**Herramientas:**
-- Python/FastAPI: Para la lógica de negocio y exposición de endpoints.
-- Requests (Python Library): Para hacer llamadas a la API de SumSub.
-- AWS Secrets Manager: Para almacenar de forma segura las credenciales de la API de SumSub.
-- RabbitMQ: Event-Driven: Tras la validación inicial de documentos, el bioreg_doc_validation_svc podría publicar un evento (document_validated_for_kyc) que el bioreg_kyc_aml_svc consumiría para iniciar el proceso de KYC/AML con SumSub. De manera inversa, los webhooks de SumSub podrían publicar eventos en un endpoint del bioreg_kyc_aml_svc que luego dispararía eventos internos (ej., kyc_aml_status_updated) en RabbitMQ.
-
-**Microservicio: bioreg_ip_whitelist_svc (Gestión de IPs y Restricciones)**
-**Descripción:** Gestiona las listas blancas de IP y aplica restricciones de acceso al portal solo desde IPs de Costa Rica.
-
-**Funcionalidad:** 
-- Almacenar y gestionar IPs institucionales o listas blancas.
-- Validar la IP de origen de las solicitudes entrantes.
-
-**Herramientas:**
-- Python/FastAPI: Para la lógica de negocio y exposición de endpoints para la gestión de IPs.
-- DynamoDB: Para almacenar las listas de IPs permitidas debido a su capacidad de alto rendimiento y baja latencia para búsquedas frecuentes.
-
-**Motor de Transformación (Componente Transversal)**
-Este componente se encarga de la transformación, validación y preparación de datos complejos, especialmente en relación con la verificación de completitud y validez de documentos y la generación de claves criptográficas.
-
-**Microservicio: transform_data_merger_svc (Merger de Tablas/Datos)**
-**Descripción:** Se encarga de consolidar y transformar datos de diversas fuentes o tablas en una única representación unificada. Por ejemplo, podría fusionar datos de documentos extraídos con información de Cognito y PostgreSQL para crear un perfil completo del usuario/organización.
-
-**Funcionalidad:** 
-- Lectura de datos de múltiples fuentes (S3, PostgreSQL, DynamoDB).
-- Aplicación de lógica de transformación (limpieza, normalización, enriquecimiento).
-- Unión y agregación de datos.
-- Escritura de los datos transformados.
-
-**Herramientas:**
-- Apache Spark (usando PySpark) en EKS: Para el procesamiento distribuido y la transformación de grandes volúmenes de datos. Es ideal para unir N tablas en 1 y aplicar transformaciones complejas.
-- Apache Airflow en EKS: Para orquestar los pipelines de Spark. Airflow definiría las dependencias y el orden de ejecución de los trabajos de Spark.
-- AWS S3 SDK: Para leer y escribir datos en S3 (data lakes, archivos temporales).
-- Event-Driven: Este microservicio podría ser activado por eventos, por ejemplo, un evento (document_validated_and_extracted) publicado por el bioreg_doc_validation_svc que indica que los datos de un documento han sido extraídos y están listos para ser fusionados con otros datos del perfil de usuario. Airflow podría entonces disparar un trabajo de Spark.
-
-**Microservicio: transform_crypto_key_gen_svc (Generación de Claves Criptográficas)**
-**Descripción:** Genera claves criptográficas simétricas y asimétricas para cada entidad/persona y gestiona su protección y distribución mediante un sistema de llave tripartita.
-
-**Funcionalidad:**
-- Generación segura de pares de claves y claves simétricas.
-- División de claves en tres partes.
-- Almacenamiento seguro de las partes de la clave.
-
-**Herramientas:**
-- Python/FastAPI: Para la lógica de negocio y exposición de endpoints.
-- AWS KMS SDK: Para proteger las claves maestras y para operaciones de cifrado/descifrado si se utilizan directamente con KMS. Una parte de la llave tripartita podría ser custodiada por KMS.
-- AWS Secrets Manager: Para almacenar de forma segura las partes de las claves (las partes custodiadas por Data Pura Vida).
-- Event-Driven: Una vez que un registro de usuario/organización es completamente validado y aprobado, el bioreg_auth_svc o un proceso de Airflow podría publicar un evento (registration_approved_for_key_generation) que este microservicio consumiría para iniciar la generación y distribución de claves.
-
-**Componentes Compartidos**
-Estos componentes no son microservicios per se, sino servicios o herramientas que soportan a múltiples microservicios.
-
-**RabbitMQ (en EKS):**
-**Descripción:** Broker de mensajería central para la comunicación asíncrona entre microservicios. Permite desacoplar los productores de los consumidores, mejorar la resiliencia y permitir un procesamiento más eficiente de tareas intensivas.
-o Uso en Event-Driven: Es el corazón del enfoque Event-Driven. Todos los eventos de negocio (ej., user_registered, document_uploaded, kyc_status_updated, registration_approved) se publicarían como mensajes en colas de RabbitMQ, y los microservicios relevantes consumirían estos mensajes para reaccionar a los cambios de estado.
-
-**Herramientas:** RabbitMQ (desplegado en EKS).
-
-**Apache Spark (en EKS):**
-**Descripción:** Framework para procesamiento distribuido. Utilizado principalmente en el "Motor de Transformación" para ETL, validación y transformación de datos a gran escala.
-
-**Uso:** Para el transform_data_merger_svc y para tareas de validación complejas que requieran procesamiento masivo de datos.
-**Herramientas:** Spark, clúster de Spark en EKS.
-
-**Apache Airflow:**
-**Descripción:** Orquestador de workflows. Automatiza y monitorea los procesos ETL y de validación que involucran a Spark y otros servicios.
-
-**Uso:** Para definir DAGs (Directed Acyclic Graphs) que representan los flujos de datos y procesamiento. Por ejemplo, un DAG podría: 
-- Detectar nuevos documentos en S3.
-- Disparar un trabajo de Spark para extraer datos.
-- Esperar la finalización.
-- Disparar otro trabajo de Spark para la fusión de datos.
-- Notificar al sistema de bioregistro sobre el estado final.
-
-**Herramientas:** Airflow.
-
-***AWS SageMaker:**
-**Descripción:** Plataforma para ML. Se utiliza para entrenar y desplegar modelos personalizados de IA para la validación documental.
-
-**Uso:** Como backend para el bioreg_doc_validation_svc para la lógica de IA. Los modelos entrenados se desplegarían como endpoints de inferencia de SageMaker, a los que el microservicio de validación documental haría llamadas.
-
-**Herramientas:** AWS SageMaker Studio, SageMaker Training Jobs, SageMaker Endpoints.
-
-**AWS KMS:**
-**Descripción:** Gestión de claves criptográficas. Es un servicio fundamental de seguridad que se integra con otros servicios de AWS para proteger datos.
-
-**Uso:** Para cifrar datos en reposo en S3, RDS, DynamoDB. También, directamente con el transform_crypto_key_gen_svc para la gestión de las partes de las claves criptográficas.
-
-**Herramientas:** AWS KMS API/SDK.
-
-**AWS CloudWatch / Grafana / Prometheus:**
-**Descripción:** Herramientas de observabilidad y monitoreo.
-
-**Uso:** Monitorear el rendimiento de los microservicios en EKS, las bases de datos, los trabajos de Spark y Airflow, y los servicios de AWS en general. Las métricas y logs se recopilarán en CloudWatch, y Grafana/Prometheus se usarán para dashboards personalizados.
-
-**Herramientas:** AWS CloudWatch, Grafana, Prometheus (con sus exporters para EKS y servicios).
-
-
-**AWS SageMaker:**
-Plataforma integral para crear, entrenar y desplegar modelos de machine learning personalizados (para validación documental con IA).
-
 ##### Sistema de Monitoreo
 El monitoreo del componente Bioregistro se implementará siguiendo una estrategia de observabilidad integral que permita supervisar en tiempo real el comportamiento, rendimiento y seguridad del microservicio. Esta estrategia se alinea con las tecnologías definidas en el stack tecnológico del proyecto.
 
@@ -2682,18 +2443,18 @@ El módulo de Bioregistro maneja información altamente sensible relacionada con
 **RBAC (Role Based Access):** Se le otorgará permisos a los usuarios según el rol que desempeñen dentro del sistema; esto con el fin de limitar acceso a solo los recursos necesarios y evitar privilegios excesivos. Existiran 4 tipos de roles:
 
 | Rol del Usuario                            | Descripción                          | Permisos sobre recursos del Bioregistro           |
-| ------------------------------ | --------------------------------- | -------- | 
-| `bio:viewer` | Visualiza registros existentes                 | Lectura en PostgreSQL y DynamoDB    | 
-| `bio:editor `   | Crea y modifica registros, sin aprobarlos         | Lectura y escritura parcial     | 
-| `bio:approver`  | Aprueba, certifica o valida registros | Escritura total + validación cruzada     | 
-| `bio:admin`          | Gestión completa del módulo, incluyendo usuarios y configuración      | Acceso total y eliminación    | 
+| ------------------------------ | --------------------------------- | -------- |
+| `bio:viewer` | Visualiza registros existentes                 | Lectura en PostgreSQL y DynamoDB    |
+| `bio:editor `   | Crea y modifica registros, sin aprobarlos         | Lectura y escritura parcial     |
+| `bio:approver`  | Aprueba, certifica o valida registros | Escritura total + validación cruzada     |
+| `bio:admin`          | Gestión completa del módulo, incluyendo usuarios y configuración      | Acceso total y eliminación    |
 
 
 
 **Asociacion de RBAC a las bases de datos del sistema:**
 - **PostgreSQL:** Usado para almacenar entidades estructuradas.
   - Personas físicas/jurídicas, Certificados, Estados de validación, Trazas de auditoría
-  - Se usan los roles exactamente como en la tabla anterior. 
+  - Se usan los roles exactamente como en la tabla anterior.
   - En la capa de acceso, se verifica el rol antes de ejecutar consultas SQL.
 
 - **DynamoDB:** Usado para gestionar metadatos dinámicos y documentos JSON no estructurados.
@@ -2752,7 +2513,7 @@ La aplicación de esto sucede en los siguientes eventos:
 - Uso de tipos estrictos: `str`, `int`, `EmailStr`, `UUID`, `datetime`.
 - Validaciones de longitud y formato (Regex).
 
-Ejemplo de validación estructural: 
+Ejemplo de validación estructural:
 ```python
 from pydantic import BaseModel, Field, EmailStr
 class RegistroResidente(BaseModel):
@@ -2770,7 +2531,7 @@ class RegistroResidente(BaseModel):
 **Validadores personalizados:**
 Se emplearán funciones decoradoras (@validator) para definir reglas de negocio complejas
 
-ejemplo: 
+ejemplo:
 ```python
 from pydantic import validator
 class Registro(BaseModel):
@@ -2803,7 +2564,7 @@ Se hará con el objetivo de monitorear en tiempo real y registrar de forma persi
 Se desarrollará un middleware de auditoría personalizado que capture metadatos clave en cada interacción:
 
   - IP de origen
-  - Usuario autenticado 
+  - Usuario autenticado
   - Timestamp
   - Endpoint accedido
   - Método HTTP
@@ -2880,7 +2641,7 @@ Estas medidas aseguran la confidencialidad de los datos personales y fortalecen 
 
 **6. Protección contra Abuso y Ataques**
 
-| Categoría                           | Estrategia                          | Herramienta / Tecnología            | Caso de uso 
+| Categoría                           | Estrategia                          | Herramienta / Tecnología            | Caso de uso
 | ------------------------------ | --------------------------------- | -------- | ------------ |
 | **Limitación de tráfico** | 	Aplicar límites de solicitudes por IP por endpoint y método.                 | AWS API Gateway + FastAPI Middleware    | Evitar que un usuario o bot consulte masivamente los datos de residentes en un corto periodo.   |
 | **Bloqueo por patrones**   | Identificación de IPs con comportamiento malicioso y bloqueo automático.         | AWS WAF     | Bloqueo de IPs que intenten manipular repetidamente URLs como `/residente/1234/edit` |
@@ -2896,12 +2657,12 @@ Se usará AWS Secrets Manager como proveedor principal para almacenar, cifrar y 
 - Auditoría completa con AWS CloudTrail.
 - Integración directa desde FastAPI usando AWS SDK (boto3).
 
-| Nombre del Secreto  |	Contenido     |	Servicio  |	Rotación Automática  
-| ---------- | --- | ---| --- | 
+| Nombre del Secreto  |	Contenido     |	Servicio  |	Rotación Automática
+| ---------- | --- | ---| --- |
 | `bioregistro/db_credentials`	| Usuario y contraseña para acceder a PostgreSQL	| PostgreSQL	| Activada cada 30 días
 | `bioregistro/jwt_signing_key`	| Llave privada para firmar JWT |	FastAPI auth middleware	|  Solo lectura
-| `bioregistro/rabbitmq_credentials` |	Usuario y contraseña para conectarse a RabbitMQ	| RabbitMQ (eventos)|  |	
-| `bioregistro/s3_upload_token` |	Token temporal para subida de archivos desde frontend	| S3 + Cognito	|  12h de disponibilidad | 
+| `bioregistro/rabbitmq_credentials` |	Usuario y contraseña para conectarse a RabbitMQ	| RabbitMQ (eventos)|  |
+| `bioregistro/s3_upload_token` |	Token temporal para subida de archivos desde frontend	| S3 + Cognito	|  12h de disponibilidad |
 
 Ejemplo de acceso seguro desde FastAPI
 
@@ -2936,11 +2697,11 @@ Ejemplo de politicas de secretos con AWS IAM
 La protección de la información crítica del módulo Bioregistro implica contar con una política de respaldo automatizada y confiable. Esta política toma en cuenta tanto los datos estructurados (en PostgreSQL) como los documentos y metadatos almacenados en otros servicios como Amazon S3 y DynamoDB. El objetivo principal es arantizar la disponibilidad y recuperación rápida ante pérdida de datos, errores humanos o ataques.
 
 | Recurso Crítico         | Servicio AWS            | Frecuencia de Backup               |  Tiempo de Retención                       |
-| ----------------------- | ----------------------- | ----------------------- | -------------------------- | 
-| PostgreSQL | **Amazon RDS**          | Diario (automático)   | 30 días                    | 
+| ----------------------- | ----------------------- | ----------------------- | -------------------------- |
+| PostgreSQL | **Amazon RDS**          | Diario (automático)   | 30 días                    |
 | Documentos biométricos  | **Amazon S3**           | Versionado + replicación           |  Ilimitado   |
-| Metadatos JSON / Logs   | **Amazon DynamoDB**     | Backup continuo (PITR)             |  35 días            | 
-| Secrets y claves        | **AWS Secrets Manager** | Versionado automático              | Hasta eliminación | 
+| Metadatos JSON / Logs   | **Amazon DynamoDB**     | Backup continuo (PITR)             |  35 días            |
+| Secrets y claves        | **AWS Secrets Manager** | Versionado automático              | Hasta eliminación |
 
 **Procedimiento de Recuperación ante Incidente**
 1. Detección del incidente mediante alertas de CloudWatch.
