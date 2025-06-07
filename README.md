@@ -1944,6 +1944,7 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 
 - **PostgreSQL:** Almacenamiento relacional de datos estructurados, ideal para usuarios y clientes.
 - **DynamoDB:** Base de datos NoSQL para gestionar metadatos dinámicos y de alto rendimiento.
+- **Redis:** Base de datos Clave Valor que sirve para caching o guardar información con TTL.
 - **AWS S3:** Almacenamiento de objetos escalable y seguro para grandes volúmenes de datos no estructurados, como archivos.
 - **AWS Glue:** Servicio ETL gestionado para la transformación y preparación de datos en flujos automatizados.\*tentativo, puede que prefiramos implementar nuestro propio cluster de spark en EKS organizado con airflow.
 - **AWS RDS**: Es el servicio que AMazon ofrece para poder albergar bases de datos de PostgreSQL o MYSQL
@@ -2202,6 +2203,13 @@ Instituciones de educación superior, tanto públicas como privadas, dedicadas a
   - Nombre y Apellido del representante.
   - Correo Institucional: correo electrónico del encargado de la institución.
 
+
+#### Llaves Tripartita
+
+Una parte fundamental del sistema es la gestión tripartita de llaves. Se adoptó un esquema de tres claves: una asignada al representante designado por la empresa para su registro, otra para cada usuario secundario de la empresa, y una tercera bajo control de Data Pura Vida.
+El mecanismo se basa en la comparación de una Data Encryption Key (DEK), la cual es cifrada con una Key Encryption Key (KEK) específica para cada parte involucrada.
+Los detalles sobre cuándo, dónde y cómo se utiliza este esquema se ampliarán en la sección de definición del backend, pero por ahora esta descripción representa la visión de alto nivel.
+
 #### Diseño del Frontend
 
 ##### Plataforma de Autenticación
@@ -2361,7 +2369,489 @@ Finalmente, se incluye una Lambda@Edge function que, antes de que CloudFront ent
 
 ##### Microservicios
 
-Ocupamos un módulo que haga la interacción con SumSub (los tipos de verificacion), Otro que haga el registro en RDS de las organizaciones y de las personas físicas, otro que guarde en S3 documentos legales y los linkee con un registro en Dynamo, otro que interactúe con cognito (mencionar que el id de las personas en cognito debe ser el mismo que en rds)... Esos son algunos que de fijo ocupamos
+A continuación se dará una explicación de todos los microservicios correspondientes al FrontBioregistro.
+
+
+**1. identity-verification-service**
+
+Este servicio se encarga de gestionar todo el flujo de autenticación a través de la plataforma SumSub.
+
+Para personas físicas, realiza los siguientes procesos:
+
+- Verificación de cédula.
+- Prueba de vida y detección de deepfakes.
+- Verificación de dirección física.
+
+Para colectivos, se utilizará la funcionalidad Full KYB 2.0 de SumSub que es una verificación por IA y por personas física que incluye:
+
+- Consulta al Registro Nacional para identificar el colectivo.
+- Revisión de documentos legales según el tipo de entidad.
+- Revisión de que representantes trabajen en dicha empresa.
+
+Ahora bien dentro de él existirán los siguientes componentes:
+
+- SumSubController: Expone los endpoints del servicio para que el API General pueda acceder a él, estos serán:
+  - /sumsub/person/token: Para mandar al crear el Applicant Id en SumSub.
+  - /sumsub/person/webhook: Para recibir aprobaciones de personas desde SumSub.
+  - /sumsub/collective/token: Para mandar al crear el Applicant Id en SumSub.
+  - /sumsub/collective/check-documents/collective-type : Manda los documentos legales de SumSub a Auto-KYB para verificarlos. Existe un endpoint por cada tipo de colectivo.
+  - /sumsub/collective/manual-verification: Para que los colectivos tengan la opción de solicitar una verificación manual.
+  - /sumsub/collective/webhook: Para recibir aprobaciones de colectivos desde SumSub.
+- CollectiveService: Se encarga de abstraer las llamadas a los workflows de SumSub según el tipo de colectivo, y hacer el registro del applicant.
+- PersonService:	Se encarga de registrar las personas en SumSub y generar UUIDs para los usuarios.
+- WebHookProcessor:	Se encarga de procesar los resultados de las respuestas de SumSub.
+- CollectiveVerificationRouter: Middleware que se encarga de ver si se hace verifación manual o por medio de SumSub a los colectivos.
+
+
+A continuación se muestra el flujo completo de interacción entre frontend y este componente para verificar una persona física:
+
+1. La persona inicia el proceso de verificación:
+- Frontend llama a: POST /sumsub/person/token:
+```json
+{
+  "email": "email de la persona",
+  "Nombre": "nombre de la persona",
+  "Apellido1": "Primer apeliido de la persona",
+  "Apellido2": "Segundo apellido de la persona",
+  "Telefono": "telefono de la persona",
+  "direccion": "dirección donde vive la persona"
+}
+```
+- El SumSubController dirige la carga al PersonService que se encargará de registrar el Applicant en SumSub y enviarle un UUID interno. Obtendrá de respuesta el Id interno de SumSub que se usará para realizar la verificación.
+- También en la tabla de SumSubApplicants se registrará el UUID interno, una fila llamada Approved en False, y todas las credenciales dadas. Esto permitirá que cuando las personas traten de registrarse solo puedan una ves este flag sea cambiado a True (Más detalles sobre el registro serán explicados en el registration-service).
+
+- Se retorna al frontend:
+```json
+{
+  "SumSubId": "id-de-sumsub",
+  "InternalId": "uuid-del-sistema"
+}
+```
+2. El sdk de SumSub realiza la prueba de vida, la verificación de id, y la prueba de dirección física:
+
+- En este punto el proceso puede durar desde minutos a horas, por lo que se detiene el proceso.
+
+3. Llamada al Webhook desde SumSub:
+- Una vez SumSub haya finalizado el proceso de verificación procedera a llamar al endpoint (En el dashboard de SumSub se puede configurar una uri hacia donde mandar las verificaciones) del webhook por medio de una solicitud POST a /sumsub/person/webhook con la siguiente información:
+
+```json
+{
+  "event": "applicantApproved",
+  "applicantId": "sumsub-uuid",
+  "externalUserId": "uuid-interno-del-sistema",
+  "timestamp": "2025-06-06T15:00:00Z"
+}
+```
+- Se envía dicha información a WebHookProcessor para que empiece el proceso de aprobación:
+  - Se pone el estado en SumSubApplicants como approved en True.
+  - Se genera un token UUID, el cual será guardado en Redis junto al UUID del usuario en SumSubApplicants, de la siguiente forma:
+
+``` python
+import redis
+import uuid
+
+r = redis.Redis(host='localhost', port=6379, db=0)
+
+token = str(uuid.uuid4())
+sumsub_id = "abc123" #Este id viene desde el webhook
+
+r.setex(f"registration_token:{token}", 86400, sumsub_id) #Para que persista por 24 horas
+```
+
+  - Ya que se tiene el token se envía un mensaje por medio de RabbitMQ al Notification Service para que envíe un correo con un link al registro, que lleve de query parameter el token:
+``` txt
+https://data-pura-vida.com/register/person?token=<token_uuid>
+```
+  - Más adelante, en el registration-service se dirá como se manejará el registro con base en dicho token de redis.
+
+4. El proceso de verificación fue exitoso, se continua a registro.
+
+*Ahora, se muestra el flujo completo de interacción entre frontend y este componente para verificar un colectivo:*
+
+1. La persona representante del colectivo inicia el proceso de verificación:
+- Frontend llama a: POST /sumsub/collective/token:
+```json
+{
+  "email": "persona@ejemplo.com"
+}
+```
+- El SumSubController dirige la carga al CollectiveService que se encargará de registrar el Applicant en SumSub y enviarle un UUID interno. Obtendrá de respuesta el Id interno de SumSub que se usará para realizar la verificación.
+
+- Se retorna al frontend:
+```json
+{
+  "SumSubId": "id-de-sumsub",
+  "InternalId": "uuid-del-sistema"
+}
+```
+2. El sdk de SumSub realiza la búsqueda de Colectivo en el registro nacional
+
+3. El usuario adjunta al formulario los documentos legales según el tipo de colectivo, y los representantes que ya deben de estar previamente registrados en el sistema (Cabe aclarar que el administrador de la empresa que está haciendo la gestión del registro también debe de estar registrado en el sistema de Data Pura Vida)
+
+- El frontend lo envía por medio de /sumsub/collective/check-documents/collective-type
+
+```json
+{
+  "applicantId": "sumsub-uuid",
+  "Representatives": "[Lista de objetos de tipo PersonaFísica]",
+  "Admin": "{Objeto de tipo PersonaFisica correspondiente al que está gestionando el registro del colectivo}",
+  "Documents": "[Los documentos legales según el tipo de colectivo]"
+}
+```
+
+- El SumSubController dirige la ejecución al CollectiveService.
+
+- Primero se checkeará si los usuarios insertados en Representatives y Admin efectivamente existen en la base de datos de RDS. En dado caso se insertan registros a SumSubCollectiveApplicant, la cúal guardará el UUID del sistema, el Id del administrador, y el estado de aprobación del colectivo. Y también se guardarán en SumSubCollective un FK a los representantes en Representatives y al registro en SumSubCollectiveApplicant.
+
+- Luego se encargará de enviar a los WorkFlows de SumSub la información de las empresas.
+
+- También se encarga de subir los documentos legales a un S3 Bucket bajo un directorio que tenga como nombre el UUID. Dicha interacción se hace por medio del uso de Boto3 en python.
+
+- En este punto el proceso puede durar desde minutos a horas, por lo que se detiene el registro de empresa en el frontend.
+
+4. Llamada al Webhook desde SumSub:
+- Una vez SumSub haya finalizado el proceso de verificación procederá a llamar al endpoint del webhook por medio de una solicitud POST a /sumsub/collective/webhook con la siguiente información:
+
+```json
+{
+  "event": "applicantApproved",
+  "applicantId": "sumsub-uuid",
+  "externalUserId": "uuid-interno-del-sistema",
+  "timestamp": "2025-06-06T15:00:00Z"
+}
+```
+
+- Se envía dicha información a WebHookProcessor para que empiece el proceso de aprobación:
+  - Se pone el estado en SumSubCollectiveApplicant como approved en True.
+  - Se genera un token UUID, el cual será guardado en Redis junto al UUID del colectivo en SumSubCollectiveApplicant, de la siguiente forma:
+
+``` python
+import redis
+import uuid
+
+r = redis.Redis(host='localhost', port=6379, db=0)
+
+token = str(uuid.uuid4())
+sumsub_id = "abc123" #Este id viene desde el webhook
+
+r.setex(f"collective-register:{token}", 86400, sumsub_id) #Para que persista por 24 horas
+```
+
+- Ya que se tiene el token se envía un mensaje por medio de RabbitMQ al Notification Service para que envíe un correo con un link a la creación de llaves tripartitas, que lleve de query parameter el token:
+
+``` txt
+https://data-pura-vida.com/collective-register?token=<token_uuid>
+```
+  - Más adelante, en el  registration-service se dirá como se manejará el registro con base en dicho token de redis.
+
+4. El proceso de verificación fue exitoso, se continua a creación de las llaves tripartita.
+
+Ahora bien, en el caso de colectivos, puede suceder que SumSub no encuentre al colectivo en sus bases de datos. Si esto ocurre, se habilita una opción de revisión manual, la cual envía un mensaje al notification-service a través de RabbitMQ. Este servicio notificará a los administradores, quienes podrán completar la verificación manual desde el portal web del backoffice.
+
+
+Previamente fue mencionado, pero a modo de aclaración cabe decir que los templates de revisión serán creados desde el SumSub Dashboard. con base en la información listada al inicio del capítulo. Posteriormente en el código podrán ser llamados de esta forma por medio de un request al API similar a este:
+
+``` python
+import requests
+import time
+import hmac
+import hashlib
+import base64
+
+flow_name = "kyb_legal_doc_flow"
+
+ts = str(int(time.time()))
+sig_data = ts + 'POST' + '/resources/applicants?levelName=' + flow_name
+signature = base64.b64encode(
+    hmac.new(SECRET_KEY.encode(), sig_data.encode(), digestmod=hashlib.sha256).digest()
+).decode()
+
+headers = {
+    "X-App-Token": APP_TOKEN,
+    "X-App-Access-Sig": signature,
+    "X-App-Access-Ts": ts,
+    "Content-Type": "application/json"
+}
+
+data = {
+    "externalUserId": external_user_id,
+    "info": {
+        "companyName": "Colectivo Pura Vida S.A.",
+        "registrationNumber": "CR-123456789",
+        "country": "CR",
+        "email": "legal@colectivopv.cr"
+    }
+}
+response = requests.post(
+    f"https://api.sumsub.com/resources/applicants?levelName={flow_name}",
+    headers=headers,
+    json=data
+)
+```
+
+**2. auth-service**
+
+Este servicio es un facade de autenticación sobre Cognito, por el cuál los usuarios deberán pasar siempre antes de iniciar sesión. En el habrán los siguientes componentes:
+
+- AuthController: Expone los endpoints del servicio para que el API General pueda acceder a él, estos serán:
+  - /auth/login: Para realizar el login por medio de contraseña
+  - /auth/login/otp: Para realizar el login por medio de OTP
+  - /auth/login/mfa: Para realizar el login por medio de MFA
+  - /auth/login/mfa/resend Para poder reenviar los tokens MFA en caso de ser necesario
+  - /auth/login/verify-mfa Para poder revisar que el MFA sea satisfactorio
+  - /auth/logout: Para la gestión del Logout de la aplicación
+  - /auth/verify-token: Para verificar si un JWT token sigue siendo válido
+- CognitoService: Se encarga de abstraer las llamadas de signup, login, challenge y refresh.
+- MFAService:	Lógica para MFA (enviar y validar OTP por SMS/email).
+- SessionManager:	Control de sesiones activas, revocación de tokens, manejo de expiración.
+- AuthChoiceHandler:	Implementa lógica de choice-based auth (elegir entre OTP o pass).
+
+A continuación se muestra el flujo completo de inicio de sesión con MFA en la arquitectura:
+
+1. El usuario inicia sesión:
+- Frontend llama a: POST /auth/login:
+
+```json
+{
+  "identifier": "santi@gmail.com",
+  "authMethod": "password", // o "otp"
+  "password": "****" // solo si es método "password"
+}
+```
+- AuthController recibe el request y llama a AuthChoiceHandler para enrutar según authMethod.
+
+2. Verificación de credenciales (si es con contraseña)
+- Si authMethod es "password":
+  - AuthChoiceHandler llama a CognitoService.initiateAuth()
+  - Cognito verifica credenciales.
+    - Si están bien pero MFA está activado, responde con un Session y un ChallengeName: SMS_MFA o similar.
+    - Si el usuario no tiene MFA activado, responde con el JWT Token directamente.
+
+3. El frontend reacciona a la respuesta
+- Si recibe ChallengeName y Session, el frontend muestra pantalla MFA.
+- Luego procede a enviar una llamada a /auth/login/mfa para que el MFAService envié un mensaje por medio de rabbitMQ al notification-service. Para que así se envíe un correo electrónico con el pin.
+
+4. Usuario envía su código MFA
+- Frontend llama a: POST /auth/login/veriyf-mfa con:
+
+```json
+{
+  "code": "123456",
+  "session": "eyJraWQiOi...",
+  "identifier": "santi@gmail.com",
+  "deliveryMethod": "email"
+}
+```
+- AuthController pasa a MFAService.verifyCode()
+  - Llama a CognitoService.respondToAuthChallenge()
+  - Si todo bien, devuelve los JWT tokens (ID, access, refresh).
+
+5. Tokens son devueltos al frontend
+- Frontend los guarda y los manda en cada request siguiente al backend.
+
+
+Ahora bien, en caso de que el usuario decida iniciar sesión por medio de OTP el proceso es similar lo que cambia es que el primer request pide "OTP", y el sistema va a generar uno que se enviará por medio de SMS al usuario para que posteriormente pueda iniciar sesión.
+
+Cabe aclarar que las interacciones entre los componentes de este microservicio se realizarán por medio de REST APIs. Por lo que cada uno de ellos estará escritos en FastAPI y recibirá las solicitudes por medio de dicha interfáz. Para cada componente se tendrá un archivo con los endpoints y la lógica del api, y otros con la lógica de negocio de cada uno.
+
+
+**3. registration-service**
+
+Ahora bien, el registration-service es el encargado de registrar tanto personas como colectivos en el sistema.
+
+Con respecto al registro de personas se encarga de cargarlas a Cognito y también en la base de datos del bioregistro en RDS, mientras que con colectivos solo se registra en RDS, y los documentos legales que se habían guardado previamente en un S3 Bucket, se pasan al bucket oficial de documentos legales llamado "collective_data".
+
+En el habrán los siguientes componentes:
+
+- RegistrationController: Expone los endpoints del servicio para que el API General pueda acceder a él, estos serán:
+ - /register/person: Registro de una persona física.
+ - /register/collective: Registro de una organización/colectivo.
+ - /register/collective/key-generation: Endpoint para llamar al KeyGenerationHandler.
+ - /register/check-token: Revisa el token UUID generado por el identity-verification-service.
+ - /register/person/generate-token: Genera un nuevo token UUID para poder registrar al usuario en el sistema.
+ - /register/collective/generate-token: Genera un nuevo token UUID para poder registrar al colectivo en el sistema.
+- TokenManager: Este componente se encargará de operar con los tokens.
+- PersonRegistrationService: Este componente se encargará del crear el usuario en cognito y rds.
+- CollectiveRegistrationService: Este componente se encargará del crear el usuario en rds, dynamo y cargar documentos al bucket adecuado.
+- KeyGenerationHandler: Este componentes se encarga de comunicarse con el microservicio de key-management-service para crear las llaves tripartita
+
+A continuación se presenta el flujo de registro de una persona física:
+
+1. Verificación de token UUID:
+- Apenas el usuario entra al sitio web de registro (Si lo hace de forma correcta fue siguiendo el link que se envió a su correo en el identity-verification-service)
+
+- Se hace un POST con /register/check-token, y se pasa el control a TokenManager para que se verifica si el query parameter de token: registration_token:<TOKEN_UUID> existe.
+
+- En dado caso puede ser usado como clave en redis con el prefijo de registration_token, y si retorna un UUID de la tabla de SumSubApplicant signfica que ya el usuario fue aprobado. Si no retorna nada significa que o bien el UUID Token cumplió su TTL de 24 horas, o que se está intentando ingresar al registro de manera no oficial.
+
+- Se retorna al frontend:
+
+```json
+{
+  "status": "approved"
+}
+```
+
+2. El usuario registra su contraseña en el frontend
+
+- Hace un POST a /register/person:
+
+```json
+{
+  "token": "El mismo Token UUID de redis",
+  "Password": "Contraseña del usuario"
+}
+```
+
+- Solo se solicita el password porque las credenciales ya habían sido obtenidas por medio del identity-verification-service. Si se volvieran a pedir, estariamos arriesgando que un usuario use credenciales reales en el identity-verification-service, pero en este servicio invente información.
+
+- Primero se hace el registro del usuario en la cognito pool, y se extrae el UUID usado en dicha pool, para usarlo también en RDS, de esta forma se guarda simetría entre ambos sistemas. Se hace de la siguiente forma:
+
+``` Python
+import boto3
+
+client = boto3.client('cognito-idp', region_name='us-east-1')
+
+#Se crea el usuario en cognito
+response = client.admin_create_user(
+    UserPoolId='user-pool-id',
+    Username='correo@ejemplo.com',
+    UserAttributes=[
+        {'Name': 'email', 'Value': 'correo@ejemplo.com'},
+        {'Name': 'email_verified', 'Value': 'true'},
+    ],
+    MessageAction='SUPPRESS'
+)
+
+#Se registra su contraseña
+client.admin_set_user_password(
+    UserPoolId='user-pool-id',
+    Username='correo@ejemplo.com',
+    Password='LaContraseniaQuePidioElUsuario123',
+    Permanent=True
+)
+
+# Se extrae el UUID generado por Cognito
+sub = next(attr['Value'] for attr in response['User']['Attributes'] if attr['Name'] == 'sub')
+```
+
+3. Registro en el Sistema
+
+- Una vez se obtiene el UUID de Cognito, también se obtiene el UUID de la tabla de SumSubApplicant volviendo a sacarlo de redis con el token por medio del TokenManager.
+
+- Ahora con la información de SumSubApplicant y el UUID de Cognito se registra el usuario en la tabla de PersonaFisica.
+
+4. Proceso de registro de persona física exitoso.
+
+
+Otro proceso posible es el de creación de un nuevo token en caso de que el TTL haya muerto (el proceso de solicitar un nuevo token como colectivo es el mismo, solo cambia el path):
+
+1. Desde el Frontend el usuario hace:
+- POST /register/person/generate-token
+
+```json
+{
+  "email": "correo con el que se gestionó la verificación"
+}
+```
+
+- Esto lo enruta al TokenManager.
+
+2. Verificación de Aprobación
+
+- Con base en el correo que se envió desde el frontend se revisa la tabla de SumSubApplicant, para ver si en verdad existe un registro con dicha información, y en todo caso que realmente esté Aprobado.
+
+- En caso de estar aprobado el TokenManager crea otro token en redis y se conecta al notification-service por medio de RabbitMQ y solicita el envío de un nuevo correo.
+
+3. Ya el usuario puede volver a intentar con el nuevo correo.
+
+Finalmente se presenta el flujo de registro de un Colectivo:
+
+1. Verificación de token UUID:
+- Apenas el usuario administrador del colectivo entra al sitio web de registro (Si lo hace de forma correcta fue siguiendo el link que se envió a su correo en el identity-verification-service)
+
+- Se hace un POST con /register/check-token, y se pasa el control a TokenManager para que se verifica si el query parameter de token: registration_token:<TOKEN_UUID> existe.
+
+- En dado caso puede ser usado como clave en redis con el prefijo de registration_token, y si retorna un UUID de la tabla de SumSubApplicant signfica que ya el usuario fue aprobado. Si no retorna nada significa que o bien el UUID Token cumplió su TTL de 24 horas, o que se está intentando ingresar al registro de manera no oficial.
+
+- Se retorna al frontend:
+
+```json
+{
+  "status": "approved"
+}
+```
+
+2. Se llama a la creación de KEKs (Key Encryption Key)
+- Hace un POST a /register/collective/key-generation
+
+```json
+{
+  "token": "El mismo Token UUID de redis"
+}
+```
+
+- Se enruta al KeyGenerationHandler que llamará por medio de su REST API al key-management-service. Se le enviará el token UUID de redis para que haga la gestión de llaves tripartita.
+
+- Se espera como valor de retorno:
+
+```json
+{
+  "admin_kek": "La KEK asignada al administrador del colectivo",
+  "dpv_kek": "La KEK asignada a data pura vida",
+  "representatives_kek": "[IdDelRepresentate : KEK del representante]"
+}
+```
+3. Registro de información:
+Desde el frontend se hace
+
+- POST /register/collective
+
+
+- Se procede a hacer el registro de toda la información correspondiente al colectivo.
+
+- Se crean los registros correspondientes a los representantes en la tabla de Representantes, en ella se guardan sus respectivas KEKs.
+
+- Se crea el registro del colectivo en la tabla de Colectivo con su respectiva KEK.
+
+- Se crea el registro en KEKDataPuraVida con la KEK del sistema y una referencia al colectivo que le corresponde.
+
+- Se pasan todos los documentos del S3 Bucket temporal (Se conoce el directorio ya que es el mismo UUID de la tabla SumSubCollectiveApplicant) a "collective_data". Además se guarda referencia a dicha información en DynamoDB, y se usa el mismo Id que el usado en RDS para guardar el Colectivo para mantener simetría.
+
+
+**4. key-management-service**
+
+**5. notification-service**
+
+
+4. Proceso de registro de colectivo exitoso.
+
+
+Esos fueron los flujos principales del microservicio de registration-service
+
+Cabe aclarar que las interacciones entre los componentes de este microservicio se realizarán por medio de REST APIs. Por lo que cada uno de ellos estará escritos en FastAPI y recibirá las solicitudes por medio de dicha interfáz. Para cada componente se tendrá un archivo con los endpoints y la lógica del api, y otros con la lógica de negocio de cada uno.
+
+
+**Configuración de Hardware:**
+EKS abstrae la infraestructura subyacente. Se configurarán grupos de con instancias EC2.
+
+- **Versión de Kubernetes:** 1.29 (o la más reciente compatible).
+- **Tipo de nodo:** Amazon EC2.
+- **Tipo de instancia:** t3.medium (2 vCPU, 4 GB RAM) o superior.
+- **Almacenamiento:** AWS S3 para almacenamiento de objetos y datasets.
+
+
+
+**AWS Lambda:**
+Para funciones serverless que realicen tareas específicas y de corta duración, como el procesamiento de notificaciones o tareas de validación asíncronas.
+
+**Configuración de Hardware:**  Aunque no gestionamos hardware directamente, sí configuraremos los recursos, como:
+- **Memoria:** 1024 MB
+- **Arquitectura:** arm64
+- **Tiempo de ejecución:** Node.js 22.x
+- **Almacenamiento efímero:** 512MB
+- **Tiempo de espera:** 5s
+- **Retry attempts:** 1
 
 ##### Sistema de Monitoreo
 El monitoreo del componente Bioregistro se implementará siguiendo una estrategia de observabilidad integral que permita supervisar en tiempo real el comportamiento, rendimiento y seguridad del microservicio. Esta estrategia se alinea con las tecnologías definidas en el stack tecnológico del proyecto.
@@ -2458,7 +2948,6 @@ El módulo de Bioregistro maneja información altamente sensible relacionada con
   - En la capa de acceso, se verifica el rol antes de ejecutar consultas SQL.
 
 - **DynamoDB:** Usado para gestionar metadatos dinámicos y documentos JSON no estructurados.
-
   - Información adjunta, Historial de verificación, Pruebas de vida o firmas electrónicas.
   - En cada tabla DynamoDB, los accesos se segmentan con políticas AWS IAM condicionales según el rol (Condition: "bio:role" == "approver").
 
@@ -2753,6 +3242,8 @@ La protección de la información crítica del módulo Bioregistro implica conta
 
   - La base de datos en RDS no almacenará contraseñas, ya que su propósito no es gestionar el inicio de sesión, sino mantener un registro estructurado de las entidades registradas en la plataforma.
 
+  - Para el manejo de Key Encryption Keys (KEK), se encripatarán en el backend con base en el Data Encryption key (DEK) efímero, y luego serán encriptadas nuevamente por el encryption at rest de RDS.
+
 - **Encripción**:
   - Metadata de las Organizaciones (detallada al inicio del capítulo de Bioregistro).
   - Emails de los usuarios.
@@ -2807,6 +3298,10 @@ Para PostgreSQL utilizaremos el driver nativo psycopg2, integrado con SQLAlchemy
 A continuación se presenta el diagrama de base de datos correspondiente al módulo de bioregistro. En él se muestra cómo se gestionan tanto las personas físicas como los colectivos, incluyendo una relación muchos a muchos que permite registrar qué personas representan a cada colectivo. Para clasificar los tipos de colectivo, se utiliza una tabla catálogo.
 
 Aunque en RDS los colectivos comparten una estructura general para mantener la base simple y normalizada, es importante destacar que estos pueden tener campos específicos según su tipo. Por ejemplo, los ministerios no poseen cédula jurídica, a diferencia de otros colectivos. Por esta razón, se decidió almacenar la metadata variable de cada colectivo en DynamoDB, utilizando el mismo id que en RDS. Esto permite extender la información sin preocuparse por rigidez en el schema, manteniendo flexibilidad sin perder trazabilidad entre sistemas.
+
+Además, un aspecto clave es el manejo de las llaves en el esquema tripartito. La KEK del usuario se almacena en una tabla que guarda las claves correspondientes a los representantes de la empresa, junto con un indicador que marca si ya fueron validadas mediante el proceso de aprobación tripartita. Esto permite que, una vez aprobadas, los usuarios no necesiten autenticarse cada vez que acceden a la cuenta empresarial.
+
+Por su parte, la empresa almacena su propia KEK directamente en su tabla correspondiente, mientras que existe una tabla específica que asocia las KEKs de Data Pura Vida con cada empresa registrada.
 
 ![image](img/DiagramaBDBioregistro.png)
 
