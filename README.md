@@ -1990,6 +1990,10 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 - **AWS CloudWatch:** Monitoreo y métricas (ya definido en DevOps)
 - **AWS CloudTrail:** Auditoría de acciones
 
+#### **Servicios Adiocionales**
+
+- **Amazon SES:** Una opción gestionada por AWS para poder hacer envío de correos electrónico.
+
 ### DevOps y Testing
 
 #### Infraestructura como Código (IaC)
@@ -2770,7 +2774,7 @@ Finalmente se presenta el flujo de registro de un Colectivo:
 1. Verificación de token UUID:
 - Apenas el usuario administrador del colectivo entra al sitio web de registro (Si lo hace de forma correcta fue siguiendo el link que se envió a su correo en el identity-verification-service)
 
-- Se hace un POST con /register/check-token, y se pasa el control a TokenManager para que se verifica si el query parameter de token: registration_token:<TOKEN_UUID> existe.
+- Se hace un POST con /register/check-token, y se pasa el control a TokenManager para que verifice si el query parameter de token: collective-register:<TOKEN_UUID> existe.
 
 - En dado caso puede ser usado como clave en redis con el prefijo de registration_token, y si retorna un UUID de la tabla de SumSubApplicant signfica que ya el usuario fue aprobado. Si no retorna nada significa que o bien el UUID Token cumplió su TTL de 24 horas, o que se está intentando ingresar al registro de manera no oficial.
 
@@ -2782,7 +2786,7 @@ Finalmente se presenta el flujo de registro de un Colectivo:
 }
 ```
 
-2. Se llama a la creación de KEKs (Key Encryption Key)
+2. Se llama a la creación de KEKs (Key Encryption Key) y DEKs parciales
 - Hace un POST a /register/collective/key-generation
 
 ```json
@@ -2797,11 +2801,13 @@ Finalmente se presenta el flujo de registro de un Colectivo:
 
 ```json
 {
-  "admin_kek": "La KEK asignada al administrador del colectivo",
-  "dpv_kek": "La KEK asignada a data pura vida",
-  "representatives_kek": "[IdDelRepresentate : KEK del representante]"
+  "admin_dek": "La DEK asignada al administrador del colectivo",
+  "dpv_dek": "La DEK asignada a data pura vida",
+  "representatives_dek": "[IdDelRepresentate : DEK del representante]"
 }
 ```
+- Cabe aclarar que cada DEK es un dictionary (en el key-management-service se muestra de que consiste), que debe ser guardado en postgres como JSONB.
+
 3. Registro de información:
 Desde el frontend se hace
 
@@ -2810,26 +2816,306 @@ Desde el frontend se hace
 
 - Se procede a hacer el registro de toda la información correspondiente al colectivo.
 
-- Se crean los registros correspondientes a los representantes en la tabla de Representantes, en ella se guardan sus respectivas KEKs.
+- Se crean los registros correspondientes a los representantes en la tabla de Representantes, en ella se guardan sus respectivas DEKs.
 
-- Se crea el registro del colectivo en la tabla de Colectivo con su respectiva KEK.
+- Se crea el registro del colectivo en la tabla de Colectivo con su respectiva DEK.
 
-- Se crea el registro en KEKDataPuraVida con la KEK del sistema y una referencia al colectivo que le corresponde.
+- Se crea el registro en DEKDataPuraVida con la DEK del sistema y una referencia al colectivo que le corresponde.
 
 - Se pasan todos los documentos del S3 Bucket temporal (Se conoce el directorio ya que es el mismo UUID de la tabla SumSubCollectiveApplicant) a "collective_data". Además se guarda referencia a dicha información en DynamoDB, y se usa el mismo Id que el usado en RDS para guardar el Colectivo para mantener simetría.
-
-
-**4. key-management-service**
-
-**5. notification-service**
-
-
-4. Proceso de registro de colectivo exitoso.
 
 
 Esos fueron los flujos principales del microservicio de registration-service
 
 Cabe aclarar que las interacciones entre los componentes de este microservicio se realizarán por medio de REST APIs. Por lo que cada uno de ellos estará escritos en FastAPI y recibirá las solicitudes por medio de dicha interfáz. Para cada componente se tendrá un archivo con los endpoints y la lógica del api, y otros con la lógica de negocio de cada uno.
+
+**4. key-management-service**
+
+El key-management-service es un componente clave del bioregistro, ya que se encarga de la creación y distribución de las llaves en el esquema tripartito.
+
+Durante el registro de una empresa, el servicio genera una Key Encryption Key (KEK) para cada parte involucrada: una para los representantes, otra para el administrador de la empresa, y una tercera para Data Pura Vida.
+
+Estas KEKs se envían directamente a los usuarios y no se almacenan en la base de datos del sistema, lo cual desacopla el proceso de encriptación del acceso a los datasets de la empresa, permitiendo así client-side encryption.
+
+En el habrán los siguientes componentes:
+
+- KeyManagementController: Expone los endpoints del servicio para que el API General y otros microservicios puedan acceder a él, estos serán:
+ - /encrypt/collective: Recibe el Token UUID desde el registration-service.
+ - /encrypt/verify/user: Por medio de este endpoint el usuario representante manda su kek para su aprobación.
+ - /encrypt/verify/admin: Por medio de este endpoint el usuario administrador manda su kek para aprobar a un representante.
+ - /encrypt/verify/dpv: Por este endpoint, desde el backoffice Data Pura Vida da su aprobación.
+- EncryptionManager: Este componente se encarga del proceso de encripción.
+- DecryptionManager: Este componente se encarga del proceso de desencriptado.
+- Generator: Este componente se encarga de generar las DEKs y KEKs.
+- Verificator: Se encarga de verificar a un representante.
+
+A continuación algunos flujos del microservicio que muestrán cuando y donde se usa. Primeramente, el proceso de generación de KEKs y DEKs.
+
+1. Llega el request a creación desde el registration-service:
+- Por medio de POST /encrypt/collective
+
+```json
+{
+  "token": "El mismo Token UUID de redis"
+}
+```
+- el KeyManagementController pasa el control al Generator.
+
+- Con dicho token se saca el UUID que se encuentra en redis por medio de: collective-register:<TOKEN_UUID>.
+
+2. El UUID es obtenido exitosamente
+
+- Ya con dicho UUID, se busca en la tabla de SumSubCollectiveApplicant para poder encontrar cual es la empresa y cual es el usuario administrador. De ahí también se revisa en SumSubCollective para verificar cuales son los usuarios representantes a los que se les desea asignar una KEK.
+
+- Se obtienen los Ids de los usuarios representantes en la tabla de PersonaFísica, y el del administrador de la empresa.
+
+3. Creación de keys
+- El Generator llama al EncryptionManager por medio del API de FastAPI que posee y le envía los representantes para que sepa cuantas KEKs/DEKs debe generar:
+```json
+{
+  "representatives": "[Los ids en la base de datos de dichos usuarios]"
+}
+```
+
+-Cabe aclarar que el proceso de encripción a utilizar es un AES-GCM, que posee la robustes de AES y además da un tag que dice la validez de la encripción, para evitar que se hagan modificaciones (es como un checksum)
+
+- El EncryptionManager manager genera todas las llaves necesarias del siguiente modo:
+
+```Python
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+import os
+import base64
+
+# Función para cifrar la DEK con un KEK usando AES-GCM
+def encrypt_dek_with_kek(dek: bytes, kek: bytes):
+    iv = os.urandom(12)  # de 96 bits
+    encryptor = Cipher(
+        algorithms.AES(kek),
+        modes.GCM(iv),
+        backend=default_backend()
+    ).encryptor()
+
+    ciphertext = encryptor.update(dek) + encryptor.finalize()
+
+    return { # se pasan a base64 para poder ser transmitidos en htttp
+        'iv': base64.b64encode(iv).decode(),
+        'ciphertext': base64.b64encode(ciphertext).decode(),
+        'tag': base64.b64encode(encryptor.tag).decode()
+    }
+
+def generar_tripleta_deks(representatives):
+
+    # 1. Generación de clave maestra
+    dek = os.urandom(32)  # se usan 256 bits
+
+    # 2. Se crean KEKs para la empresa y data pura vida
+    kek_empresa = os.urandom(32)
+    kek_dpv = os.urandom(32)
+
+    # 3. Cifrar la DEK con cada KEK
+    data_empresa = {
+        "dek": encrypt_dek_with_kek(dek, kek_empresa),
+        "kek": kek_empresa
+    }
+
+    data_dpv = {
+        "dek": encrypt_dek_with_kek(dek, kek_dpv),
+        "kek": kek_dpv
+    }
+
+    # 4. Se crean las distintas keks y deks para los representantes
+    data_representatives = []
+    for elem in representatives:
+        kek = os.urandom(32)
+        data_representatives = {
+            "id" = elem,
+            "kek" = kek,
+            "dek" = encrypt_dek_with_kek(dek, kek)
+        }
+
+    # 5. Se retorna los resultados
+    return {
+        'representantes': data_representatives,
+        'empresa': data_empresa,
+        'dpv': data_dpv,
+    }
+```
+
+- Esta return lo obtiene el controller del EncryptionManager y genera un jsondump al cual le aplica codificación en base64 para que pueda ser pasado por medio de http.
+
+4. Distribución y Guardado:
+
+- Ya con el resultado del EncryptionManager el Generator se encarga de generar un mensaje por medio de RabbitMQ al notification-service para que envie por correo a los usuarios tanto representantes como el admin su kek.
+
+- Ya que se distribuyeron las KEKs se devuelven los DEKs al registration service para que así pueda terminar el registro.
+
+5. finalizó el proceso de creación de llaves tripartitas
+
+Ahora, el otro punto importante en el key-management-service es el proceso de verificación de KEKs para poder aprobar un usuario representante.
+
+1. Interacción del usuario representante:
+- Desde el frontend hace un POST /encrypt/verify/user
+
+```json
+{
+  "user_kek": "kek del usuario en base64"
+}
+```
+
+- Luego de esto el KeyManagementController enruta al Verificator para que se encargue de primero que todo obtener el id del usuario de la tabla de Representantes, y crea una entrada en redis (del mismo modo que con los tokens UUID en el registration-service) con un TTL de 48 horas:
+
+``` redis
+  check_kek:<TOKEN_UUID> : [<ID_DEL_USUARIO>, <KEK_DEL_USUARIO>]
+```
+
+- Posteriormente se envía un mensaje por RabbitMQ al notification-service para que envíe un mensaje "push" a las notificaciones dentro del portal web al administrador de la empresa que diga "El usuario <USUARIO> está esperando su aprobación>", además en dicho mensaje se adjunta el TOKEN_UUID, para que posteriormente se vuelva enviar desde el frontend.
+
+2. Interacción del administrador
+
+- Desde el frontend hace un POST /encrypt/verify/user
+
+```json
+{
+  "admin_kek": "kek del usuario en base64",
+  "token": "token uuid en redis"
+}
+```
+
+- Luego de esto el KeyManagementController enruta al Verificator para que se encargue de obtener todo de redis por medio del token.
+
+- Una vez se obtiene la kek del usuario representante se saca la kek de Data pura vida desde DEKDataPuraVida para así empezar el proceso de validación de keks.
+
+``` python
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+import base64
+
+def decrypt_dek_with_kek(encrypted_data: dict, kek: bytes):
+
+    iv = base64.b64decode(encrypted_data['iv'])
+    ciphertext = base64.b64decode(encrypted_data['ciphertext'])
+    tag = base64.b64decode(encrypted_data['tag'])
+
+    decryptor = Cipher(
+        algorithms.AES(kek),
+        modes.GCM(iv, tag),
+        backend=default_backend()
+    ).decryptor()
+
+    return decryptor.update(ciphertext) + decryptor.finalize()}
+
+
+
+def verify_keks(kek_user, kek_admin, kek_dpv, dek_user, dek_admin, dek_dpv ):
+
+    dek1 = decrypt_dek_with_kek(dek_user, base64.b64decode(kek_user))
+    dek2 = decrypt_dek_with_kek(dek_admin, base64.b64decode(kek_admin))
+    dek3 = decrypt_dek_with_kek(dek_dpv, base64.b64decode(kek_dpv))
+
+    if dek1 == dek2 == dek3:
+        print("Aprobado test tripartita")
+    else:
+        print("Falló el test tripartita")
+    ```
+
+3. En caso de que las tres llaves coincidan entonces se aprueba la validación y se actualiza el estado del representante en Postgres a Aprobado. Además se comunica con rabbitMQ y el notification-service para que envie un correo al usuario para que sepa que su kek fue aprobado.
+
+
+Esos fueron los flujos principales del microservicio de key-management-service.
+
+Cabe aclarar que las interacciones entre los componentes de este microservicio, cuando no se hizo explicita en la explicación, es porque se realizarán por medio de REST APIs. Por lo que cada uno de ellos estará escrito en FastAPI y recibirá las solicitudes por medio de dicha interfáz. Para cada componente se tendrá un archivo con los endpoints y la lógica del api, y otros con la lógica de negocio de cada uno.
+
+
+**5. notification-service**
+
+Este componente es el encargado de desacoplar la lógica de notificación a usuarios, ya sea por medio de correos electrónicos o notificaciones internas de la aplicación, del resto del microservicio.
+
+No expone ninguna interfaz HTTP para comunicarse con otros microservicios; todo su tráfico se gestiona exclusivamente a través de colas en RabbitMQ. Las colas que utilizará son las siguientes:
+
+- manual-verification: Por acá se reciben mensajes para poder notificar al backoffice que deben aprobar manualmente una empresa.
+- mfa-mail: Por esta cola se reciben solicitudes de generar correos con el pin para MFA.
+- send-token: Para poder reenviar un token_uuid del identity-verification-service.
+- send-kek: Para enviar por correo las keks.
+- verify-kek: Para enviar una notificación a traves de las notificaciones dentro de la página, para que un administrador apruebe un usuario.
+- approve-dek: Para notificarle al key-management-service que apruebe el estado del usuario en Representantes a Approve.
+- register: Para enviar correos con el link al registro una vez identity-verification-service haya terminado la validación de usuarios.
+
+Cabe aclarar que los componentes del bioregistro no publicarán mensajes directamente en las cola, se usará una estructura de exchange como la siguiente:
+
+![image](img/bioexchange.png)
+
+De esta forma se desacopla aún más la comunicación entre los otros componentes y notification-service, para que así en caso de ser necesarias modificaciones a la aquitectura en un futuro, el proceso sea más flexible.
+
+Ahora bien, para realizar el envío de correos electrónicos se usará AWS SES, y se habilitará en us-east-1 y se le configurará un dominio especial del equipo de soporte de data pura vida.
+
+Una vez configurado AWS SES desde la consola de aws se tendrán que definir plantillas en html para los distintos tipos de correo. A continuación de la estructura para un correo de register:
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Confirmación de Registro</title>
+  </head>
+  <body style="font-family: Arial, sans-serif;">
+    <h2>¡Bienvenido/a a Data Pura Vida!</h2>
+    <p>Hola {{ nombre }},</p>
+    <p>Tu proceso de verificación ha sido aprobado exitosamente.</p>
+    <p>Podés ingresar al sistema usando el siguiente enlace:</p>
+    <p><a href="{{ link }}" style="padding: 10px 15px; background-color: #008f39; color: white; text-decoration: none;">Acceder a la plataforma</a></p>
+    <p>Gracias por confiar en nosotros.</p>
+    <p>— El equipo de Data Pura Vida</p>
+  </body>
+</html>
+```
+
+Luego, una vez seleccionada la plantilla html se enviará el correo de la siguiente manera:
+
+```python
+import boto3
+from botocore.exceptions import ClientError
+
+def render_verification_email(nombre, link):
+    template = env.get_template("verification_approved.html")
+    return template.render(nombre=nombre, link=link)
+
+def send_email(to_address, subject, body_html, body_text):
+    client = boto3.client('ses', region_name='us-east-1')
+    try:
+        response = client.send_email(
+            Source='supporteam@datapuravida.com',
+            Destination={'ToAddresses': [to_address]},
+            Message={
+                'Subject': {'Data': subject},
+                'Body': {
+                    'Text': {'Data': body_text},
+                    'Html': {'Data': body_html}
+                }
+            }
+        )
+        print("Correo enviado:", response['MessageId'])
+        return response
+    except ClientError as e:
+        print("Error al enviar correo:", e.response['Error']['Message'])
+        raise
+```
+
+En cuanto al manejo de notificaciones dentro de la aplicación web, el flujo en el notification-service será el siguiente:
+
+1. Cuando llega un mensaje a las colas manual-verification o verify-kek:
+
+- Existe un webhook en la API de FastAPI que a su vez consume mensajes de esas colas.
+
+- Si el usuario está activo (conectado vía WebSocket), el webhook envía la notificación directamente a través de la conexión abierta.
+
+- Si el usuario no está activo, el webhook no puede enviar la notificación en tiempo real, por lo que guarda el mensaje en una tabla DynamoDB llamada "Notifications".
+
+- Cuando el usuario se conecta, el webhook consulta la tabla "Notifications" para verificar si hay notificaciones pendientes para ese usuario.
+
+- En caso de encontrar notificaciones, las recupera, las envía al usuario y luego las elimina de DynamoDB. Si no hay notificaciones, no se realiza ninguna acción adicional.
+
+
 
 
 **Configuración de Hardware:**
@@ -3242,7 +3528,7 @@ La protección de la información crítica del módulo Bioregistro implica conta
 
   - La base de datos en RDS no almacenará contraseñas, ya que su propósito no es gestionar el inicio de sesión, sino mantener un registro estructurado de las entidades registradas en la plataforma.
 
-  - Para el manejo de Key Encryption Keys (KEK), se encripatarán en el backend con base en el Data Encryption key (DEK) efímero, y luego serán encriptadas nuevamente por el encryption at rest de RDS.
+  - El manejo de la encripción de las DEKs está a cargo del key-management-service, sin embargo, a dicha encripción también se le aplicará el encryption at rest.
 
 - **Encripción**:
   - Metadata de las Organizaciones (detallada al inicio del capítulo de Bioregistro).
