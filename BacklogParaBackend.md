@@ -1,5 +1,19 @@
-##### Microservicios
-Ocupamos un módulo que haga la interacción con SumSub (los tipos de verificacion), Otro que haga el registro en RDS de las organizaciones y de las personas físicas, otro que guarde en S3 documentos legales y los linkee con un registro en Dynamo, otro que interactúe con cognito (mencionar que el id de las personas en cognito debe ser el mismo que en rds)... Esos son algunos que de fijo ocupamos
+  ##### Microservicios
+
+
+
+**AWS Lambda:**
+Para funciones serverless que realicen tareas específicas y de corta duración, como el procesamiento de notificaciones o tareas de validación asíncronas.
+
+**Configuración de Hardware:**  Aunque no gestionamos hardware directamente, sí configuraremos los recursos, como:
+- **Memoria:** 1024 MB
+- **Arquitectura:** arm64
+- **Tiempo de ejecución:** Node.js 22.x
+- **Almacenamiento efímero:** 512MB
+- **Tiempo de espera:** 5s
+- **Retry attempts:** 1
+
+
 #####  Explicación de las capas – Diseño del Backend del Bioregistro
 
 El backend del componente Bioregistro de Data Pura Vida está diseñado siguiendo principios de Clean Architecture, con separación clara de responsabilidades y desplegado como un microservicio independiente en EKS (AWS Kubernetes). A continuación se describen sus capas principales:
@@ -65,16 +79,6 @@ EKS abstrae la infraestructura subyacente. Se configurarán grupos de con instan
 - **Tipo de instancia:** t3.medium (2 vCPU, 4 GB RAM) o superior.
 - **Almacenamiento:** AWS S3 para almacenamiento de objetos y datasets.
 
-**AWS Lambda:**
-Para funciones serverless que realicen tareas específicas y de corta duración, como el procesamiento de notificaciones o tareas de validación asíncronas.
-
-**Configuración de Hardware:**  Aunque no gestionamos hardware directamente, sí configuraremos los recursos, como:
-- **Memoria:** 1024 MB
-- **Arquitectura:** arm64
-- **Tiempo de ejecución:** Node.js 22.x
-- **Almacenamiento efímero:** 512MB
-- **Tiempo de espera:** 5s
-- **Retry attempts:** 1
 
 **Servicios de Red:**
 
@@ -83,15 +87,6 @@ Para distribuir el tráfico de entrada a los microservicios desplegados en EKS.
 
 **Configuración de Hardware:** Es un servicio gestionado, no requiere configuración de hardware directa, ni recursos. Se dimensionará automáticamente.
 
-**AWS CloudFront:**
-Red de distribución de contenido para servir el frontend estático alojado en S3, mejorando la latencia y la disponibilidad global.
-
-**Configuración de Hardware:** Servicio gestionado, no requiere configuración de hardware.
-
-**AWS VPC (Virtual Private Cloud):**
-Para aislar los recursos de la plataforma en una red virtual privada y segura.
-
-**Configuración de Hardware:** Es un servicio lógico, no requiere configuración de hardware. Se diseñará con subredes públicas y privadas, tablas de enrutamiento y grupos de seguridad.
 
 **Servicios de Almacenamiento:**
 
@@ -131,7 +126,6 @@ Plataforma integral para crear, entrenar y desplegar modelos de machine learning
 - **Modo de despliegue:** Real-time endpoint
 
 
-
 **Servicios de Seguridad y Cumplimiento:**
 **AWS KMS (Key Management Service):**
 Para la administración y protección de claves criptográficas utilizadas para cifrar datos sensibles.
@@ -168,7 +162,6 @@ Broker de mensajería para comunicación asíncrona entre microservicios. Se des
 - **Tipo de instancia del agente:** mq.m5.large (2 vCPU 8 GB de RAM)
 - **Versión del motor del agente:** 3.13
 - **Configuración de red:** Acceso privado
-
 
 
 **Apache Airflow:**
