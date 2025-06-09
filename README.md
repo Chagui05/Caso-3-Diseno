@@ -3646,6 +3646,47 @@ La protección de la información crítica del módulo Bioregistro implica conta
 4. Notificación y verificación de consistencia posterior al recovery.
 5. Registro de incidente en CloudWatch Logs.
 
+##### Elementos de alta disponibilidad
+
+**1. Replicación y Multi-AZ en Bases de Datos**
+
+Para asegurar la continuidad operativa del sistema en caso de fallos, se configuró una topología Master-Slave en Amazon RDS con PostgreSQL, la cual opera en la región us-east-1 y se distribuye automáticamente entre múltiples zonas de disponibilidad. Esta configuración está activa en todo momento y permite realizar un failover automático hacia una réplica en caso de que el nodo principal presente fallas.
+
+**2. Almacenamiento Seguro y Distribuido**
+
+El almacenamiento de documentos legales y biométricos se realiza en Amazon S3, mientras que DynamoDB se configura con respaldo continuo mediante Point-in-Time Recovery. Estos mecanismos se activan cada vez que se cargan o modifican datos, y garantizan una recuperación confiable en caso de pérdidas o errores.
+
+| Recurso | Tecnología | Implementación | Activación | Ubicación | 
+| ------- | ---------- | -------------- | ---------- | --------- |
+| Documentos | **Amazon S3** | Versionado y replicación cruzada semanal | Al cargar o modificar | `us-east-1` / `us-west-1` |
+| Metadatos | **DynamoDB** | Backup continuo con Point-in-Time Recovery | En cada escritura | `us-east-1` |
+
+**3. Estrategias Avanzadas de Monitoreo y Alertas**
+
+La supervisión del backend se lleva a cabo en tiempo real gracias a **AWS CloudWatch** y **Prometheus**, que operan dentro del clúster `AWS EKS` donde residen los microservicios. Estas herramientas recogen métricas de uso, disponibilidad e integridad del sistema y emiten alertas inmediatas ante comportamientos inusuales. Grafana nos permite visualizar esta información mediante dashboards.
+
+| Tecnología | Rol | Donde se ejecuta | Momento de ejecución |
+| ------- | ---------- | -------------- | ---------- |
+| **CloudWatch** | Captura métricas y logs de servicios AWS | Servicios AWS | En tiempo real y continuo | 
+| **Prometheus** | Recoge métricas internas de microservicios a través de endpoints personalizados | Dentro del clúster EKS | Cada vez que se actualizan métricas | 
+| **EKS** | Aloja los microservicios del backend y los componentes de monitoreo | AWS (región `us-east-1`) | Siempre activo durante operación |
+| Grafana | Visualiza datos recolectados para análisis y diagnóstico | Conectado a CloudWatch y Prometheus | Monitoreo continuo |
+
+**4. Sistema Automatizado de Backups**
+
+Para afrontar pérdidas de información se implementaron respaldos automáticos diarios en **RDS** y **DynamoDB** a las 2:00 a.m. y respaldos cruzados semanales en buckets de **S3** en la región `us-west-1`. Esto se encuenta en ejecución continua desde el backend de AWS y se activa sin intervención manual.
+
+**5. Balanceo de Carga y Escalabilidad**
+
+El tráfico al backend es manejado por un Application Load Balancer de AWS, configurado dentro del clúster de EKS, que distribuye solicitudes entrantes de forma equitativa entre las instancias disponibles. Esta capa de balanceo está activa permanentemente y escala automáticamente cuando se detecta una sobrecarga, garantizando alta disponibilidad incluso cuando hay picos de trafico.
+
+**6. Cifrado y Protección de Accesos**
+
+Todo el backend se envuelve en políticas de seguridad implementadas con AWS KMS. Como fue mencionado en secciones anteriores, se cifra la información en tránsito y en reposo, y mediante roles IAM que limitan el acceso a los servicios según el contexto del microservicio. Estas medidas se aplican durante cualquier operación de lectura o escritura sobre S3, RDS o DynamoDB, y están definidas para ejecutarse en todos los componentes alojados en la región `us-east-1`.
+
+**7. Recuperación Rápida ante Desastres**
+
+En caso de incidentes que afecten la disponibilidad del sistema, la recuperación se realiza automáticamente con el uso de snapshots y versionado en RDS, S3 y DynamoDB. Se activan inmediatamente tras la detección de fallas, que seran alertadas por CloudWatch. Esto permite devolverse al estado original usando los backups de otras regiones.
 
 ##### Diagrama del backend
 
@@ -3654,7 +3695,6 @@ A continuación se presenta el diagrama del backend del Bioregistro. En él se e
 Se muestra cómo la contenerización de cada microservicio se realizará utilizando Docker, y cómo el monitoreo interno será gestionado por Prometheus. Además, se destaca que en la capa externa a AWS se encuentra SumSub, utilizado como sistema de terceros.
 
 ![image](img/DiagramaBackendBioregistro.svg)
-
 
 #### Diseño de los Datos
 
@@ -3674,7 +3714,7 @@ Se muestra cómo la contenerización de cada microservicio se realizará utiliza
 - **Polítcias y Reglas**:
   - Single-region: Solo se usará una región para RDS y DynamoDB, us-east-1
   - Backups automáticos: Tanto RDS como Dynamo harán backups automáticos a las 2 de la mañana y lo subirán a un S3.
-  - Bacups cruzados: Para proteger los respaldos en caso de que la región de aws caiga (poco probable), se cargaran adicionalmente en un S3 Bucket en us-west-1. Esto se hará cada semana los viernes a las 2 de la mañana, ya que su prioridad es menor.
+  - Backups cruzados: Para proteger los respaldos en caso de que la región de aws caiga (poco probable), se cargaran adicionalmente en un S3 Bucket en us-west-1. Esto se hará cada semana los viernes a las 2 de la mañana, ya que su prioridad es menor.
   - Failover Automático: Dynamo tiene nativamente integrado la opción de hace failover. Con RDS se logrará por medio del uso de Multi-AZ.
 
 - **Beneficios**:
@@ -3772,6 +3812,89 @@ Este si es general de todos los componentes
 
 Este si es general de todos los componentes
 
+### 4.2 La Bóveda
+
+#### Modelo de Seguridad
+
+La Bóveda es el componente central para el almacenamiento, recuperación y gestión segura de información sensible, como claves criptográficas, registros de trazabilidad, y documentos oficiales del ecosistema Data Pura Vida. Debido a su naturaleza crítica, implementa un modelo de seguridad reforzado basado en el cifrado extremo a extremo, control de acceso estricto, y auditoría detallada.
+
+---
+
+### 1. Acceso controlado por credenciales cifradas
+
+- La Bóveda requiere que cada operación (consulta, recuperación, descarga) esté asociada a una clave tripartita cifrada(institución, Data Pura Vida, y usuario autorizado).
+- Estas claves se desencriptan en memoria solamente al validar la autorización, y **nunca se almacenan en texto plano**.
+
+---
+
+### 2. Autenticación federada y MFA
+
+- Toda solicitud a La Bóveda pasa por Cognito, utilizando autenticación federada (usuarios de instituciones) y verificación multifactor (OTP, correo institucional).
+- Solo usuarios autenticados con rol institucional específico pueden acceder a recursos bajo su control.
+
+---
+
+### 3. Cifrado extremo a extremo (E2EE)
+
+- Los documentos y registros almacenados en La Bóveda se cifran:
+  - En tránsito (HTTPS/TLS 1.3)
+  - En reposo (AES-256 en S3)
+  - En acceso (desencriptado temporal en memoria RAM protegida)
+- Se usa AWS KMS para gestionar las claves maestras asociadas a cada institución.
+
+---
+
+### 4. Control de acceso basado en roles (RBAC)
+
+- Cada acción está protegida por un sistema de roles jerárquicos que determinan:
+  - Qué usuarios pueden leer, escribir o auditar.
+  - Qué instituciones tienen permisos sobre ciertos archivos o registros.
+- Las políticas de autorización se verifican en el backend mediante decoradores de validación en FastAPI.
+
+---
+
+### 5. Firma digital y registro inmutable
+
+- Toda operación en La Bóveda (subida, acceso, descarga, modificación) queda firmada digitalmente.
+- Se genera una entrada en la bitácora inmutable, con:
+  - ID del usuario
+  - Timestamp
+  - Acción realizada
+  - Firma criptográfica
+
+---
+
+### 6. Detección de integridad y validación de hash
+
+- Al momento de subir archivos, se calcula un hash SHA-256 del contenido original.
+- Cada vez que se accede o descarga el documento, el sistema recalcula el hash y lo compara con el original.
+- Si hay diferencia, se marca como archivo corrupto o alterado.
+
+---
+
+### 7. Registro de auditoría y trazabilidad
+
+- Se mantiene un sistema de logs firmados y cifrados que registra:
+  - Quién accedió a qué documento
+  - Cuándo
+  - Desde qué IP
+  - Con qué resultado (éxito, error, rechazo)
+
+- Esta información se puede consultar solo por usuarios con rol de auditor institucional o personal autorizado del Ministerio.
+
+---
+
+### Tecnologías involucradas
+
+| Componente            | Función                                    |
+|-----------------------|---------------------------------------------|
+| AWS Cognito           | Autenticación federada + MFA               |
+| JWT                   | Token de sesión con claims por institución |
+| AWS S3 + KMS          | Almacenamiento cifrado                     |
+| PostgreSQL / DynamoDB | Metadatos y claves tripartitas             |
+| SHA-256               | Verificación de integridad de archivos     |
+| FastAPI               | Control de acceso y validación de roles    |
+| RabbitMQ              | Bitácora de auditoría y eventos internos   |
 
 
 ## 5. Validación de los requerimientos
