@@ -18,14 +18,12 @@ Además cabe aclarar que cada sección no aplica necesariamente para todos los c
 
 ----
 - Diseño del Backend
-  - Servicios de AWS: cuales servicios se usarán, y que configuración de hardware necesitan.
-  - Microservicios en el Componentes: Listar cuales microservicios están en cada componente, por ejemplo, en el bioregistro hay un microservicio de interacción con SumSub, o en el Motor de Transformaación hay un microservicio de merging de tablas. Aquí también aplica hablar en que partes y como se usará Event-Driven si es necesario. Además de listarlos hay que decir que hacen y explicar que herramientas van a utilizar (Por ejemplo, el merger del motor de transformación usa spark para transformar N tablas en solo 1).
+  - Microservicios en el Componentes: Listar cuales microservicios están en cada componente, por ejemplo, en el bioregistro hay un microservicio de interacción con SumSub, o en el Motor de Transformaación hay un microservicio de merging de tablas. Aquí también aplica hablar en que partes y como se usará Event-Driven si es necesario. Además de listarlos hay que decir que hacen y explicar que herramientas van a utilizar (Por ejemplo, el merger del motor de transformación usa spark para transformar N tablas en solo 1). Acá también va implicito el aporte al api gateway por que hay que decir cuales endpoints expone. 
   - Diagrama de Clases
-  - Explicación de las capas: Pueden variar, pero pueden ser de lógica de negocio, persistencia, handlers, etc.
+  - Servicios de AWS: cuales servicios se usarán, y que configuración de hardware necesitan.
   - Monitoreo: Define como se va a monitorear, usualmente los microservicios es con Prometheus, y los servicios de AWS con CloudWatch, pero especificar como.
   - Modelo de seguridad detallado: encriptación, auditoría, logging seguro. Solo si aplica.
   - Elementos de Alta Disponibilidad: Cómo se va a garantizar la disponibilidad del sistema, por ejemplo, con réplicas, load balancing, etc.
-  - Aporte al API Gateway: Ya que el API Gateway es la misma para todo el backend especificar que aporta este módulo a ella
   - Diagrama del Backend
 
 ----

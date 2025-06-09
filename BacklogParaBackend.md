@@ -1,5 +1,17 @@
-##### Microservicios
+  ##### Microservicios
 
+
+
+**AWS Lambda:**
+Para funciones serverless que realicen tareas específicas y de corta duración, como el procesamiento de notificaciones o tareas de validación asíncronas.
+
+**Configuración de Hardware:**  Aunque no gestionamos hardware directamente, sí configuraremos los recursos, como:
+- **Memoria:** 1024 MB
+- **Arquitectura:** arm64
+- **Tiempo de ejecución:** Node.js 22.x
+- **Almacenamiento efímero:** 512MB
+- **Tiempo de espera:** 5s
+- **Retry attempts:** 1
 
 
 #####  Explicación de las capas – Diseño del Backend del Bioregistro

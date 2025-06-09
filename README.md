@@ -2373,7 +2373,7 @@ Finalmente, se incluye una Lambda@Edge function que, antes de que CloudFront ent
 
 ##### Microservicios
 
-A continuación se dará una explicación de todos los microservicios correspondientes al FrontBioregistro.
+A continuación se dará una explicación de todos los microservicios correspondientes al Bioregistro.
 
 
 **1. identity-verification-service**
@@ -2422,7 +2422,7 @@ A continuación se muestra el flujo completo de interacción entre frontend y es
 }
 ```
 - El SumSubController dirige la carga al PersonService que se encargará de registrar el Applicant en SumSub y enviarle un UUID interno. Obtendrá de respuesta el Id interno de SumSub que se usará para realizar la verificación.
-- También en la tabla de SumSubApplicants se registrará el UUID interno, una fila llamada Approved en False, y todas las credenciales dadas. Esto permitirá que cuando las personas traten de registrarse solo puedan una ves este flag sea cambiado a True (Más detalles sobre el registro serán explicados en el registration-service).
+  - También en la tabla de SumSubApplicants se registrará el UUID interno, una fila llamada Approved en False, y todas las credenciales dadas. Esto permitirá que cuando las personas traten de registrarse solo puedan una ves este flag sea cambiado a True (Más detalles sobre el registro serán explicados en el registration-service).
 
 - Se retorna al frontend:
 ```json
@@ -2470,7 +2470,7 @@ https://data-pura-vida.com/register/person?token=<token_uuid>
 
 4. El proceso de verificación fue exitoso, se continua a registro.
 
-*Ahora, se muestra el flujo completo de interacción entre frontend y este componente para verificar un colectivo:*
+Ahora, se muestra el flujo completo de interacción entre frontend y este componente para verificar un colectivo:
 
 1. La persona representante del colectivo inicia el proceso de verificación:
 - Frontend llama a: POST /sumsub/collective/token:
@@ -2552,7 +2552,6 @@ https://data-pura-vida.com/collective-register?token=<token_uuid>
 
 Ahora bien, en el caso de colectivos, puede suceder que SumSub no encuentre al colectivo en sus bases de datos. Si esto ocurre, se habilita una opción de revisión manual, la cual envía un mensaje al notification-service a través de RabbitMQ. Este servicio notificará a los administradores, quienes podrán completar la verificación manual desde el portal web del backoffice.
 
-
 Previamente fue mencionado, pero a modo de aclaración cabe decir que los templates de revisión serán creados desde el SumSub Dashboard. con base en la información listada al inicio del capítulo. Posteriormente en el código podrán ser llamados de esta forma por medio de un request al API similar a este:
 
 ``` python
@@ -2604,10 +2603,8 @@ Este servicio es un facade de autenticación sobre Cognito, por el cuál los usu
   - /auth/login/mfa/resend Para poder reenviar los tokens MFA en caso de ser necesario
   - /auth/login/verify-mfa Para poder revisar que el MFA sea satisfactorio
   - /auth/logout: Para la gestión del Logout de la aplicación
-  - /auth/verify-token: Para verificar si un JWT token sigue siendo válido
 - CognitoService: Se encarga de abstraer las llamadas de signup, login, challenge y refresh.
 - MFAService:	Lógica para MFA (enviar y validar OTP por SMS/email).
-- SessionManager:	Control de sesiones activas, revocación de tokens, manejo de expiración.
 - AuthChoiceHandler:	Implementa lógica de choice-based auth (elegir entre OTP o pass).
 
 A continuación se muestra el flujo completo de inicio de sesión con MFA en la arquitectura:
@@ -2686,7 +2683,7 @@ A continuación se presenta el flujo de registro de una persona física:
 
 - Se hace un POST con /register/check-token, y se pasa el control a TokenManager para que se verifica si el query parameter de token: registration_token:<TOKEN_UUID> existe.
 
-- En dado caso puede ser usado como clave en redis con el prefijo de registration_token, y si retorna un UUID de la tabla de SumSubApplicant signfica que ya el usuario fue aprobado. Si no retorna nada significa que o bien el UUID Token cumplió su TTL de 24 horas, o que se está intentando ingresar al registro de manera no oficial.
+- En dado caso se usa como clave en redis con el prefijo de registration_token, y si retorna un UUID de la tabla de SumSubApplicant signfica que ya el usuario fue aprobado. Si no retorna nada significa que o bien el UUID Token cumplió su TTL de 24 horas, o que se está intentando ingresar al registro de manera no oficial.
 
 - Se retorna al frontend:
 
@@ -2843,11 +2840,10 @@ En el habrán los siguientes componentes:
  - /encrypt/collective: Recibe el Token UUID desde el registration-service.
  - /encrypt/verify/user: Por medio de este endpoint el usuario representante manda su kek para su aprobación.
  - /encrypt/verify/admin: Por medio de este endpoint el usuario administrador manda su kek para aprobar a un representante.
- - /encrypt/verify/dpv: Por este endpoint, desde el backoffice Data Pura Vida da su aprobación.
 - EncryptionManager: Este componente se encarga del proceso de encripción.
 - DecryptionManager: Este componente se encarga del proceso de desencriptado.
 - Generator: Este componente se encarga de generar las DEKs y KEKs.
-- Verificator: Se encarga de verificar a un representante.
+  - Verificator: Se encarga de verificar a un representante.
 
 A continuación algunos flujos del microservicio que muestrán cuando y donde se usa. Primeramente, el proceso de generación de KEKs y DEKs.
 
@@ -2879,7 +2875,6 @@ A continuación algunos flujos del microservicio que muestrán cuando y donde se
 
 -Cabe aclarar que el proceso de encripción a utilizar es un AES-GCM, que posee la robustes de AES y además da un tag que dice la validez de la encripción, para evitar que se hagan modificaciones (es como un checksum)
 
-- El EncryptionManager manager genera todas las llaves necesarias del siguiente modo:
 
 ```Python
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -3017,7 +3012,7 @@ def verify_keks(kek_user, kek_admin, kek_dpv, dek_user, dek_admin, dek_dpv ):
         print("Aprobado test tripartita")
     else:
         print("Falló el test tripartita")
-    ```
+```
 
 3. En caso de que las tres llaves coincidan entonces se aprueba la validación y se actualiza el estado del representante en Postgres a Aprobado. Además se comunica con rabbitMQ y el notification-service para que envie un correo al usuario para que sepa que su kek fue aprobado.
 
@@ -3101,7 +3096,7 @@ def send_email(to_address, subject, body_html, body_text):
         raise
 ```
 
-En cuanto al manejo de notificaciones dentro de la aplicación web, el flujo en el notification-service será el siguiente:
+  En cuanto al manejo de notificaciones dentro de la aplicación web, el flujo en el notification-service será el siguiente:
 
 1. Cuando llega un mensaje a las colas manual-verification o verify-kek:
 
@@ -3116,28 +3111,197 @@ En cuanto al manejo de notificaciones dentro de la aplicación web, el flujo en 
 - En caso de encontrar notificaciones, las recupera, las envía al usuario y luego las elimina de DynamoDB. Si no hay notificaciones, no se realiza ninguna acción adicional.
 
 
+##### Diagramas de Clases
+
+En esta sección se presentarán los distintos diagramas de clase correspondientes a cada microservicio descrito en la sección anterior. Para cada uno se explicará además cuales patrones de diseño fueron implementados. Además, cabe aclarar que en algunos microservicios aparecerán clases que ya se habían utilizado en otros. A nivel del diagrama, estas clases se muestran duplicadas para mayor claridad, pero en el código serán reutilizadas.
+
+**1. identity-verification-service**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Amarillo: Representa un observer.
+- Naranja: Representa un dependency injection.
+- Verde: Representa un strategy.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el SumSubController, que actúa como facade para que otros microservicios y el API general del backend se comuniquen con este microservicio. Este controlador delega las llamadas a un observer mediante el EventManager, encargado de notificar a la lógica de negocio correspondiente según el tipo de llamada realizada al SumSubController.
+
+Dentro de esa lógica se encuentran el WebHookProcessor, PersonService y CollectiveService, que reciben como dependencias los servicios de la segunda capa de facade.
+
+En esta segunda capa se encuentran:
+
+- RabbitMQMessager: abstrae el envío de mensajes al exchange del bioregistro.
+- SumSubService: encapsula toda la comunicación con el sistema externo de SumSub.
+- ApplicantService: se encarga de las operaciones sobre los aplicantes en RDS.
+- TokenManager: gestiona la generación de tokens y su almacenamiento en Redis.
+- DocumentManager: cambia dinámicamente entre S3Factory y DynamoFactory para guardar documentos.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesBioregistro1.png)
+
+**2. auth-service**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Amarillo: Representa un observer.
+- Naranja: Representa un dependency injection.
+- Verde: Representa un strategy.
 
 
-**Configuración de Hardware:**
-EKS abstrae la infraestructura subyacente. Se configurarán grupos de con instancias EC2.
+Ahora bien, las clases tienen un funcionamiento muy simple, el punto de entrada es AuthController, que actúa como facade para que el API general pueda acceder al microservicio. Luego el EventManager se encarga de distribuir según lo que se pidio al AuthController. En este caso es el AuthChoiceHandler el que escucha, y decide cual es el tipo de login que se solicitó. Luego están las clases de MFAService y CognitoService  que se encargan de comunicarse con Cognito
 
-- **Versión de Kubernetes:** 1.29 (o la más reciente compatible).
-- **Tipo de nodo:** Amazon EC2.
-- **Tipo de instancia:** t3.medium (2 vCPU, 4 GB RAM) o superior.
-- **Almacenamiento:** AWS S3 para almacenamiento de objetos y datasets.
+![identity clases](img/ClasesBioregistro2.png)
+
+**3. registration-service**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Amarillo: Representa un observer.
+- Naranja: Representa un dependency injection.
+- Verde: Representa un strategy.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el RegistrationController, que actúa como facade para que otros microservicios y el API general del backend se comuniquen con este microservicio. Este controlador delega las llamadas a un observer mediante el EventManager, encargado de notificar a la lógica de negocio correspondiente según el tipo de llamada realizada al RegistrationController.
+
+Dentro de esa lógica se encuentran el TokenManager, PersonRegistrationService y CollectiveRegistrationService, que reciben como dependencias los servicios de la segunda capa de facade.
+
+En esta segunda capa se encuentran:
+
+- RabbitMQMessager: abstrae el envío de mensajes al exchange del bioregistro.
+- Cognito: encapsula toda la comunicación con Cognito.
+- RegApplicantService: se encarga de las operaciones sobre los aplicantes en RDS.
+- TokenCoordinator: gestiona la generación de tokens y su almacenamiento en Redis.
+- DocumentManager: cambia dinámicamente entre S3Factory y DynamoFactory para guardar y traer documentos.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesBioregistro3.png)
+
+
+**4. key-management-service**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Amarillo: Representa un observer.
+- Naranja: Representa un dependency injection.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el KeyManagementController, que actúa como facade para que otros microservicios y el API general del backend se comuniquen con este microservicio. Este controlador delega las llamadas a un observer mediante el EventManager, encargado de notificar a la lógica de negocio correspondiente según el tipo de llamada realizada al KeyManagementController.
+
+Dentro de esa lógica se encuentran el Generator y Verificator, que reciben como dependencias los servicios de la segunda capa de facade.
+
+En esta segunda capa se encuentran:
+
+- RabbitMQMessager: abstrae el envío de mensajes al exchange del bioregistro.
+- PersonService: encapsula las llamadas a las tablas de personas en RDS.
+- EncryptionManager: se encarga de las operaciones de encripcion de DEkS y creacion de KEKs.
+- DecryptionManager: se encarga de las operaciones Desencripcion de DEKs.
+- DekService: gestiona el acceso a DEKs parciales en RDS.
+- RedisController: Controla las operaciones de extraccion de UUIDs, guardado y salvado de KEKs.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesBioregistro4.png)
+
+
+**5. notification-service**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Celeste: Muestra un factory.
+- Verde: Representa un strategy.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+Se cuenta con una clase abstracta QueueListener que provee la lógica y conexión a RabbitMQ. Esta clase es reutilizada por dos componentes principales:
+
+- EmailSender: escucha mensajes destinados a ser reenviados por correo electrónico a través de AWS SES utilizando el SESService.
+- NotificationConsumer: detecta la llegada de nuevas notificaciones que deben mostrarse dentro de la aplicación.
+
+Además, existe una capa encargada de escuchar conexiones de usuarios al frontend para enviar notificaciones en tiempo real mediante el WebSocketController. En segundo plano, el NotificationConsumer verifica si llegan nuevas notificaciones. Si el usuario está conectado, se le muestran inmediatamente; de lo contrario, se almacenan en DynamoDB a través del NotificationManager, para que en la próxima conexión el WebSocketController se las muestre.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Cada conexión es manejada utilizando el patrón Singleton.
+
+![identity clases](img/ClasesBioregistro5.png)
+
+
+##### Servicios en AWS
+
+A continuación se presentan todos los servicios AWS con los que se operará en los microservicios del Bioregistro, además se listarán las configuraciones de hardware para cada uno
+
+**EKS**
+Será el lugar donde estarán contenerizados los distintos microservicios.
+
+- **Configuración de Hardware:**
+  - **Versión de Kubernetes:** 1.29 (o la más reciente compatible).
+  - **Tipo de nodo:** Amazon EC2.
+  - **Tipo de instancia:** t3.medium (2 vCPU, 4 GB RAM) o superior.
+
+
+**RDS**
+Base de datos relacional para almacenar datos estructurados de la aplicación. Se entrará en más detalle en el diseño de los datos.
+
+- **Configuración de Hardware:**
+  - **Motor:** PostgreSQL (o MySQL, MariaDB según necesidad).
+  - **Versión:** PostgreSQL 15 (o la más reciente estable compatible).
+  - **Tipo de instancia:** db.t3.medium (2 vCPU, 4 GB RAM) o superior.
+  - **Almacenamiento:** General Purpose SSD (gp3) con tamaño escalable según la carga.
+  - **Multi-AZ:** Activado para alta disponibilidad.
+
+**DynamoDB**
+Base de datos NoSQL escalable para almacenamiento de datos con acceso rápido y flexible. Se entrará en más detalle en el diseño de los datos.
+
+- **Configuración:**
+  - **Modo de capacidad:** On-Demand.
+  - **Streams:** Habilitados para replicación o integración con otros servicios.
+
+
+**S3**
+Almacenamiento de objetos para archivos, backups y datos estáticos.
+
+-**Configuración:**
+  - **Versionado:** Activado para control de versiones y recuperación de datos.
+  - **Lifecycle policies:** Para transición a almacenamiento más barato (Glacier) o eliminación automática.
+
+
+**AWS SES**
+Servicio para envío de correos electrónicos confiables y escalables.
+
+- **Configuración:**
+  - **Región:** us-east-1.
+  - **Identidad verificada:** Dominios y correos electrónicos verificados.
+  - **Políticas de envío:** Limitaciones y tasas configuradas para evitar bloqueos.
+  - **Autenticación:** SPF, DKIM y DMARC configurados para mejorar entregabilidad.
+
+
+**Amazon ElastiCache (Redis)**
+Se usará para albergar el servicio de redis. Se entrará en más detalle en el diseño de los datos.
+
+- **Configuración de Hardware:**
+  - **Modo de cluster:** Cluster mode enabled para sharding o disabled para despliegues pequeños.
+  - **Versión:** Redis 7.x o la más reciente estable compatible.
+  - **Tipo de instancia:** cache.t3.medium (2 vCPU, 4 GB RAM) o superior.
+  - **Multi-AZ:** Activado para alta disponibilidad (opcional).
+  - **Seguridad:** VPC privada, grupos de seguridad restrictivos y cifrado en tránsito y en reposo activados.
 
 
 
-**AWS Lambda:**
-Para funciones serverless que realicen tareas específicas y de corta duración, como el procesamiento de notificaciones o tareas de validación asíncronas.
 
-**Configuración de Hardware:**  Aunque no gestionamos hardware directamente, sí configuraremos los recursos, como:
-- **Memoria:** 1024 MB
-- **Arquitectura:** arm64
-- **Tiempo de ejecución:** Node.js 22.x
-- **Almacenamiento efímero:** 512MB
-- **Tiempo de espera:** 5s
-- **Retry attempts:** 1
 
 ##### Sistema de Monitoreo
 El monitoreo del componente Bioregistro se implementará siguiendo una estrategia de observabilidad integral que permita supervisar en tiempo real el comportamiento, rendimiento y seguridad del microservicio. Esta estrategia se alinea con las tecnologías definidas en el stack tecnológico del proyecto.
@@ -3494,10 +3658,10 @@ La protección de la información crítica del módulo Bioregistro implica conta
     - Utilizaremos un S3 Bucket como almacenamiento de objetos para guardar PDFs y documentos legales sobre las organizaciones.
     - Usaremos DynamoDB como base de datos documental, en ella se almacenará la metadata correspondiente a los documentos en el S3, y también los distintos datos no estructurados que tienen los distintos colectivos. No utilizaremos los servicios de Global Tables ya que el acceso al sistema es principalmente desde Costa Rica. Por lo que solo usaremos 1 region: us-east-1.
     - Cabe aclarar que el Id para las personas físicas será el mismo en Cognito y RDS, mientras que el Id de los colectivos será el mismo tanto en RDS como en Dynamo.
-
+    - También se implementará el uso de Redis por medio de Amazon Elastic Caché. Se usará el modo Clustered para garantizar mayor escalamiento, y se configurará dentro de la misma VPC de los microservicios del Bioregistro, para que así seolo pueda ser accedida desde ahí.
 - **Tecnología Cloud**:
   - RDS
-  - RDS
+  - DynamoDB
   - CloudWatch: Para el monitoreo de dichos servicios de AWS
 
 - **Polítcias y Reglas**:
