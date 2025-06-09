@@ -3029,12 +3029,12 @@ Este componente es el encargado de desacoplar la lógica de notificación a usua
 No expone ninguna interfaz HTTP para comunicarse con otros microservicios; todo su tráfico se gestiona exclusivamente a través de colas en RabbitMQ. Las colas que utilizará son las siguientes:
 
 - manual-verification: Por acá se reciben mensajes para poder notificar al backoffice que deben aprobar manualmente una empresa.
+- register: Para enviar correos con el link al registro una vez identity-verification-service haya terminado la validación de usuarios.
 - mfa-mail: Por esta cola se reciben solicitudes de generar correos con el pin para MFA.
 - send-token: Para poder reenviar un token_uuid del identity-verification-service.
 - send-kek: Para enviar por correo las keks.
 - verify-kek: Para enviar una notificación a traves de las notificaciones dentro de la página, para que un administrador apruebe un usuario.
 - approve-dek: Para notificarle al key-management-service que apruebe el estado del usuario en Representantes a Approve.
-- register: Para enviar correos con el link al registro una vez identity-verification-service haya terminado la validación de usuarios.
 
 Cabe aclarar que los componentes del bioregistro no publicarán mensajes directamente en las cola, se usará una estructura de exchange como la siguiente:
 
@@ -3207,7 +3207,7 @@ Dentro de esa lógica se encuentran el Generator y Verificator, que reciben como
 En esta segunda capa se encuentran:
 
 - RabbitMQMessager: abstrae el envío de mensajes al exchange del bioregistro.
-- PersonService: encapsula las llamadas a las tablas de personas en RDS.
+- SumSubPersonService: encapsula las llamadas a las tablas de personas en RDS.
 - EncryptionManager: se encarga de las operaciones de encripcion de DEkS y creacion de KEKs.
 - DecryptionManager: se encarga de las operaciones Desencripcion de DEKs.
 - DekService: gestiona el acceso a DEKs parciales en RDS.
@@ -3298,9 +3298,6 @@ Se usará para albergar el servicio de redis. Se entrará en más detalle en el 
   - **Tipo de instancia:** cache.t3.medium (2 vCPU, 4 GB RAM) o superior.
   - **Multi-AZ:** Activado para alta disponibilidad (opcional).
   - **Seguridad:** VPC privada, grupos de seguridad restrictivos y cifrado en tránsito y en reposo activados.
-
-
-
 
 
 ##### Sistema de Monitoreo
@@ -3648,6 +3645,16 @@ La protección de la información crítica del módulo Bioregistro implica conta
 3. Restauración automática desde consola de AWS Backup, RDS o S3.
 4. Notificación y verificación de consistencia posterior al recovery.
 5. Registro de incidente en CloudWatch Logs.
+
+
+##### Diagrama del backend
+
+A continuación se presenta el diagrama del backend del Bioregistro. En él se evidencia cómo todo el ecosistema de AWS interactúa con los distintos microservicios desplegados en el clúster de Kubernetes provisto por EKS. También se describen los microservicios internos junto a sus distintas clases, los patrones de diseño utilizados, y cómo interactúan entre sí.
+
+Se muestra cómo la contenerización de cada microservicio se realizará utilizando Docker, y cómo el monitoreo interno será gestionado por Prometheus. Además, se destaca que en la capa externa a AWS se encuentra SumSub, utilizado como sistema de terceros.
+
+![image](img/DiagramaBackendBioregistro.svg)
+
 
 #### Diseño de los Datos
 
