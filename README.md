@@ -3656,7 +3656,7 @@ Para asegurar la continuidad operativa del sistema en caso de fallos, se configu
 
 El almacenamiento de documentos legales y biométricos se realiza en Amazon S3, mientras que DynamoDB se configura con respaldo continuo mediante Point-in-Time Recovery. Estos mecanismos se activan cada vez que se cargan o modifican datos, y garantizan una recuperación confiable en caso de pérdidas o errores.
 
-| Recurso | Tecnología | Implementación | Activación | Ubicación | 
+| Recurso | Tecnología | Implementación | Activación | Ubicación |
 | ------- | ---------- | -------------- | ---------- | --------- |
 | Documentos | **Amazon S3** | Versionado y replicación cruzada semanal | Al cargar o modificar | `us-east-1` / `us-west-1` |
 | Metadatos | **DynamoDB** | Backup continuo con Point-in-Time Recovery | En cada escritura | `us-east-1` |
@@ -3667,8 +3667,8 @@ La supervisión del backend se lleva a cabo en tiempo real gracias a **AWS Cloud
 
 | Tecnología | Rol | Donde se ejecuta | Momento de ejecución |
 | ------- | ---------- | -------------- | ---------- |
-| **CloudWatch** | Captura métricas y logs de servicios AWS | Servicios AWS | En tiempo real y continuo | 
-| **Prometheus** | Recoge métricas internas de microservicios a través de endpoints personalizados | Dentro del clúster EKS | Cada vez que se actualizan métricas | 
+| **CloudWatch** | Captura métricas y logs de servicios AWS | Servicios AWS | En tiempo real y continuo |
+| **Prometheus** | Recoge métricas internas de microservicios a través de endpoints personalizados | Dentro del clúster EKS | Cada vez que se actualizan métricas |
 | **EKS** | Aloja los microservicios del backend y los componentes de monitoreo | AWS (región `us-east-1`) | Siempre activo durante operación |
 | Grafana | Visualiza datos recolectados para análisis y diagnóstico | Conectado a CloudWatch y Prometheus | Monitoreo continuo |
 
@@ -3802,15 +3802,6 @@ Por su parte, la empresa almacena su propia KEK directamente en su tabla corresp
 
 ![image](img/DiagramaBDBioregistro.png)
 
-
-
-### Diagrama General del Frontend
-
-Este si es general de todos los componentes
-
-### Diagrama General del Backend
-
-Este si es general de todos los componentes
 
 ### 4.2 La Bóveda
 
