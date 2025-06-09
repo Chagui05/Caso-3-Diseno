@@ -3800,7 +3800,6 @@ Además, un aspecto clave es el manejo de las llaves en el esquema tripartito. L
 
 Por su parte, la empresa almacena su propia KEK directamente en su tabla correspondiente, mientras que existe una tabla específica que asocia las KEKs de Data Pura Vida con cada empresa registrada.
 
-![image](img/DiagramaBDBioregistro.png)
 
 
 ### 4.2 La Bóveda
