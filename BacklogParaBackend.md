@@ -2,6 +2,91 @@
 
 
 
+#### Modelo de Seguridad
+
+La Bóveda es el componente central para el almacenamiento, recuperación y gestión segura de información sensible, como claves criptográficas, registros de trazabilidad, y documentos oficiales del ecosistema Data Pura Vida. Debido a su naturaleza crítica, implementa un modelo de seguridad reforzado basado en el cifrado extremo a extremo, control de acceso estricto, y auditoría detallada.
+
+---
+
+### 1. Acceso controlado por credenciales cifradas
+
+- La Bóveda requiere que cada operación (consulta, recuperación, descarga) esté asociada a una clave tripartita cifrada(institución, Data Pura Vida, y usuario autorizado).
+- Estas claves se desencriptan en memoria solamente al validar la autorización, y **nunca se almacenan en texto plano**.
+
+---
+
+### 2. Autenticación federada y MFA
+
+- Toda solicitud a La Bóveda pasa por Cognito, utilizando autenticación federada (usuarios de instituciones) y verificación multifactor (OTP, correo institucional).
+- Solo usuarios autenticados con rol institucional específico pueden acceder a recursos bajo su control.
+
+---
+
+### 3. Cifrado extremo a extremo (E2EE)
+
+- Los documentos y registros almacenados en La Bóveda se cifran:
+  - En tránsito (HTTPS/TLS 1.3)
+  - En reposo (AES-256 en S3)
+  - En acceso (desencriptado temporal en memoria RAM protegida)
+- Se usa AWS KMS para gestionar las claves maestras asociadas a cada institución.
+
+---
+
+### 4. Control de acceso basado en roles (RBAC)
+
+- Cada acción está protegida por un sistema de roles jerárquicos que determinan:
+  - Qué usuarios pueden leer, escribir o auditar.
+  - Qué instituciones tienen permisos sobre ciertos archivos o registros.
+- Las políticas de autorización se verifican en el backend mediante decoradores de validación en FastAPI.
+
+---
+
+### 5. Firma digital y registro inmutable
+
+- Toda operación en La Bóveda (subida, acceso, descarga, modificación) queda firmada digitalmente.
+- Se genera una entrada en la bitácora inmutable, con:
+  - ID del usuario
+  - Timestamp
+  - Acción realizada
+  - Firma criptográfica
+
+---
+
+### 6. Detección de integridad y validación de hash
+
+- Al momento de subir archivos, se calcula un hash SHA-256 del contenido original.
+- Cada vez que se accede o descarga el documento, el sistema recalcula el hash y lo compara con el original.
+- Si hay diferencia, se marca como archivo corrupto o alterado.
+
+---
+
+### 7. Registro de auditoría y trazabilidad
+
+- Se mantiene un sistema de logs firmados y cifrados que registra:
+  - Quién accedió a qué documento
+  - Cuándo
+  - Desde qué IP
+  - Con qué resultado (éxito, error, rechazo)
+
+- Esta información se puede consultar solo por usuarios con rol de auditor institucional o personal autorizado del Ministerio.
+
+---
+
+### Tecnologías involucradas
+
+| Componente            | Función                                    |
+|-----------------------|---------------------------------------------|
+| AWS Cognito           | Autenticación federada + MFA               |
+| JWT                   | Token de sesión con claims por institución |
+| AWS S3 + KMS          | Almacenamiento cifrado                     |
+| PostgreSQL / DynamoDB | Metadatos y claves tripartitas             |
+| SHA-256               | Verificación de integridad de archivos     |
+| FastAPI               | Control de acceso y validación de roles    |
+| RabbitMQ              | Bitácora de auditoría y eventos internos   |
+
+
+
+
 **AWS Lambda:**
 Para funciones serverless que realicen tareas específicas y de corta duración, como el procesamiento de notificaciones o tareas de validación asíncronas.
 
