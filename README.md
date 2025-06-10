@@ -3879,11 +3879,9 @@ En cuanto a como se planean guardar los datasets a continuacióń se muestra un 
 
 En la imagen se puede ver cómo se debe tener un almacenamiento central, el cual debe estar dividido lógicamente para los colectivos. Ya después cada colectivo tendrá sus datasets guardados junto con sus tablas, que en ocasiones pueden ser usadas en datasets distintos. Más adelante se verá cómo es que este enfoque será logrado.
 
-
 #### Diseño del Backend
 
 El backend de este componente es más simple, ya que la mayor parte del peso cae en la estructura de la base de datos y su modelo de seguridad. En esta sección solo se comentarán dos funcionalidades: la funcionalidad de trazabilidad y cómo el API interactúa con Redshift.
-
 
 **Trazabilidad:**
 
@@ -3991,9 +3989,6 @@ Más adelante se verá cómo se implementa el RBAC en el sistema, pero el API ta
   - Si no quedan, entonces se rechaza la conexión.
 
 - Ya luego, si se pasó todo el proceso de autorización, se le asigna el rol de IAM correspondiente al dataset por medio de un STS que sirva solo para esa consulta.
-
-
-
 
 
 #### Diseño de los Datos
@@ -4184,6 +4179,512 @@ Se puede ver cómo existe una tabla que almacena la información principal de lo
 Con respecto a la estructura de Redshift, esta es imprescindible, por ello no se muestra en el diagrama; dependerá completamente de lo que suban los usuarios. Eso sí, definitivamente estará separada por schema para cada colectivo.
 
 ![image](img/DiagramaBDBoveda.png)
+
+  
+  
+### 4.3 Centro de Carga
+
+#### Diseño del Frontend
+
+#### Diseño del Backend
+
+##### Microservicios en los Componentes
+
+**1. dataset-upload-service**
+
+Este servicio administra la carga inicial de datasets por parte de usuarios desde múltiples fuentes como archivos Excel, CSV, JSON, APIs o conexiones directas a bases de datos SQL y NoSQL.
+
+Los componentes internos incluyen:
+
+- **UploadController:** Expone los endpoints RESTful para gestionar las solicitudes de carga y configuración inicial de datasets.
+
+  - `/upload/dataset:` Permite subir archivos directamente.
+
+  - `/upload/dataset/api:` Configura y prueba conexiones con APIs externas.
+
+- **ValidationManager:** Realiza la validación inicial de estructura, formato y tipo de archivos recibidos. Se utiliza un patrón Strategy para validar los distintos tipos de datos.
+
+- **TemporaryStorageHandler:** Almacena temporalmente y de forma cifrada datasets en AWS S3 hasta su validación y transformación.
+
+- **MetadataService:** Recopila y gestiona metadatos esenciales, incluyendo nombres, descripciones, tipos de datos y etiquetas para facilitar búsquedas y clasificaciones.
+
+- **UploadFlowCoordinator:** Coordina el flujo completo desde la carga hasta la validación y notificación. Funciona como un patrón Observer.
+
+El flujo principal para cargar un dataset desde un archivo es el siguiente:
+
+1. Inicio del proceso de carga:
+
+- El frontend llama a `POST /upload/dataset`
+```json
+{
+  "userId": "uuid-del-usuario",
+  "datasetName": "Nombre del dataset",
+  "fileType": "CSV",
+  "fileContent": "base64-string"
+}
+```
+2. Recepción y almacenamiento temporal:
+
+- El UploadController recibe la solicitud y extrae la información del archivo.
+
+- Invoca a `TemporaryStorageHandler.storeTemporary()` pasando el archivo decodificado, el nombre del dataset y el userId.
+
+`El TemporaryStorageHandler` ejecuta un flujo como el siguiente:
+
+```python
+import base64
+import uuid
+import boto3
+from cryptography.fernet import Fernet
+
+class TemporaryStorageHandler:
+    def __init__(self, s3_client, encryption_key):
+        self.s3 = s3_client
+        self.fernet = Fernet(encryption_key)
+
+    def storeTemporary(self, base64_file, dataset_name, user_id):
+        decoded = base64.b64decode(base64_file)
+        encrypted = self.fernet.encrypt(decoded)
+        file_id = str(uuid.uuid4()) + ".csv"
+        s3_key = f"temp/{user_id}/{file_id}"
+        self.s3.put_object(Bucket="data-temp-storage", Key=s3_key, Body=encrypted)
+        return {
+            "s3_url": f"s3://data-temp-storage/{s3_key}",
+            "file_id": file_id
+        }
+```
+- El resultado se guarda en la tabla `DatasetUploadTemp` con estado "uploaded".
+
+3. Validación inicial:
+
+- ValidationManager toma la URL del archivo en S3 desde DatasetUploadTemp.
+
+- Descarga el archivo cifrado, lo descifra, y realiza validaciones básicas:
+
+  - Revisión de encabezados.
+  - Coherencia de tipos de datos por columna.
+  - Detección de campos vacíos y estructura tabular.
+  - Nombre unico de Dataset.
+
+import pandas as pd
+from cryptography.fernet import Fernet
+import boto3
+
+```python
+class ValidationManager:
+    def __init__(self, s3_client, encryption_key):
+        self.s3 = s3_client
+        self.fernet = Fernet(encryption_key)
+
+    def validate(self, s3_key):
+        try:
+            obj = self.s3.get_object(Bucket="data-temp-storage", Key=s3_key)
+            decrypted = self.fernet.decrypt(obj['Body'].read())
+            df = pd.read_csv(pd.compat.StringIO(decrypted.decode('utf-8')))
+            assert df.columns is not None
+            assert not df.isnull().all(axis=1).any()
+            return True
+        except Exception as e:
+            logger.error(f"Error en validación de dataset: {str(e)}")
+            raise
+```
+4. Generación de metadatos:
+
+- `MetadataService` analiza el dataset para inferir tipos de columnas, campos sensibles, distribución de valores y patrones de datos.
+
+```py
+class MetadataService:
+    def generate(self, dataframe, dataset_id):
+        try:
+            summary = {
+                "num_columns": len(dataframe.columns),
+                "columns": list(dataframe.columns),
+                "types": dataframe.dtypes.astype(str).to_dict(),
+                "sample_rows": dataframe.head(5).to_dict(orient="records")
+            }
+            # Genera un resumen que se almacena en la tabla   `DatasetMetadata`
+            db.insert("DatasetMetadata", dataset_id=dataset_id, summary=summary) 
+            return summary
+        except Exception as e:
+            logger.error(f"Error al generar metadatos para el dataset {dataset_id}: {str(e)}")
+            raise
+```
+
+5. Notificación y confirmación:
+
+- `UploadFlowCoordinator` utiliza RabbitMQ para enviar mensajes al notification-service, el cual notifica al usuario por correo electrónico sobre el éxito de la carga inicial y los siguientes pasos para configurar detalladamente el dataset.
+
+```py
+import pika
+import json
+
+class UploadFlowCoordinator:
+    def __init__(self):
+        connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq-host'))
+        self.channel = connection.channel()
+        self.channel.queue_declare(queue='notification-queue')
+
+    def notify_success(self, user_id, dataset_id):
+        message = {
+            "type": "upload_success",
+            "user_id": user_id,
+            "dataset_id": dataset_id,
+            "message": "El dataset fue cargado y validado exitosamente."
+        }
+        self.channel.basic_publish(
+            exchange='',
+            routing_key='notification-queue',
+            body=json.dumps(message)
+        )
+```
+
+6. Respuesta al frontend:
+```json
+{
+  "datasetId": "uuid-del-dataset",
+  "status": "initial-validation-passed"
+}
+```
+**2. dataset-configuration-service**
+
+Este servicio permite configurar el comportamiento de los datasets ya cargados, incluyendo privacidad, acceso, monetización y periodicidad de actualización. A continuación los componentes internos:
+
+- **ConfigurationController:** Expone los endpoints para definir políticas de configuración por dataset.
+  - `/config/dataset/access`
+  - `/config/dataset/payment`
+  - `/config/dataset/delta`
+
+- **PermissionHandler:** Valida si el usuario tiene permisos administrativos sobre el dataset.
+
+- **PaymentModelService:** Aplica lógica de monetización basada en reglas.
+
+- **DeltaUploadManager:** Define y activa las configuraciones de carga periódica.
+
+**Flujo completo de configuración de un dataset:**
+
+1. Definición de acceso
+
+- El frontend realiza una solicitud `POST /config/dataset/access` con el datasetId y el tipo de acceso:
+```json
+{
+  "datasetId": "uuid-del-dataset",
+  "access": "public|private|restricted",
+  "allowedUsers": ["uuid-user1", "uuid-user2"]
+}
+```
+
+- `ConfigurationController` llama a `PermissionHandler.validateOwnership()` para validar que el usuario tenga permisos sobre ese dataset.
+
+- Si pasa la validación, se actualiza `DatasetPolicies` con el nuevo tipo de acceso.
+
+2. Configuración de monetización
+
+- Se llama a `POST /config/dataset/payment`:
+
+```json
+{
+  "datasetId": "uuid-del-dataset",
+  "model": "subscription|per_request|free",
+  "price": 9.99,
+  "period": "monthly"
+}
+```
+
+- `ConfigurationController` delega a `PaymentModelService`, que valida el modelo y registra las condiciones en la tabla `DatasetPricing`.
+
+3. Configuración de cargas incrementales
+
+- Solicitud `POST /config/dataset/delta`:
+```json
+{
+  "datasetId": "uuid-del-dataset",
+  "cron": "0 0 * * *",
+  "connectionId": "secreto-en-secrets-manager",
+  "mode": "delta",
+  "deltaFields": ["updated_at", "timestamp"],
+  "triggerMethod": "timed_pull|callback"
+}
+```
+
+- `DeltaUploadManager` invoca a `SecurityController.retrieve()` para obtener credenciales.
+
+- Si triggerMethod es callback, se registra una URL webhook que otro sistema puede llamar para iniciar la carga.
+
+- deltaFields define los campos que se usarán como referencia para obtener solo los datos nuevos o modificados desde la última carga.
+
+- Se genera una tarea cron en AWS EventBridge, enlazada a una función Lambda que ejecuta el `DeltaUploader`.
+
+Ejemplo de configuración delta en código:
+
+```py
+class DeltaUploadManager:
+    def schedule_delta_ingestion(self, dataset_id, cron_expr, secret_id):
+        credentials = security_service.retrieve(secret_id)
+        config = {
+            "dataset_id": dataset_id,
+            "cron": cron_expr,
+            "credentials": credentials
+        }
+        cloud_scheduler.create_job(dataset_id, cron_expr, config)
+        db.insert("DeltaConfigurations", dataset_id=dataset_id, config=config)
+```
+Respuesta al frontend:
+```json
+{
+  "status": "configured",
+  "datasetId": "uuid-del-dataset"
+}
+```
+
+4. Políticas de acceso y restricción
+
+El sistema de configuración permite definir restricciones adicionales sobre el acceso a datasets privados o pagos. Estas políticas se aplican automáticamente en los microservicios de consulta y son definidas por el usuario administrador del dataset a través de `ConfigurationController`.
+
+  - El sistema de permisos evita accesos no autorizados mediante `RBAC` gestionadas por `PermissionHandler`.
+
+- Se puede restringir el acceso a los datos con base en:
+
+  - **Tiempo:** duración del permiso.
+  - **Volumen:** límite de consultas.
+  - **Frecuencia:** control por intervalo.
+
+Estas condiciones se almacenan en la tabla `AccessPolicy` y son validadas dinámicamente por los gateways de entrada antes de permitir acceso al dataset.
+
+Respuesta al frontend:
+```json
+{
+  "status": "configured",
+  "datasetId": "uuid-del-dataset"
+}
+```
+
+**3. security-service**
+
+Este servicio centraliza el manejo seguro de credenciales y parámetros sensibles relacionados con fuentes de datos externas utilizadas por otros microservicios como dataset-upload-service y dataset-configuration-service. Contiene los siguientes componentes:
+
+- **SecurityController:** Expone endpoints REST para almacenar y recuperar secrets que se encuentran cifrados.
+
+  - `/security/store`: Almacena secretos de conexión (usuario, contraseña, API key).
+  - `/security/retrieve`: Devuelve los secretos descifrados para uso interno de microservicios.
+
+- **EncryptionManager:** Se encarga del cifrado y descifrado utilizando AES-256, e integra políticas de rotación automática de llaves.
+
+- **SecretsManagerHandler:** Utiliza AWS Secrets Manager para persistencia de secretos de forma segura y auditable.
+
+Flujos principales del microservicio:
+
+1. Almacenamiento de credenciales
+
+  - Cuando un dataset se configura para carga por conexión externa, el frontend envía:
+```json
+{
+  "connectionName": "prod-db",
+  "username": "usuario",
+  "password": "secreto123",
+  "type": "postgres"
+}
+```
+
+- `SecurityController` recibe la solicitud y llama a `EncryptionManager.encrypt()` para cifrar los datos.
+
+`SecretsManagerHandler` almacena el secreto bajo una clave.
+```py
+class EncryptionManager:
+    def encrypt(self, data):
+        return self.fernet.encrypt(data.encode()).decode()
+
+class SecretsManagerHandler:
+    def store_secret(self, key, secret_data):
+        client.put_secret_value(SecretId=key, SecretString=secret_data)
+```
+
+2. Recuperación de credenciales
+
+Otro microservicio solicita el secreto con un secretId:
+```json
+{
+  "secretId": "id123"
+}
+```
+- `SecurityController` consulta a `SecretsManagerHandler` y luego llama a `EncryptionManager.decrypt()` para descifrar antes de devolverlo.
+
+```py
+class EncryptionManager:
+    def decrypt(self, token):
+        return self.fernet.decrypt(token.encode()).decode()
+```
+
+Respuesta:
+
+```json
+{
+  "username": "usuario",
+  "password": "secreto123",
+  "type": "postgres"
+}
+```
+
+**4. validation-service**
+
+Este microservicio se encarga de validar la estructura, consistencia y calidad de los datasets cargados antes de ser publicados o utilizados por otros servicios del ecosistema. Tiene los siguientes componentes:
+
+- **DeepValidationController:** Expone endpoints REST para solicitar validaciones.
+
+  - `/validate/schema`: Valida que la estructura del dataset coincida con un esquema esperado.
+  - `/validate/consistency`: Realiza pruebas de integridad referencial, duplicados y coherencia interna de datos.
+
+- **QualityManager:** Ejecuta reglas de calidad de datos, incluyendo detección de columnas incompletas, valores extremos y anomalías estadísticas.
+
+**Flujo principal de validación:**
+
+1. Solicitud de validación avanzada
+
+- El frontend invoca: POST /validate/schema
+
+```json
+{
+  "datasetId": "uuid-del-dataset",
+  "schemaId": "uuid-del-schema"
+}
+```
+
+- `DeepValidationController` recupera el dataset desde S3 y el esquema de referencia.
+
+- Se inicia el proceso de validación estructural y semántica.
+
+2. Validación obligatoria de campos mínimos
+
+- Se requiere que todo dataset tenga como mínimo:
+  - Un nombre único validado con la base de datos `Datasets`.
+  - Una descripción general
+  - Metadatos por columna incluyendo nombre, tipo, descripción y si es útil para IA (ej: `is_ml_feature=true`).
+
+```py
+def check_required_metadata(dataset):
+    assert dataset.name is not None and is_unique(dataset.name)
+    assert dataset.description is not None
+    for column in dataset.columns:
+        assert column.name and column.type and column.description
+``` 
+
+3. Verificación de calidad
+
+- `QualityManager` carga el dataset y aplica reglas como:
+
+  - % de valores nulos por columna.
+  - Distribución de datos por columna (media, moda, outliers).
+  - Consistencia de tipos y dominios.
+
+```py
+class QualityManager:
+    def run_checks(self, df):
+        summary = {}
+        for col in df.columns:
+            summary[col] = {
+                "null_pct": df[col].isnull().mean(),
+                "unique": df[col].nunique(),
+                "type": str(df[col].dtype)
+            }
+        return summary
+```
+
+
+4. Notificación
+
+Se envía una notificación al usuario sobre el resultado de la validación utilizando el notification-service.
+
+```json
+{
+  "status": "validated_with_warnings",
+  "reportUrl": "https://s3.amazonaws.com/reports/datasetId_validation.pdf"
+}
+```
+
+
+**5. notification-service**
+
+Este servicio permite comunicar eventos relevantes del sistema a los usuarios finales y a sistemas administrativos mediante colas de mensajes, correo electrónico o notificaciones en la aplicación. Tiene los siguientes componentes: 
+
+
+- **NotificationListener:** Escucha los mensajes que llegan a la cola `notification-queue` de RabbitMQ y lo procesa con los handlers segun el tipo de evento.
+
+- **EmailNotificationHandler:** Envia emails a los usuarios utilizando Amazon SES.
+
+- **AppNotificationHandler:** Publica notificaciones en el feed de la aplicación, visibles desde el frontend.
+
+- **AppNotificationHandler:** Publica notificaciones internas en el feed de la aplicación, visibles desde el frontend.
+
+- **WebhookNotificationHandler:** Envía notificaciones a servicios externos vía HTTP POST (por ejemplo, para sistemas de auditoría externos).
+
+- **AdminAuditHandler:** Registra eventos críticos como fallos de validación o problemas de pago en un log especial para revisión administrativa.
+
+- **SMSNotificationHandler:** Envia alertas por mensaje de texto usando plataformas como Twilio para eventos urgentes.
+
+Tabla de rutas posibles:
+
+| Tipo de evento | Handlers |
+| -------  | ----------  |
+|`upload_success`|`EmailNotificationHandler`, `AppNotificationHandler`|
+|`validation_failed` |`EmailNotificationHandler, AdminAuditHandler` |
+|`external_alert` |`WebhookNotificationHandler`|
+|`quota_exceeded` |`AppNotificationHandler`, `EmailNotificationHandler` |
+|`admin_warning` |`AdminAuditHandler`, `EmailNotificationHandler`|
+
+**Flujo típico de notificación por evento exitoso:**
+
+1. Otro microservicio (por ejemplo `upload-service` o `validation-service`) publica un mensaje a RabbitMQ con estructura:
+
+```json
+{
+  "type": "upload_success",
+  "user_id": "uuid-user",
+  "dataset_id": "uuid-dataset",
+  "message": "Tu dataset fue cargado y validado exitosamente."
+}
+```
+
+2. NotificationListener consume el mensaje y delega la tarea al handler correspondiente:
+
+```py
+import pika
+import json
+
+class NotificationListener:
+    def __init__(self):
+        connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq-host'))
+        self.channel = connection.channel()
+        self.channel.queue_declare(queue='notification-queue')
+
+    def start_listening(self):
+        def callback(ch, method, properties, body):
+            data = json.loads(body)
+            if data['type'] == 'upload_success':
+                EmailNotificationHandler.send_success_email(data['user_id'], data['dataset_id'])
+                AppNotificationHandler.add_to_feed(data['user_id'], data['message'])
+
+        self.channel.basic_consume(queue='notification-queue', on_message_callback=callback, auto_ack=True)
+        self.channel.start_consuming()
+```
+
+3. El correo es enviado mediante EmailNotificationHandler.`send_success_email()` y la notificación se agrega al feed del usuario.
+
+Respuesta esperada:
+```json
+{
+  "status": "notified",
+  "user_id": "uuid-user",
+  "dataset_id": "uuid-dataset"
+}
+```
+
+
+##### Diagrama de Clases
+
+##### Servicios de AWS
+
+##### Monitoreo
+
+##### Modelo de seguridad detallado
 
 
 ## 5. Validación de los requerimientos
