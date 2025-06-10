@@ -4376,7 +4376,7 @@ centro-carga-frontend/
 
 ### Diagrama del Frontend 
 
-
+![alt text](image.png)
 
 #### Diseño del Backend
 
