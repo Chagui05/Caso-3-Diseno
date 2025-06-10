@@ -4202,7 +4202,7 @@ La arquitectura implementa **CSR** con contenido estático servido desde **S3** 
 
 ### DIAGRAMA DE PATRONES DE DISEÑO IMPLEMENTADOS
 
-
+![alt text](image-1.png)
 
 #### Chain of Responsibility - Procesamiento de Fuentes de Datos
 
@@ -4227,13 +4227,6 @@ Los datasets requieren configuraciones completamente diferentes según su nivel 
 #### Builder Pattern - Configuración Paso a Paso
 
 La configuración de datasets es compleja y requiere múltiples pasos con validaciones interdependientes. El patrón Builder permite construir la configuración gradualmente. Se activa durante la navegación del wizard de configuración, persistiendo automáticamente cada paso.
-
-**Implementación en Frontend:**
-
-- **Step 1 - Visibilidad**: Define nivel de acceso con validación de permisos del usuario
-- **Step 2 - Pricing**: Configura modelo económico (solo para datasets pagados)
-- **Step 3 - Acceso**: Establece restricciones temporales, volumétricas y de frecuencia
-- **Step 4 - Finalización**: Valida consistencia total antes del envío al backend
 
 #### Singleton/Facade - Gateway Centralizado
 
