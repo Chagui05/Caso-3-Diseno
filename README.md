@@ -2411,26 +2411,26 @@ A continuación se muestra el flujo completo de interacción entre frontend y es
 
 1. La persona inicia el proceso de verificación:
 - Frontend llama a: POST /sumsub/person/token:
-```json
-{
-  "email": "email de la persona",
-  "Nombre": "nombre de la persona",
-  "Apellido1": "Primer apeliido de la persona",
-  "Apellido2": "Segundo apellido de la persona",
-  "Telefono": "telefono de la persona",
-  "direccion": "dirección donde vive la persona"
-}
-```
+  ```json
+  {
+    "email": "email de la persona",
+    "Nombre": "nombre de la persona",
+    "Apellido1": "Primer apeliido de la persona",
+    "Apellido2": "Segundo apellido de la persona",
+    "Telefono": "telefono de la persona",
+    "direccion": "dirección donde vive la persona"
+  }
+  ```
 - El SumSubController dirige la carga al PersonService que se encargará de registrar el Applicant en SumSub y enviarle un UUID interno. Obtendrá de respuesta el Id interno de SumSub que se usará para realizar la verificación.
   - También en la tabla de SumSubApplicants se registrará el UUID interno, una fila llamada Approved en False, y todas las credenciales dadas. Esto permitirá que cuando las personas traten de registrarse solo puedan una ves este flag sea cambiado a True (Más detalles sobre el registro serán explicados en el registration-service).
 
 - Se retorna al frontend:
-```json
-{
-  "SumSubId": "id-de-sumsub",
-  "InternalId": "uuid-del-sistema"
-}
-```
+  ```json
+  {
+    "SumSubId": "id-de-sumsub",
+    "InternalId": "uuid-del-sistema"
+  }
+  ```
 2. El sdk de SumSub realiza la prueba de vida, la verificación de id, y la prueba de dirección física:
 
 - En este punto el proceso puede durar desde minutos a horas, por lo que se detiene el proceso.
@@ -2438,34 +2438,34 @@ A continuación se muestra el flujo completo de interacción entre frontend y es
 3. Llamada al Webhook desde SumSub:
 - Una vez SumSub haya finalizado el proceso de verificación procedera a llamar al endpoint (En el dashboard de SumSub se puede configurar una uri hacia donde mandar las verificaciones) del webhook por medio de una solicitud POST a /sumsub/person/webhook con la siguiente información:
 
-```json
-{
-  "event": "applicantApproved",
-  "applicantId": "sumsub-uuid",
-  "externalUserId": "uuid-interno-del-sistema",
-  "timestamp": "2025-06-06T15:00:00Z"
-}
-```
+  ```json
+  {
+    "event": "applicantApproved",
+    "applicantId": "sumsub-uuid",
+    "externalUserId": "uuid-interno-del-sistema",
+    "timestamp": "2025-06-06T15:00:00Z"
+  }
+  ```
 - Se envía dicha información a WebHookProcessor para que empiece el proceso de aprobación:
   - Se pone el estado en SumSubApplicants como approved en True.
   - Se genera un token UUID, el cual será guardado en Redis junto al UUID del usuario en SumSubApplicants, de la siguiente forma:
 
-``` python
-import redis
-import uuid
+    ``` python
+    import redis
+    import uuid
 
-r = redis.Redis(host='localhost', port=6379, db=0)
+    r = redis.Redis(host='localhost', port=6379, db=0)
 
-token = str(uuid.uuid4())
-sumsub_id = "abc123" #Este id viene desde el webhook
+    token = str(uuid.uuid4())
+    sumsub_id = "abc123" #Este id viene desde el webhook
 
-r.setex(f"registration_token:{token}", 86400, sumsub_id) #Para que persista por 24 horas
-```
+    r.setex(f"registration_token:{token}", 86400, sumsub_id) #Para que persista por 24 horas
+    ```
 
   - Ya que se tiene el token se envía un mensaje por medio de RabbitMQ al Notification Service para que envíe un correo con un link al registro, que lleve de query parameter el token:
-``` txt
-https://data-pura-vida.com/register/person?token=<token_uuid>
-```
+    ``` txt
+    https://data-pura-vida.com/register/person?token=<token_uuid>
+    ```
   - Más adelante, en el registration-service se dirá como se manejará el registro con base en dicho token de redis.
 
 4. El proceso de verificación fue exitoso, se continua a registro.
@@ -2474,34 +2474,34 @@ Ahora, se muestra el flujo completo de interacción entre frontend y este compon
 
 1. La persona representante del colectivo inicia el proceso de verificación:
 - Frontend llama a: POST /sumsub/collective/token:
-```json
-{
-  "email": "persona@ejemplo.com"
-}
-```
+  ```json
+  {
+    "email": "persona@ejemplo.com"
+  }
+  ```
 - El SumSubController dirige la carga al CollectiveService que se encargará de registrar el Applicant en SumSub y enviarle un UUID interno. Obtendrá de respuesta el Id interno de SumSub que se usará para realizar la verificación.
 
 - Se retorna al frontend:
-```json
-{
-  "SumSubId": "id-de-sumsub",
-  "InternalId": "uuid-del-sistema"
-}
-```
+  ```json
+  {
+    "SumSubId": "id-de-sumsub",
+    "InternalId": "uuid-del-sistema"
+  }
+  ```
 2. El sdk de SumSub realiza la búsqueda de Colectivo en el registro nacional
 
 3. El usuario adjunta al formulario los documentos legales según el tipo de colectivo, y los representantes que ya deben de estar previamente registrados en el sistema (Cabe aclarar que el administrador de la empresa que está haciendo la gestión del registro también debe de estar registrado en el sistema de Data Pura Vida)
 
 - El frontend lo envía por medio de /sumsub/collective/check-documents/collective-type
 
-```json
-{
-  "applicantId": "sumsub-uuid",
-  "Representatives": "[Lista de objetos de tipo PersonaFísica]",
-  "Admin": "{Objeto de tipo PersonaFisica correspondiente al que está gestionando el registro del colectivo}",
-  "Documents": "[Los documentos legales según el tipo de colectivo]"
-}
-```
+  ```json
+  {
+    "applicantId": "sumsub-uuid",
+    "Representatives": "[Lista de objetos de tipo PersonaFísica]",
+    "Admin": "{Objeto de tipo PersonaFisica correspondiente al que está gestionando el registro del colectivo}",
+    "Documents": "[Los documentos legales según el tipo de colectivo]"
+  }
+  ```
 
 - El SumSubController dirige la ejecución al CollectiveService.
 
@@ -2518,36 +2518,36 @@ Ahora, se muestra el flujo completo de interacción entre frontend y este compon
 4. Llamada al Webhook desde SumSub:
 - Una vez SumSub haya finalizado el proceso de verificación procederá a llamar al endpoint del webhook por medio de una solicitud POST a /sumsub/collective/webhook con la siguiente información:
 
-```json
-{
-  "event": "applicantApproved",
-  "applicantId": "sumsub-uuid",
-  "externalUserId": "uuid-interno-del-sistema",
-  "timestamp": "2025-06-06T15:00:00Z"
-}
-```
+  ```json
+  {
+    "event": "applicantApproved",
+    "applicantId": "sumsub-uuid",
+    "externalUserId": "uuid-interno-del-sistema",
+    "timestamp": "2025-06-06T15:00:00Z"
+  }
+  ```
 
 - Se envía dicha información a WebHookProcessor para que empiece el proceso de aprobación:
   - Se pone el estado en SumSubCollectiveApplicant como approved en True.
   - Se genera un token UUID, el cual será guardado en Redis junto al UUID del colectivo en SumSubCollectiveApplicant, de la siguiente forma:
 
-``` python
-import redis
-import uuid
+    ``` python
+    import redis
+    import uuid
 
-r = redis.Redis(host='localhost', port=6379, db=0)
+    r = redis.Redis(host='localhost', port=6379, db=0)
 
-token = str(uuid.uuid4())
-sumsub_id = "abc123" #Este id viene desde el webhook
+    token = str(uuid.uuid4())
+    sumsub_id = "abc123" #Este id viene desde el webhook
 
-r.setex(f"collective-register:{token}", 86400, sumsub_id) #Para que persista por 24 horas
-```
+    r.setex(f"collective-register:{token}", 86400, sumsub_id) #Para que persista por 24 horas
+    ```
 
 - Ya que se tiene el token se envía un mensaje por medio de RabbitMQ al Notification Service para que envíe un correo con un link a la creación de llaves tripartitas, que lleve de query parameter el token:
 
-``` txt
-https://data-pura-vida.com/collective-register?token=<token_uuid>
-```
+  ``` txt
+  https://data-pura-vida.com/collective-register?token=<token_uuid>
+  ```
   - Más adelante, en el  registration-service se dirá como se manejará el registro con base en dicho token de redis.
 
 4. El proceso de verificación fue exitoso, se continua a creación de las llaves tripartita.
@@ -2614,13 +2614,13 @@ A continuación se muestra el flujo completo de inicio de sesión con MFA en la 
 1. El usuario inicia sesión:
 - Frontend llama a: POST /auth/login:
 
-```json
-{
-  "identifier": "santi@gmail.com",
-  "authMethod": "password", // o "otp"
-  "password": "****" // solo si es método "password"
-}
-```
+  ```json
+  {
+    "identifier": "santi@gmail.com",
+    "authMethod": "password", // o "otp"
+    "password": "****" // solo si es método "password"
+  }
+  ```
 - AuthController recibe el request y llama a AuthChoiceHandler para enrutar según authMethod.
 
 2. Verificación de credenciales (si es con contraseña)
@@ -2637,14 +2637,14 @@ A continuación se muestra el flujo completo de inicio de sesión con MFA en la 
 4. Usuario envía su código MFA
 - Frontend llama a: POST /auth/login/veriyf-mfa con:
 
-```json
-{
-  "code": "123456",
-  "session": "eyJraWQiOi...",
-  "identifier": "santi@gmail.com",
-  "deliveryMethod": "email"
-}
-```
+  ```json
+  {
+    "code": "123456",
+    "session": "eyJraWQiOi...",
+    "identifier": "santi@gmail.com",
+    "deliveryMethod": "email"
+  }
+  ```
 - AuthController pasa a MFAService.verifyCode()
   - Llama a CognitoService.respondToAuthChallenge()
   - Si todo bien, devuelve los JWT tokens (ID, access, refresh).
@@ -2689,54 +2689,54 @@ A continuación se presenta el flujo de registro de una persona física:
 
 - Se retorna al frontend:
 
-```json
-{
-  "status": "approved"
-}
-```
+  ```json
+  {
+    "status": "approved"
+  }
+  ```
 
 2. El usuario registra su contraseña en el frontend
 
 - Hace un POST a /register/person:
 
-```json
-{
-  "token": "El mismo Token UUID de redis",
-  "Password": "Contraseña del usuario"
-}
-```
+  ```json
+  {
+    "token": "El mismo Token UUID de redis",
+    "Password": "Contraseña del usuario"
+  }
+  ```
 
 - Solo se solicita el password porque las credenciales ya habían sido obtenidas por medio del identity-verification-service. Si se volvieran a pedir, estariamos arriesgando que un usuario use credenciales reales en el identity-verification-service, pero en este servicio invente información.
 
 - Primero se hace el registro del usuario en la cognito pool, y se extrae el UUID usado en dicha pool, para usarlo también en RDS, de esta forma se guarda simetría entre ambos sistemas. Se hace de la siguiente forma:
 
-``` Python
-import boto3
+  ``` Python
+  import boto3
 
-client = boto3.client('cognito-idp', region_name='us-east-1')
+  client = boto3.client('cognito-idp', region_name='us-east-1')
 
-#Se crea el usuario en cognito
-response = client.admin_create_user(
-    UserPoolId='user-pool-id',
-    Username='correo@ejemplo.com',
-    UserAttributes=[
-        {'Name': 'email', 'Value': 'correo@ejemplo.com'},
-        {'Name': 'email_verified', 'Value': 'true'},
-    ],
-    MessageAction='SUPPRESS'
-)
+  #Se crea el usuario en cognito
+  response = client.admin_create_user(
+      UserPoolId='user-pool-id',
+      Username='correo@ejemplo.com',
+      UserAttributes=[
+          {'Name': 'email', 'Value': 'correo@ejemplo.com'},
+          {'Name': 'email_verified', 'Value': 'true'},
+      ],
+      MessageAction='SUPPRESS'
+  )
 
-#Se registra su contraseña
-client.admin_set_user_password(
-    UserPoolId='user-pool-id',
-    Username='correo@ejemplo.com',
-    Password='LaContraseniaQuePidioElUsuario123',
-    Permanent=True
-)
+  #Se registra su contraseña
+  client.admin_set_user_password(
+      UserPoolId='user-pool-id',
+      Username='correo@ejemplo.com',
+      Password='LaContraseniaQuePidioElUsuario123',
+      Permanent=True
+  )
 
-# Se extrae el UUID generado por Cognito
-sub = next(attr['Value'] for attr in response['User']['Attributes'] if attr['Name'] == 'sub')
-```
+  # Se extrae el UUID generado por Cognito
+  sub = next(attr['Value'] for attr in response['User']['Attributes'] if attr['Name'] == 'sub')
+  ```
 
 3. Registro en el Sistema
 
@@ -2752,11 +2752,11 @@ Otro proceso posible es el de creación de un nuevo token en caso de que el TTL 
 1. Desde el Frontend el usuario hace:
 - POST /register/person/generate-token
 
-```json
-{
-  "email": "correo con el que se gestionó la verificación"
-}
-```
+  ```json
+  {
+    "email": "correo con el que se gestionó la verificación"
+  }
+  ```
 
 - Esto lo enruta al TokenManager.
 
@@ -2779,32 +2779,32 @@ Finalmente se presenta el flujo de registro de un Colectivo:
 
 - Se retorna al frontend:
 
-```json
-{
-  "status": "approved"
-}
-```
+  ```json
+  {
+    "status": "approved"
+  }
+  ```
 
 2. Se llama a la creación de KEKs (Key Encryption Key) y DEKs parciales
 - Hace un POST a /register/collective/key-generation
 
-```json
-{
-  "token": "El mismo Token UUID de redis"
-}
-```
+  ```json
+  {
+    "token": "El mismo Token UUID de redis"
+  }
+  ```
 
 - Se enruta al KeyGenerationHandler que llamará por medio de su REST API al key-management-service. Se le enviará el token UUID de redis para que haga la gestión de llaves tripartita.
 
 - Se espera como valor de retorno:
 
-```json
-{
-  "admin_dek": "La DEK asignada al administrador del colectivo",
-  "dpv_dek": "La DEK asignada a data pura vida",
-  "representatives_dek": "[IdDelRepresentate : DEK del representante]"
-}
-```
+  ```json
+  {
+    "admin_dek": "La DEK asignada al administrador del colectivo",
+    "dpv_dek": "La DEK asignada a data pura vida",
+    "representatives_dek": "[IdDelRepresentate : DEK del representante]"
+  }
+  ```
 - Cabe aclarar que cada DEK es un dictionary (en el key-management-service se muestra de que consiste), que debe ser guardado en postgres como JSONB.
 
 3. Registro de información:
@@ -2825,62 +2825,61 @@ Desde el frontend se hace
 
 - Se crea un rol de IAM para que el colectivo pueda acceder a los datasets que suba, más explicación sobre como sirve esto se verá en el componente de la bóveda:
   - Se crea el json sobre el rol:
-``` json
-{
-  "RoleName": "DPV_DataAccess_Colectivo1234",
-  "AssumeRolePolicyDocument": {
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Allow", # esta política significa que es un rol de permisión
-        "Principal": {
-          "Federated": "cognito-identity.amazonaws.com" # El rol se asgina a suarios federados que vienen de cognito
-        },
-        "Action": "sts:AssumeRoleWithWebIdentity", # Es para que un usuario obtenga dicho rol temporalmente mediante su JWT Token de sts con duración limitada
-        "Condition": {
-          "StringEquals": {
-            "cognito-identity.amazonaws.com:aud": "REGION:IDENTITY_POOL_ID" # Solo se puede usar el token si viene de ese cognito pool
+    ``` json
+    {
+      "RoleName": "DPV_DataAccess_Colectivo1234",
+      "AssumeRolePolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow", # esta política significa que es un rol de permisión
+            "Principal": {
+              "Federated": "cognito-identity.amazonaws.com" # El rol se asgina a suarios federados que vienen de cognito
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity", # Es para que un usuario obtenga dicho rol temporalmente mediante su JWT Token de sts con duración limitada
+            "Condition": {
+              "StringEquals": {
+                "cognito-identity.amazonaws.com:aud": "REGION:IDENTITY_POOL_ID" # Solo se puede usar el token si viene de ese cognito pool
+              }
+            }
           }
-        }
-      }
-    ]
-  },
-  "Description": "Rol para acceder al dataset de Empresas 2024 en DPV"
-}
-```
+        ]
+      },
+      "Description": "Rol para acceder al dataset de Empresas 2024 en DPV"
+    }
+    ```
 
   - Se crea el rol en IAM de aws:
 
-a. Crear un rol
-``` python
-import boto3
-import json
+    ``` python
+    import boto3
+    import json
 
-iam = boto3.client('iam')
+    iam = boto3.client('iam')
 
-role_name = 'DPV_DataAccess_Colectivo1234'
+    role_name = 'DPV_DataAccess_Colectivo1234'
 
-policy_document = {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "redshift-data:ExecuteStatement",         # Ejecutar SELECTs y otros SQL
-                "lakeformation:GetDataAccess",            # Permiso de LakeFormation para consultar datos
-            ],
-            "Resource": "*"
-        }
-    ]
-}
-response = iam.create_role(
-    RoleName=role_name,
-    AssumeRolePolicyDocument=json.dumps(assume_role_policy),
-    Description="Rol para acceder a dataset Empresas 2024"
-)
+    policy_document = {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "redshift-data:ExecuteStatement",         # Ejecutar SELECTs y otros SQL
+                    "lakeformation:GetDataAccess",            # Permiso de LakeFormation para consultar datos
+                ],
+                "Resource": "*"
+            }
+        ]
+    }
+    response = iam.create_role(
+        RoleName=role_name,
+        AssumeRolePolicyDocument=json.dumps(assume_role_policy),
+        Description="Rol para acceder a dataset Empresas 2024"
+    )
 
-print("Rol creado:", response['Role']['Arn'])
-```
+    print("Rol creado:", response['Role']['Arn'])
+    ```
 
 Esos fueron los flujos principales del microservicio de registration-service
 
@@ -2910,11 +2909,11 @@ A continuación algunos flujos del microservicio que muestrán cuando y donde se
 1. Llega el request a creación desde el registration-service:
 - Por medio de POST /encrypt/collective
 
-```json
-{
-  "token": "El mismo Token UUID de redis"
-}
-```
+  ```json
+  {
+    "token": "El mismo Token UUID de redis"
+  }
+  ```
 - el KeyManagementController pasa el control al Generator.
 
 - Con dicho token se saca el UUID que se encuentra en redis por medio de: collective-register:<TOKEN_UUID>.
@@ -2927,75 +2926,74 @@ A continuación algunos flujos del microservicio que muestrán cuando y donde se
 
 3. Creación de keys
 - El Generator llama al EncryptionManager por medio del API de FastAPI que posee y le envía los representantes para que sepa cuantas KEKs/DEKs debe generar:
-```json
-{
-  "representatives": "[Los ids en la base de datos de dichos usuarios]"
-}
-```
+  ```json
+  {
+    "representatives": "[Los ids en la base de datos de dichos usuarios]"
+  }
+  ```
 
--Cabe aclarar que el proceso de encripción a utilizar es un AES-GCM, que posee la robustes de AES y además da un tag que dice la validez de la encripción, para evitar que se hagan modificaciones (es como un checksum)
+- Cabe aclarar que el proceso de encripción a utilizar es un AES-GCM, que posee la robustes de AES y además da un tag que dice la validez de la encripción, para evitar que se hagan modificaciones (es como un checksum)
 
+  ```Python
+  from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+  from cryptography.hazmat.backends import default_backend
+  import os
+  import base64
 
-```Python
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
-import os
-import base64
+  # Función para cifrar la DEK con un KEK usando AES-GCM
+  def encrypt_dek_with_kek(dek: bytes, kek: bytes):
+      iv = os.urandom(12)  # de 96 bits
+      encryptor = Cipher(
+          algorithms.AES(kek),
+          modes.GCM(iv),
+          backend=default_backend()
+      ).encryptor()
 
-# Función para cifrar la DEK con un KEK usando AES-GCM
-def encrypt_dek_with_kek(dek: bytes, kek: bytes):
-    iv = os.urandom(12)  # de 96 bits
-    encryptor = Cipher(
-        algorithms.AES(kek),
-        modes.GCM(iv),
-        backend=default_backend()
-    ).encryptor()
+      ciphertext = encryptor.update(dek) + encryptor.finalize()
 
-    ciphertext = encryptor.update(dek) + encryptor.finalize()
+      return { # se pasan a base64 para poder ser transmitidos en htttp
+          'iv': base64.b64encode(iv).decode(),
+          'ciphertext': base64.b64encode(ciphertext).decode(),
+          'tag': base64.b64encode(encryptor.tag).decode()
+      }
 
-    return { # se pasan a base64 para poder ser transmitidos en htttp
-        'iv': base64.b64encode(iv).decode(),
-        'ciphertext': base64.b64encode(ciphertext).decode(),
-        'tag': base64.b64encode(encryptor.tag).decode()
-    }
+  def generar_tripleta_deks(representatives):
 
-def generar_tripleta_deks(representatives):
+      # 1. Generación de clave maestra
+      dek = os.urandom(32)  # se usan 256 bits
 
-    # 1. Generación de clave maestra
-    dek = os.urandom(32)  # se usan 256 bits
+      # 2. Se crean KEKs para la empresa y data pura vida
+      kek_empresa = os.urandom(32)
+      kek_dpv = os.urandom(32)
 
-    # 2. Se crean KEKs para la empresa y data pura vida
-    kek_empresa = os.urandom(32)
-    kek_dpv = os.urandom(32)
+      # 3. Cifrar la DEK con cada KEK
+      data_empresa = {
+          "dek": encrypt_dek_with_kek(dek, kek_empresa),
+          "kek": kek_empresa
+      }
 
-    # 3. Cifrar la DEK con cada KEK
-    data_empresa = {
-        "dek": encrypt_dek_with_kek(dek, kek_empresa),
-        "kek": kek_empresa
-    }
+      data_dpv = {
+          "dek": encrypt_dek_with_kek(dek, kek_dpv),
+          "kek": kek_dpv
+      }
 
-    data_dpv = {
-        "dek": encrypt_dek_with_kek(dek, kek_dpv),
-        "kek": kek_dpv
-    }
+      # 4. Se crean las distintas keks y deks para los representantes
+      data_representatives = []
+      for elem in representatives:
+          kek = os.urandom(32)
+          data_representatives = {
+              "id" = elem,
+              "kek" = kek,
+              "dek" = encrypt_dek_with_kek(dek, kek)
+          }
 
-    # 4. Se crean las distintas keks y deks para los representantes
-    data_representatives = []
-    for elem in representatives:
-        kek = os.urandom(32)
-        data_representatives = {
-            "id" = elem,
-            "kek" = kek,
-            "dek" = encrypt_dek_with_kek(dek, kek)
-        }
-
-    # 5. Se retorna los resultados
-    return {
-        'representantes': data_representatives,
-        'empresa': data_empresa,
-        'dpv': data_dpv,
-    }
-```
+      # 5. Se retorna los resultados
+      return {
+          'representantes': data_representatives,
+          'empresa': data_empresa,
+          'dpv': data_dpv,
+      }
+  ```
 
 - Esta return lo obtiene el controller del EncryptionManager y genera un jsondump al cual le aplica codificación en base64 para que pueda ser pasado por medio de http.
 
@@ -3012,17 +3010,17 @@ Ahora, el otro punto importante en el key-management-service es el proceso de ve
 1. Interacción del usuario representante:
 - Desde el frontend hace un POST /encrypt/verify/user
 
-```json
-{
-  "user_kek": "kek del usuario en base64"
-}
-```
+  ```json
+  {
+    "user_kek": "kek del usuario en base64"
+  }
+  ```
 
 - Luego de esto el KeyManagementController enruta al Verificator para que se encargue de primero que todo obtener el id del usuario de la tabla de Representantes, y crea una entrada en redis (del mismo modo que con los tokens UUID en el registration-service) con un TTL de 48 horas:
 
-``` redis
-  check_kek:<TOKEN_UUID> : [<ID_DEL_USUARIO>, <KEK_DEL_USUARIO>]
-```
+  ``` redis
+    check_kek:<TOKEN_UUID> : [<ID_DEL_USUARIO>, <KEK_DEL_USUARIO>]
+  ```
 
 - Posteriormente se envía un mensaje por RabbitMQ al notification-service para que envíe un mensaje "push" a las notificaciones dentro del portal web al administrador de la empresa que diga "El usuario <USUARIO> está esperando su aprobación>", además en dicho mensaje se adjunta el TOKEN_UUID, para que posteriormente se vuelva enviar desde el frontend.
 
@@ -3030,49 +3028,49 @@ Ahora, el otro punto importante en el key-management-service es el proceso de ve
 
 - Desde el frontend hace un POST /encrypt/verify/user
 
-```json
-{
-  "admin_kek": "kek del usuario en base64",
-  "token": "token uuid en redis"
-}
-```
+  ```json
+  {
+    "admin_kek": "kek del usuario en base64",
+    "token": "token uuid en redis"
+  }
+  ```
 
 - Luego de esto el KeyManagementController enruta al Verificator para que se encargue de obtener todo de redis por medio del token.
 
 - Una vez se obtiene la kek del usuario representante se saca la kek de Data pura vida desde DEKDataPuraVida para así empezar el proceso de validación de keks.
 
-``` python
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
-import base64
+  ``` python
+  from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+  from cryptography.hazmat.backends import default_backend
+  import base64
 
-def decrypt_dek_with_kek(encrypted_data: dict, kek: bytes):
+  def decrypt_dek_with_kek(encrypted_data: dict, kek: bytes):
 
-    iv = base64.b64decode(encrypted_data['iv'])
-    ciphertext = base64.b64decode(encrypted_data['ciphertext'])
-    tag = base64.b64decode(encrypted_data['tag'])
+      iv = base64.b64decode(encrypted_data['iv'])
+      ciphertext = base64.b64decode(encrypted_data['ciphertext'])
+      tag = base64.b64decode(encrypted_data['tag'])
 
-    decryptor = Cipher(
-        algorithms.AES(kek),
-        modes.GCM(iv, tag),
-        backend=default_backend()
-    ).decryptor()
+      decryptor = Cipher(
+          algorithms.AES(kek),
+          modes.GCM(iv, tag),
+          backend=default_backend()
+      ).decryptor()
 
-    return decryptor.update(ciphertext) + decryptor.finalize()}
+      return decryptor.update(ciphertext) + decryptor.finalize()}
 
 
 
-def verify_keks(kek_user, kek_admin, kek_dpv, dek_user, dek_admin, dek_dpv ):
+  def verify_keks(kek_user, kek_admin, kek_dpv, dek_user, dek_admin, dek_dpv ):
 
-    dek1 = decrypt_dek_with_kek(dek_user, base64.b64decode(kek_user))
-    dek2 = decrypt_dek_with_kek(dek_admin, base64.b64decode(kek_admin))
-    dek3 = decrypt_dek_with_kek(dek_dpv, base64.b64decode(kek_dpv))
+      dek1 = decrypt_dek_with_kek(dek_user, base64.b64decode(kek_user))
+      dek2 = decrypt_dek_with_kek(dek_admin, base64.b64decode(kek_admin))
+      dek3 = decrypt_dek_with_kek(dek_dpv, base64.b64decode(kek_dpv))
 
-    if dek1 == dek2 == dek3:
-        print("Aprobado test tripartita")
-    else:
-        print("Falló el test tripartita")
-```
+      if dek1 == dek2 == dek3:
+          print("Aprobado test tripartita")
+      else:
+          print("Falló el test tripartita")
+  ```
 
 3. En caso de que las tres llaves coincidan entonces se aprueba la validación y se actualiza el estado del representante en Postgres a Aprobado. Además se comunica con rabbitMQ y el notification-service para que envie un correo al usuario para que sepa que su kek fue aprobado.
 
@@ -3156,7 +3154,7 @@ def send_email(to_address, subject, body_html, body_text):
         raise
 ```
 
-  En cuanto al manejo de notificaciones dentro de la aplicación web, el flujo en el notification-service será el siguiente:
+En cuanto al manejo de notificaciones dentro de la aplicación web, el flujo en el notification-service será el siguiente:
 
 1. Cuando llega un mensaje a las colas manual-verification o verify-kek:
 
@@ -3334,7 +3332,7 @@ Base de datos NoSQL escalable para almacenamiento de datos con acceso rápido y 
 **S3**
 Almacenamiento de objetos para archivos, backups y datos estáticos.
 
--**Configuración:**
+- **Configuración:**
   - **Versionado:** Activado para control de versiones y recuperación de datos.
   - **Lifecycle policies:** Para transición a almacenamiento más barato (Glacier) o eliminación automática.
 
@@ -4030,12 +4028,12 @@ Más adelante se verá cómo se implementa el RBAC en el sistema, pero el API ta
     SECRET_ARN 'arn:aws:secretsmanager:us-east-1:123456789012:secret:MySecret'
     ```
   - Redshift permite copiar en Batch archivos de Parquet desde un S3 y mapearlos a tablas en su almacenamiento interno:
-  ``` sql
-    COPY esquema.tabla_destino
-    FROM 's3://tu-bucket/ruta/a/parquets/'
-    IAM_ROLE 'arn:aws:iam::cuenta-dpv:role/admin-dpv'
-    FORMAT AS PARQUET;
-  ```
+    ``` sql
+      COPY esquema.tabla_destino
+      FROM 's3://tu-bucket/ruta/a/parquets/'
+      IAM_ROLE 'arn:aws:iam::cuenta-dpv:role/admin-dpv'
+      FORMAT AS PARQUET;
+    ```
 
 ##### RLS
 
@@ -4180,8 +4178,8 @@ Con respecto a la estructura de Redshift, esta es imprescindible, por ello no se
 
 ![image](img/DiagramaBDBoveda.png)
 
-  
-  
+
+
 ### 4.3 Centro de Carga
 
 #### Diseño del Frontend
@@ -4303,7 +4301,7 @@ class MetadataService:
                 "sample_rows": dataframe.head(5).to_dict(orient="records")
             }
             # Genera un resumen que se almacena en la tabla   `DatasetMetadata`
-            db.insert("DatasetMetadata", dataset_id=dataset_id, summary=summary) 
+            db.insert("DatasetMetadata", dataset_id=dataset_id, summary=summary)
             return summary
         except Exception as e:
             logger.error(f"Error al generar metadatos para el dataset {dataset_id}: {str(e)}")
@@ -4565,7 +4563,7 @@ def check_required_metadata(dataset):
     assert dataset.description is not None
     for column in dataset.columns:
         assert column.name and column.type and column.description
-``` 
+```
 
 3. Verificación de calidad
 
@@ -4603,7 +4601,7 @@ Se envía una notificación al usuario sobre el resultado de la validación util
 
 **5. notification-service**
 
-Este servicio permite comunicar eventos relevantes del sistema a los usuarios finales y a sistemas administrativos mediante colas de mensajes, correo electrónico o notificaciones en la aplicación. Tiene los siguientes componentes: 
+Este servicio permite comunicar eventos relevantes del sistema a los usuarios finales y a sistemas administrativos mediante colas de mensajes, correo electrónico o notificaciones en la aplicación. Tiene los siguientes componentes:
 
 
 - **NotificationListener:** Escucha los mensajes que llegan a la cola `notification-queue` de RabbitMQ y lo procesa con los handlers segun el tipo de evento.
