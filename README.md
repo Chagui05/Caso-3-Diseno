@@ -4184,6 +4184,200 @@ Con respecto a la estructura de Redshift, esta es imprescindible, por ello no se
 
 #### Diseño del Frontend
 
+#### ARQUITECTURA DEL CLIENTE
+
+#### Client-Side Rendering con Renderizado Estático
+
+La arquitectura implementa **CSR** con contenido estático servido desde **S3** y **CloudFront** como CDN. Los bundles de React generados durante el build se almacenan en buckets S3 y se distribuyen globalmente através de CloudFront para optimizar latencia y disponibilidad.
+
+**Restricción geográfica** para el registro mediante **Lambda@Edge Function** que verifica IPs costarricenses antes de servir rutas de registro. Usuarios fuera de Costa Rica no pueden acceder al módulo de registro, cumpliendo con los requerimientos de soberanía de datos.
+
+**API única** desarrollada en **FastAPI** para toda la comunicación backend, centralizando autenticación, validación y procesamiento de datos.
+
+### Gestión de Estado Durante Uploads Largos
+
+- **Persistencia automática** en `localStorage` para mantener progreso de uploads pausables/resumibles entre sesiones del navegador
+- **Recovery automático** tras desconexiones de red mediante detección de sesiones interrumpidas y restauración del estado exacto
+- **Optimización de memoria** para archivos grandes procesando muestras de 10KB usando FileReader API
+
+### DIAGRAMA DE PATRONES DE DISEÑO IMPLEMENTADOS
+
+
+
+#### Chain of Responsibility - Procesamiento de Fuentes de Datos
+
+El sistema debe manejar múltiples tipos de fuentes de datos (archivos, APIs, bases de datos) de manera flexible y extensible. Cada fuente requiere validaciones y procesamientos específicos. Se activa al momento de seleccionar una fuente de datos en la interfaz de usuario.
+
+**Implementación en Frontend:**
+
+- **FileHandler**: Procesa archivos locales (CSV, Excel, JSON) con validación de formato, tamaño y estructura mediante drag-drop o input
+- **APIHandler**: Gestiona conexiones con APIs externas, incluyendo testing de conectividad y autenticación OAuth2/API Keys
+- **DatabaseHandler**: Maneja extracción directa de bases de datos con discovery de esquemas y selección de tablas
+
+#### Strategy Pattern - Configuración por Tipo de Acceso
+
+Los datasets requieren configuraciones completamente diferentes según su nivel de acceso (público, privado, pagado), con campos y validaciones específicas para cada tipo. Se activa durante el evento `onChange` del selector de tipo de dataset en el wizard de configuración.
+
+**Implementación en Frontend:**
+
+- **PublicStrategy**: Muestra campos de descripción extendida y metadatos de catalogación para datasets abiertos
+- **PrivateStrategy**: Despliega controles granulares de permisos con listas de usuarios autorizados y configuración institucional
+- **PaidStrategy**: Presenta formularios de pricing, términos de uso y métodos de pago con validación regulatoria
+
+#### Builder Pattern - Configuración Paso a Paso
+
+La configuración de datasets es compleja y requiere múltiples pasos con validaciones interdependientes. El patrón Builder permite construir la configuración gradualmente. Se activa durante la navegación del wizard de configuración, persistiendo automáticamente cada paso.
+
+**Implementación en Frontend:**
+
+- **Step 1 - Visibilidad**: Define nivel de acceso con validación de permisos del usuario
+- **Step 2 - Pricing**: Configura modelo económico (solo para datasets pagados)
+- **Step 3 - Acceso**: Establece restricciones temporales, volumétricas y de frecuencia
+- **Step 4 - Finalización**: Valida consistencia total antes del envío al backend
+
+#### Singleton/Facade - Gateway Centralizado
+
+Se necesita un punto único de comunicación con el backend para mantener consistencia en autenticación, manejo de errores y gestión de conexiones. Se activa durante toda interacción con el backend, desde validaciones hasta uploads finales.
+
+**Implementación en Frontend:**
+
+- **UploadGateway**: Instancia única que centraliza `sendChunk()`, `trackProgress()`, `validateFile()` y `saveConfiguration()`
+- **Gestión de conexiones**: Pools HTTP reutilizables, manejo de tokens JWT y retry logic centralizado
+- **Abstracción de complejidad**: Oculta múltiples endpoints backend detrás de métodos simples
+
+#### Observer Pattern - Monitoreo Distribuido de Progreso
+
+El progreso de upload debe actualizarse simultáneamente en múltiples componentes de la interfaz sin acoplarlos directamente. Se activa durante todo el proceso de carga y transformación ETDL, con actualizaciones en tiempo real.
+
+**Implementación en Frontend:**
+
+- **UploadProgressObserver**: Actualiza barras de progreso con porcentajes y tiempo estimado
+- **UIProgressObserver**: Actualiza componentes específicos mediante referencias React
+- **NotificationObserver**: Envía alertas al sistema de messaging del usuario
+
+### DIAGRAMA DE DISEÑO
+
+El diagrama muestra la integración de todos los patrones de diseño implementados en el frontend. La arquitectura se organiza en **5 capas** claramente diferenciadas:
+
+1. **Capa Singleton/Facade**: UploadGateway mantiene una instancia única para toda comunicación con el backend, mientras ChunkUploadManager gestiona la fragmentación de archivos grandes
+
+2. **Capa Chain of Responsibility**: AbstractSourceHandler coordina el procesamiento secuencial de diferentes fuentes de datos (archivos, APIs, bases de datos)
+
+3. **Capa Builder**: DatasetConfigBuilder construye configuraciones paso a paso mediante el wizard interactivo
+
+4. **Capa Strategy**: ConfigurationStrategy y sus implementaciones (Public, Private, Paid) manejan las diferentes configuraciones de acceso
+
+5. **Capa Observer**: ProgressTracker notifica a múltiples observers para actualizar la interfaz de usuario en tiempo real
+
+### COMPONENTES VISUALES
+
+#### Flujo de Interacción del Usuario
+
+```
+Selección de fuente → validación formato/conectividad → preview con análisis IA → 
+configuración metadatos → configuración permisos → procesamiento ETDL → 
+monitoreo transformación → activación dataset
+```
+
+#### Componentes Principales
+
+- **FileDropZone**: Capacidades drag-drop para archivos hasta 500MB con validación automática y feedback visual inmediato
+- **ConfigurationPanel**: Adaptativo que muestra opciones relevantes según el tipo de fuente seleccionada
+- **PreviewComponent**: Visualización tabular de primeras 1000 filas con análisis automático de tipos de columnas
+- **ProgressDisplay**: Monitoreo específico del proceso ETDL con estados detallados
+
+#### Validación en Tiempo Real
+
+- **Formato de archivo**: Validación `onChange` con `mimeTypeValidator` ejecutándose en menos de 100ms
+- **Estructura de datos**: Análisis automático de headers CSV/Excel detectando columnas malformadas
+- **Preview inteligente**: Integración con endpoint `/ai/suggest-metadata` para sugerencias automáticas de IA
+- **Smart defaults**: Sugerencias automáticas basadas en tipo de archivo y políticas de seguridad
+
+### INTEGRACIÓN CON BACKEND
+
+#### Comunicación Optimizada
+
+- **Axios interceptors** con polling HTTP cada 2 segundos para tracking del estado ETDL
+- **WebSocket connection** para progreso en tiempo real con fallback a polling
+- **Chunks paralelos** de 10MB con retry automático y exponential backoff
+
+#### Persistencia y Recovery
+
+- **Estado persistente** en `localStorage` para recovery automático tras interrupciones
+- **Expiración de configuraciones** abandonadas después de 24 horas por seguridad
+- **Detección de sesiones interrumpidas** con restauración automática del estado exacto
+
+### ESTRUCTURA DE CARPETAS
+
+```
+centro-carga-frontend/
+├── src/
+│   ├── api/                  # Comunicación con FastAPI
+│   │   ├── uploadAPI.js      # Funciones para carga de archivos
+│   │   ├── validationAPI.js  # Validaciones server-side  
+│   │   └── metadataAPI.js    # Gestión de metadatos IA
+│   ├── models/               # Entidades de dominio
+│   │   ├── Dataset.js        # Modelo principal de dataset
+│   │   ├── DatasetConfig.js  # Configuración completa
+│   │   ├── UploadProgress.js # Estado de progreso detallado
+│   │   └── ValidationResult.js # Resultados de validación
+│   ├── components/           # Atomic Design Pattern
+│   │   ├── atoms/            # Componentes básicos reutilizables
+│   │   │   ├── UploadButton.jsx
+│   │   │   ├── FileInput.jsx
+│   │   │   ├── ProgressBar.jsx
+│   │   │   └── ValidationMessage.jsx
+│   │   ├── molecules/        # Combinaciones de atoms
+│   │   │   ├── ConfigItem.jsx
+│   │   │   ├── ColumnPreview.jsx
+│   │   │   ├── PricingPanel.jsx
+│   │   │   └── FileMetadata.jsx
+│   │   ├── organisms/        # Componentes complejos
+│   │   │   ├── FileDropZone.jsx
+│   │   │   ├── DatasetConfigForm.jsx
+│   │   │   ├── PreviewPanel.jsx
+│   │   │   └── ValidationSummary.jsx
+│   │   └── templates/        # Layouts de página
+│   │       ├── UploadLayoutTemplate.jsx
+│   │       ├── WizardTemplate.jsx
+│   │       └── ConfigurationTemplate.jsx
+│   ├── hooks/                # Custom hooks (ViewModel)
+│   │   ├── useFileUpload.js  # Manejo completo de carga
+│   │   ├── useDatasetConfig.js # Configuración de datasets
+│   │   ├── useDataPreview.js # Preview y análisis de datos
+│   │   └── useMetadataAI.js  # Generación automática IA
+│   ├── services/             # Lógica de negocio
+│   │   ├── UploadManager.js  # Gestión de cargas (Singleton/Facade)
+│   │   ├── ValidationService.js # Validaciones (Chain of Responsibility)
+│   │   ├── MetadataExtractor.js # Extracción de metadatos
+│   │   └── ProgressTracker.js # Seguimiento progreso (Observer)
+│   └── utils/                # Utilidades compartidas
+│       ├── fileValidators.js # Validadores específicos por tipo
+│       ├── formatters.js     # Formateadores de datos
+│       └── constants.js      # Constantes del módulo
+```
+
+### TECNOLOGÍAS INTEGRADAS
+
+#### Stack Principal
+
+- **React 18**: Base del frontend con hooks y context API
+- **Tailwind CSS**: Styling siguiendo Atomic Design principles
+- **Formik + Yup**: Formularios robustos con validación completa
+- **Plotly**: Visualización de datos durante preview
+- **Axios**: HTTP client con interceptors configurados
+
+#### Servicios AWS
+
+- **S3**: Almacenamiento de bundles estáticos
+- **CloudFront**: CDN global para optimización
+- **Lambda@Edge**: Restricción geográfica por IP
+- **Cognito**: Autenticación con tokens JWT
+
+### Diagrama del Frontend 
+
+
+
 #### Diseño del Backend
 
 ##### Microservicios en los Componentes
