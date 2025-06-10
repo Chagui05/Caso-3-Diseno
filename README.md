@@ -4106,11 +4106,18 @@ Este servicio permite configurar el comportamiento de los datasets ya cargados, 
 {
   "datasetId": "uuid-del-dataset",
   "cron": "0 0 * * *",
-  "connectionId": "secreto-en-secrets-manager"
+  "connectionId": "secreto-en-secrets-manager",
+  "mode": "delta",
+  "deltaFields": ["updated_at", "timestamp"],
+  "triggerMethod": "timed_pull|callback"
 }
 ```
 
 - `DeltaUploadManager` invoca a `SecurityController.retrieve()` para obtener credenciales.
+
+- Si triggerMethod es callback, se registra una URL webhook que otro sistema puede llamar para iniciar la carga.
+
+- deltaFields define los campos que se usarán como referencia para obtener solo los datos nuevos o modificados desde la última carga.
 
 - Se genera una tarea cron en AWS EventBridge, enlazada a una función Lambda que ejecuta el `DeltaUploader`.
 
