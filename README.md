@@ -4200,9 +4200,8 @@ La arquitectura implementa **CSR** con contenido estático servido desde **S3** 
 - **Recovery automático** tras desconexiones de red mediante detección de sesiones interrumpidas y restauración del estado exacto
 - **Optimización de memoria** para archivos grandes procesando muestras de 10KB usando FileReader API
 
-### DIAGRAMA DE PATRONES DE DISEÑO IMPLEMENTADOS
+### PATRONES DE DISEÑO IMPLEMENTADOS
 
-![alt text](image-1.png)
 
 #### Chain of Responsibility - Procesamiento de Fuentes de Datos
 
@@ -4250,7 +4249,10 @@ El progreso de upload debe actualizarse simultáneamente en múltiples component
 
 ### DIAGRAMA DE DISEÑO
 
+
 El diagrama muestra la integración de todos los patrones de diseño implementados en el frontend. La arquitectura se organiza en **5 capas** claramente diferenciadas:
+
+![alt text](image-1.png)
 
 1. **Capa Singleton/Facade**: UploadGateway mantiene una instancia única para toda comunicación con el backend, mientras ChunkUploadManager gestiona la fragmentación de archivos grandes
 
@@ -4285,20 +4287,6 @@ monitoreo transformación → activación dataset
 - **Estructura de datos**: Análisis automático de headers CSV/Excel detectando columnas malformadas
 - **Preview inteligente**: Integración con endpoint `/ai/suggest-metadata` para sugerencias automáticas de IA
 - **Smart defaults**: Sugerencias automáticas basadas en tipo de archivo y políticas de seguridad
-
-### INTEGRACIÓN CON BACKEND
-
-#### Comunicación Optimizada
-
-- **Axios interceptors** con polling HTTP cada 2 segundos para tracking del estado ETDL
-- **WebSocket connection** para progreso en tiempo real con fallback a polling
-- **Chunks paralelos** de 10MB con retry automático y exponential backoff
-
-#### Persistencia y Recovery
-
-- **Estado persistente** en `localStorage` para recovery automático tras interrupciones
-- **Expiración de configuraciones** abandonadas después de 24 horas por seguridad
-- **Detección de sesiones interrumpidas** con restauración automática del estado exacto
 
 ### ESTRUCTURA DE CARPETAS
 
