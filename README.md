@@ -4182,7 +4182,18 @@ Con respecto a la estructura de Redshift, esta es imprescindible, por ello no se
 
 ### 4.3 Centro de Carga
 
-Este componente es el primer paso en la carga de datasetds
+Este componente representa la primera etapa en el proceso de carga de datasets hacia La Bóveda. Su función principal es extraer datos desde múltiples fuentes, incluyendo:
+
+- Archivos en formato:
+  - CSV
+  - Excel
+  - JSON
+- Conexiones a bases de datos:
+  - SQL (MySQL, PostgreSQL, SQL Server y MariaDB)
+  - MongoDB
+- REST APIs externas
+
+Todos los datos obtenidos se almacenan en estado crudo dentro de un bucket S3, sirviendo como punto de entrada para que el Motor de Transformación los procese e inserte posteriormente en Redshift, el núcleo analítico de La Bóveda.
 
 #### Diseño del Frontend
 
@@ -4358,7 +4369,7 @@ centro-carga-frontend/
 - **Lambda@Edge**: Restricción geográfica por IP
 - **Cognito**: Autenticación con tokens JWT
 
-### Diagrama del Frontend
+#### Diagrama del Frontend
 
 ![alt text](image.png)
 
@@ -4378,13 +4389,12 @@ Los componentes internos incluyen:
 
   - `/upload/dataset/api:` Configura y prueba conexiones con APIs externas.
 
-- **ValidationManager:** Realiza la validación inicial de estructura, formato y tipo de archivos recibidos. Se utiliza un patrón Strategy para validar los distintos tipos de datos.
+- **ValidationManager:** Realiza la validación inicial de estructura, formato y tipo de archivos recibidos. Se utiliza un patrón Strategy para validar los distintos tipos de datos. Esto Permitirá que si en un futuro se quieren agregar nuevos tipos de fuentes sea posible de manera fácil
 
 - **TemporaryStorageHandler:** Almacena temporalmente y de forma cifrada datasets en AWS S3 hasta su validación y transformación.
 
-- **MetadataService:** Recopila y gestiona metadatos esenciales, incluyendo nombres, descripciones, tipos de datos y etiquetas para facilitar búsquedas y clasificaciones.
-
 - **UploadFlowCoordinator:** Coordina el flujo completo desde la carga hasta la validación y notificación. Funciona como un patrón Observer.
+
 
 El flujo principal para cargar un dataset desde un archivo es el siguiente:
 
@@ -4399,6 +4409,12 @@ El flujo principal para cargar un dataset desde un archivo es el siguiente:
   "fileContent": "base64-string"
 }
 ```
+
+- Antes de continuar cabe aclarar como es que se extraerán los datos:
+  - Archivos CSV, JSON, Excel se pasaran a base64 para poder ser enviados por https y luego se almacenarán en el S3.
+  - Para el caso de APIs es muy similar, porque es equivalente a pasar archivos en formato JSON.
+  - Para MongoDB se usará el comando "mongodump", que crea un snapshot de la base de datos en formato bson, el cual se dejará en el S3 Posteriormente.
+  - Tanto MariaDB, MySQL, PostgreSQL y SQL Server tienen la misma funcionalidad del Dump, la diferencia es que da archivos de tipos .sql. Pero de igual modo serán guardados en el S3.
 2. Recepción y almacenamiento temporal:
 
 - El UploadController recibe la solicitud y extrae la información del archivo.
@@ -4429,7 +4445,7 @@ class TemporaryStorageHandler:
             "file_id": file_id
         }
 ```
-- El resultado se guarda en la tabla `DatasetUploadTemp` con estado "uploaded".
+- El resultado se guarda en una tabla en DynamoDB llamada `DatasetUploadTemp` con estado "uploaded".
 
 3. Validación inicial:
 
@@ -4442,11 +4458,12 @@ class TemporaryStorageHandler:
   - Detección de campos vacíos y estructura tabular.
   - Nombre unico de Dataset.
 
+
+```python
 import pandas as pd
 from cryptography.fernet import Fernet
 import boto3
 
-```python
 class ValidationManager:
     def __init__(self, s3_client, encryption_key):
         self.s3 = s3_client
@@ -4464,31 +4481,10 @@ class ValidationManager:
             logger.error(f"Error en validación de dataset: {str(e)}")
             raise
 ```
-4. Generación de metadatos:
-
-- `MetadataService` analiza el dataset para inferir tipos de columnas, campos sensibles, distribución de valores y patrones de datos.
-
-```py
-class MetadataService:
-    def generate(self, dataframe, dataset_id):
-        try:
-            summary = {
-                "num_columns": len(dataframe.columns),
-                "columns": list(dataframe.columns),
-                "types": dataframe.dtypes.astype(str).to_dict(),
-                "sample_rows": dataframe.head(5).to_dict(orient="records")
-            }
-            # Genera un resumen que se almacena en la tabla   `DatasetMetadata`
-            db.insert("DatasetMetadata", dataset_id=dataset_id, summary=summary)
-            return summary
-        except Exception as e:
-            logger.error(f"Error al generar metadatos para el dataset {dataset_id}: {str(e)}")
-            raise
-```
 
 5. Notificación y confirmación:
 
-- `UploadFlowCoordinator` utiliza RabbitMQ para enviar mensajes al notification-service, el cual notifica al usuario por correo electrónico sobre el éxito de la carga inicial y los siguientes pasos para configurar detalladamente el dataset.
+- `UploadFlowCoordinator` utiliza RabbitMQ para enviar mensajes al notification-service, el cual notifica al usuario por correo electrónico o bien por notificación del sistema en caso de estar online, sobre el éxito de la carga inicial y los siguientes pasos para configurar detalladamente el dataset.
 
 ```py
 import pika
@@ -4523,7 +4519,7 @@ class UploadFlowCoordinator:
 ```
 **2. dataset-configuration-service**
 
-Este servicio permite configurar el comportamiento de los datasets ya cargados, incluyendo privacidad, acceso, monetización y periodicidad de actualización. A continuación los componentes internos:
+Una vez el dataset haya sido cargado en el microservicio anterior, sigue el este que permite configurar el comportamiento, incluyendo privacidad, acceso, monetización y periodicidad de actualización. A continuación los componentes internos:
 
 - **ConfigurationController:** Expone los endpoints para definir políticas de configuración por dataset.
   - `/config/dataset/access`
@@ -4551,7 +4547,7 @@ Este servicio permite configurar el comportamiento de los datasets ya cargados, 
 
 - `ConfigurationController` llama a `PermissionHandler.validateOwnership()` para validar que el usuario tenga permisos sobre ese dataset.
 
-- Si pasa la validación, se actualiza `DatasetPolicies` con el nuevo tipo de acceso.
+- Si pasa la validación, se actualiza `AccesoDataset` en RDS con el nuevo tipo de acceso.
 
 2. Configuración de monetización
 
@@ -4566,7 +4562,7 @@ Este servicio permite configurar el comportamiento de los datasets ya cargados, 
 }
 ```
 
-- `ConfigurationController` delega a `PaymentModelService`, que valida el modelo y registra las condiciones en la tabla `DatasetPricing`.
+- `ConfigurationController` delega a `PaymentModelService`, que valida el modelo y registra las condiciones en la tabla `DatasetDePago`.
 
 3. Configuración de cargas incrementales
 
@@ -4577,33 +4573,20 @@ Este servicio permite configurar el comportamiento de los datasets ya cargados, 
   "cron": "0 0 * * *",
   "connectionId": "secreto-en-secrets-manager",
   "mode": "delta",
-  "deltaFields": ["updated_at", "timestamp"],
   "triggerMethod": "timed_pull|callback"
 }
 ```
 
-- `DeltaUploadManager` invoca a `SecurityController.retrieve()` para obtener credenciales.
+- `DeltaUploadManager` invoca a `SecurityController.retrieve()` del security-service para obtener credenciales.
 
-- Si triggerMethod es callback, se registra una URL webhook que otro sistema puede llamar para iniciar la carga.
+- Para el parámetro del Cron se definirán en la UI como posibles tiempos:
+  - A una hora específica del día: 1:00, 7:00, 13:00, 22:00, etc.
+  - Opción para ejecutar cada 12, 6, 3 horas.
 
-- deltaFields define los campos que se usarán como referencia para obtener solo los datos nuevos o modificados desde la última carga.
+- Si triggerMethod es callback, no se registra el dataset como timed_pull y se asumirá que solo se puede actualizar on demand.
 
-- Se genera una tarea cron en AWS EventBridge, enlazada a una función Lambda que ejecuta el `DeltaUploader`.
+- Si triggerMethod es timed_pull entonces se registrará en `DatasetCrons` de RDS cada cuanto se hace el pull de los datos, cual es la fuente de datos, y que tipo es (SQL, MongoDB o API)
 
-Ejemplo de configuración delta en código:
-
-```py
-class DeltaUploadManager:
-    def schedule_delta_ingestion(self, dataset_id, cron_expr, secret_id):
-        credentials = security_service.retrieve(secret_id)
-        config = {
-            "dataset_id": dataset_id,
-            "cron": cron_expr,
-            "credentials": credentials
-        }
-        cloud_scheduler.create_job(dataset_id, cron_expr, config)
-        db.insert("DeltaConfigurations", dataset_id=dataset_id, config=config)
-```
 Respuesta al frontend:
 ```json
 {
@@ -4616,15 +4599,7 @@ Respuesta al frontend:
 
 El sistema de configuración permite definir restricciones adicionales sobre el acceso a datasets privados o pagos. Estas políticas se aplican automáticamente en los microservicios de consulta y son definidas por el usuario administrador del dataset a través de `ConfigurationController`.
 
-  - El sistema de permisos evita accesos no autorizados mediante `RBAC` gestionadas por `PermissionHandler`.
-
-- Se puede restringir el acceso a los datos con base en:
-
-  - **Tiempo:** duración del permiso.
-  - **Volumen:** límite de consultas.
-  - **Frecuencia:** control por intervalo.
-
-Estas condiciones se almacenan en la tabla `AccessPolicy` y son validadas dinámicamente por los gateways de entrada antes de permitir acceso al dataset.
+  - El sistema de permisos evita accesos no autorizados mediante `RBAC` gestionadas por `PermissionHandler`. El sistema de ingresos a los datasets ya fue explicado previamente en el microservicio de la Bóveda, aquí aplica el mismo
 
 Respuesta al frontend:
 ```json
@@ -4661,9 +4636,10 @@ Flujos principales del microservicio:
 }
 ```
 
-- `SecurityController` recibe la solicitud y llama a `EncryptionManager.encrypt()` para cifrar los datos.
+- `SecurityController` recibe la solicitud y llama a `SecretsManagerHandler`, para que llame a EncryptionManager para cifrar los datos.
 
 `SecretsManagerHandler` almacena el secreto bajo una clave.
+
 ```py
 class EncryptionManager:
     def encrypt(self, data):
@@ -4673,6 +4649,8 @@ class SecretsManagerHandler:
     def store_secret(self, key, secret_data):
         client.put_secret_value(SecretId=key, SecretString=secret_data)
 ```
+
+- Un punto muy importante a aclarar es que para poder identificar el secreto en aws secret manager, se le pondrá el mismo id que el utilizado en la tabla de datasets de la bóveda. De esta forma se puede extraer con facilidad el secret cuando se ocupe hacer pull de datos.
 
 2. Recuperación de credenciales
 
@@ -4696,74 +4674,10 @@ Respuesta:
 {
   "username": "usuario",
   "password": "secreto123",
-  "type": "postgres"
+  "type": "postgres",
+  "dataset": "dataset4"
 }
 ```
-
-**4. validation-service**
-
-Este microservicio se encarga de validar la estructura, consistencia y calidad de los datasets cargados antes de ser publicados o utilizados por otros servicios del ecosistema. Tiene los siguientes componentes:
-
-- **DeepValidationController:** Expone endpoints REST para solicitar validaciones.
-
-  - `/validate/schema`: Valida que la estructura del dataset coincida con un esquema esperado.
-  - `/validate/consistency`: Realiza pruebas de integridad referencial, duplicados y coherencia interna de datos.
-
-- **QualityManager:** Ejecuta reglas de calidad de datos, incluyendo detección de columnas incompletas, valores extremos y anomalías estadísticas.
-
-**Flujo principal de validación:**
-
-1. Solicitud de validación avanzada
-
-- El frontend invoca: POST /validate/schema
-
-```json
-{
-  "datasetId": "uuid-del-dataset",
-  "schemaId": "uuid-del-schema"
-}
-```
-
-- `DeepValidationController` recupera el dataset desde S3 y el esquema de referencia.
-
-- Se inicia el proceso de validación estructural y semántica.
-
-2. Validación obligatoria de campos mínimos
-
-- Se requiere que todo dataset tenga como mínimo:
-  - Un nombre único validado con la base de datos `Datasets`.
-  - Una descripción general
-  - Metadatos por columna incluyendo nombre, tipo, descripción y si es útil para IA (ej: `is_ml_feature=true`).
-
-```py
-def check_required_metadata(dataset):
-    assert dataset.name is not None and is_unique(dataset.name)
-    assert dataset.description is not None
-    for column in dataset.columns:
-        assert column.name and column.type and column.description
-```
-
-3. Verificación de calidad
-
-- `QualityManager` carga el dataset y aplica reglas como:
-
-  - % de valores nulos por columna.
-  - Distribución de datos por columna (media, moda, outliers).
-  - Consistencia de tipos y dominios.
-
-```py
-class QualityManager:
-    def run_checks(self, df):
-        summary = {}
-        for col in df.columns:
-            summary[col] = {
-                "null_pct": df[col].isnull().mean(),
-                "unique": df[col].nunique(),
-                "type": str(df[col].dtype)
-            }
-        return summary
-```
-
 
 4. Notificación
 
@@ -4776,25 +4690,19 @@ Se envía una notificación al usuario sobre el resultado de la validación util
 }
 ```
 
-
-**5. notification-service**
+**4. notification-service**
 
 Este servicio permite comunicar eventos relevantes del sistema a los usuarios finales y a sistemas administrativos mediante colas de mensajes, correo electrónico o notificaciones en la aplicación. Tiene los siguientes componentes:
 
 
 - **NotificationListener:** Escucha los mensajes que llegan a la cola `notification-queue` de RabbitMQ y lo procesa con los handlers segun el tipo de evento.
 
-- **EmailNotificationHandler:** Envia emails a los usuarios utilizando Amazon SES.
-
-- **AppNotificationHandler:** Publica notificaciones en el feed de la aplicación, visibles desde el frontend.
-
-- **AppNotificationHandler:** Publica notificaciones internas en el feed de la aplicación, visibles desde el frontend.
+- **EmailSender:** Envia emails a los usuarios utilizando Amazon SES.
 
 - **WebhookNotificationHandler:** Envía notificaciones a servicios externos vía HTTP POST (por ejemplo, para sistemas de auditoría externos).
 
 - **AdminAuditHandler:** Registra eventos críticos como fallos de validación o problemas de pago en un log especial para revisión administrativa.
 
-- **SMSNotificationHandler:** Envia alertas por mensaje de texto usando plataformas como Twilio para eventos urgentes.
 
 Tabla de rutas posibles:
 
@@ -4853,8 +4761,110 @@ Respuesta esperada:
 }
 ```
 
+##### Diagramas de Clases
 
-##### Diagrama de Clases
+**1. dataset-upload-service**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Amarillo: Representa un observer.
+- Naranja: Representa un dependency injection.
+- Verde: Representa un strategy.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el UploadController, que actúa como facade para que el API general del backend se comunique con este microservicio. Este controlador delega las llamadas a un observer mediante el EventManager, encargado de notificar a la lógica de negocio correspondiente según el tipo de llamada realizada al UploadController.
+
+Dentro de esa lógica se encuentran el TemporaryStorageHandler, ValidationManager (Usa un patrón Strategy ya que el tipo de archivo condiciona como se procede en la validación) y UploadFlowCoordinator, que reciben como dependencias los servicios de la segunda capa de facade.
+
+En esta segunda capa se encuentran:
+
+- RabbitMQMessager: abstrae el envío de mensajes al exchange del bioregistro.
+- FileHandler: Se encarga de guardar y traer los archivos en S3, y guardar su path en la tabla `DatasetUploadTemp` de DynamoDB.
+- DBDumper: Se encarga de hacer los dumps que el FileHandler ocupe, usa un strategy ya que los de SQL y Mongo se hacen de formas distintas.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesCentroCarga1.png)
+
+
+
+**2. dataset-configuration-service**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Amarillo: Representa un observer.
+- Naranja: Representa un dependency injection.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el ConfigurationController, que actúa como facade para que el API general del backend se comunique con este microservicio. Este controlador delega las llamadas a un observer mediante el EventManager, encargado de notificar a la lógica de negocio correspondiente según el tipo de llamada realizada al ConfigurationController.
+
+Dentro de esa lógica se encuentran el PermissionHandler, PaymentModelService y DeltaUploadManager, que reciben como dependencias los servicios de la segunda capa de facade.
+
+En esta segunda capa se encuentran:
+
+- DatasetManager: Se encarga de crear configuraciones para los datasets como tipos de pago, tipos de carga, autorizaciones.
+- FileHandler: Se encarga traer los archivos en S3.
+- SecurityRequester: se comunica con el security-service para autorizar a cambios en datasets.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesCentroCarga2.png)
+
+**3. security-service**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Amarillo: Representa un observer.
+- Naranja: Representa un dependency injection.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el SecurityController, que actúa como facade para que el API general del backend se comunique con este microservicio. Este controlador delega las llamadas a un observer mediante el EventManager, encargado de notificar a la lógica de negocio correspondiente según el tipo de llamada realizada al SecurityController.
+
+Dentro de esa lógica se encuentran el SecretsManagerHandler, que recibe con inyección dependencias los servicios de la segunda capa de facade.
+
+En esta segunda capa se encuentran:
+
+- AWSSecretHandler: Se encarga de cargar y obtener secretos de AWS Secret Manager .
+- EncryptionManager: Se encarga del proceso de encripción y desencripción.
+
+
+![identity clases](img/ClasesCentroCarga3.png)
+
+
+**4. notification-service**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Celeste: Muestra un factory.
+- Verde: Representa un strategy.
+- Naranaja: Dependency Injection.
+- Café: Representa un Singleton Pattern.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+Se cuenta con una clase abstracta NotificationListener que provee la lógica y conexión a RabbitMQ. Esta clase es reutilizada por dos componentes principales:
+
+- EmailSender: escucha mensajes destinados a ser reenviados por correo electrónico a través de AWS SES utilizando el SESService.
+- NotificationConsumer: detecta la llegada de nuevas notificaciones que deben mostrarse dentro de la aplicación.
+
+Además, existe una capa encargada de escuchar conexiones de usuarios al frontend para enviar notificaciones en tiempo real mediante el WebSocketController. En segundo plano, el NotificationConsumer verifica si llegan nuevas notificaciones. Si el usuario está conectado, se le muestran inmediatamente; de lo contrario, se almacenan en DynamoDB a través del NotificationManager, para que en la próxima conexión el WebhookNotificationHandler se las muestre.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Cada conexión es manejada utilizando el patrón Singleton.
+
+![identity clases](img/ClasesBioregistro5.png)
+
+
 
 ##### Servicios de AWS
 **Amazon S3**
@@ -5010,6 +5020,21 @@ El sistema de monitoreo no solo detectará problemas, sino que proporcionará in
 
 
 ##### Modelo de seguridad detallado
+
+#### Diseño de los Datos
+
+La influencia de este componente sobre la base de datos es mínima, ya que reutiliza la misma instancia de RDS compartida con La Bóveda y el Bioregistro, cuyas especificaciones ya fueron detalladas previamente. Del mismo modo, las configuraciones para DynamoDB y S3 se mantienen idénticas a las de esos componentes.
+El único aporte nuevo se encuentra reflejado en el diagrama de base de datos que se presenta a continuación, el cual será explicado en detalle.
+
+##### Diagrama de Base de Datos
+
+A continuación se presenta el diagrama de base de datos correspondiente al módulo del Centro de Carga. Este diagrama incluye las tablas clave que componen el componente, entre ellas:
+
+- **AccesoADataset**: registra qué personas tienen acceso a cada dataset.
+- **DatasetDePago y TipoDePago**: gestionan la configuración de pagos asociados a datasets, incluyendo su categorización.
+- **DatasetCrons**: define el tipo de tarea programada asociada a determinados tipos de datasets. Esta tabla será consultada por Airflow para aplicar los DAGs correspondientes de forma automatizada.
+
+![image](img/DiagramaBDCentroCarga.png)
 
 
 ## 5. Validación de los requerimientos
