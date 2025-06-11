@@ -4940,17 +4940,6 @@ Esta será utilizada por DatasetUploadTemp en el dataset-upload-service, dada su
 
 **Configuración de Hardware:** Servicio completamente gestionado y serverless. La configuración se basa en las unidades de capacidad de lectura/escritura.
 
-
-**AWS RabbitMQ**
-Proporcionará el broker de mensajes gestionado para la comunicación asíncrona entre los microservicios.
-
-Los microservicios de **dataset-upload-service** y el **validation-service** lo usarán para publicar eventos de notificación a la **notification-queue**, y el **notification-service** actuará como un **NotificationListener** consumiendo estos mensajes.
-
-**Configuración de Hardware:**
--	Tipo de instancia del agente: mq.m5.large (2 vCPU 8 GB de RAM)
--	Versión del motor del agente: 3.13
--	Configuración de red: Acceso privado
-
 **AWS SES**
 Será el servicio para el envío de correos electrónicos transaccionales a los usuarios finales (ej., notificación de carga exitosa, fallo de validación), gestionado por el **EmailNotificationHandler** dentro del **notification-service**.
 
