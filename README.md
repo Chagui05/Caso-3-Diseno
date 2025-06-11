@@ -4182,6 +4182,8 @@ Con respecto a la estructura de Redshift, esta es imprescindible, por ello no se
 
 ### 4.3 Centro de Carga
 
+Este componente es el primer paso en la carga de datasetds
+
 #### Diseño del Frontend
 
 #### ARQUITECTURA DEL CLIENTE
@@ -4190,7 +4192,6 @@ Con respecto a la estructura de Redshift, esta es imprescindible, por ello no se
 
 La arquitectura implementa **CSR** con contenido estático servido desde **S3** y **CloudFront** como CDN. Los bundles de React generados durante el build se almacenan en buckets S3 y se distribuyen globalmente através de CloudFront para optimizar latencia y disponibilidad.
 
-**Restricción geográfica** para el registro mediante **Lambda@Edge Function** que verifica IPs costarricenses antes de servir rutas de registro. Usuarios fuera de Costa Rica no pueden acceder al módulo de registro, cumpliendo con los requerimientos de soberanía de datos.
 
 **API única** desarrollada en **FastAPI** para toda la comunicación backend, centralizando autenticación, validación y procesamiento de datos.
 
@@ -4239,7 +4240,7 @@ Se necesita un punto único de comunicación con el backend para mantener consis
 
 #### Observer Pattern - Monitoreo Distribuido de Progreso
 
-El progreso de upload debe actualizarse simultáneamente en múltiples componentes de la interfaz sin acoplarlos directamente. Se activa durante todo el proceso de carga y transformación ETDL, con actualizaciones en tiempo real.
+El progreso de upload debe actualizarse simultáneamente en múltiples componentes de la interfaz sin acoplarlos directamente. Se activa durante todo el proceso de carga con actualizaciones en tiempo real.
 
 **Implementación en Frontend:**
 
@@ -4269,10 +4270,12 @@ El diagrama muestra la integración de todos los patrones de diseño implementad
 #### Flujo de Interacción del Usuario
 
 ```
-Selección de fuente → validación formato/conectividad → preview con análisis IA → 
-configuración metadatos → configuración permisos → procesamiento ETDL → 
+Selección de fuente → validación formato/conectividad → preview con análisis IA →
+configuración metadatos → configuración permisos → procesamiento ETDL →
 monitoreo transformación → activación dataset
 ```
+
+Cabe aclarar que el flujo de procesamiento ETDL se realiza de forma asíncrona, por lo que el usuario podrá salirse del portal web y esperar a que le llegue una notificación por correo, y las notificaciones propias de la aplicación (Este sistema de notificación es gestionado por el Motor de Transformación).
 
 #### Componentes Principales
 
@@ -4295,7 +4298,7 @@ centro-carga-frontend/
 ├── src/
 │   ├── api/                  # Comunicación con FastAPI
 │   │   ├── uploadAPI.js      # Funciones para carga de archivos
-│   │   ├── validationAPI.js  # Validaciones server-side  
+│   │   ├── validationAPI.js  # Validaciones server-side
 │   │   └── metadataAPI.js    # Gestión de metadatos IA
 │   ├── models/               # Entidades de dominio
 │   │   ├── Dataset.js        # Modelo principal de dataset
@@ -4355,7 +4358,7 @@ centro-carga-frontend/
 - **Lambda@Edge**: Restricción geográfica por IP
 - **Cognito**: Autenticación con tokens JWT
 
-### Diagrama del Frontend 
+### Diagrama del Frontend
 
 ![alt text](image.png)
 
