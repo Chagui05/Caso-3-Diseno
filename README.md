@@ -4857,8 +4857,157 @@ Respuesta esperada:
 ##### Diagrama de Clases
 
 ##### Servicios de AWS
+**Amazon S3**
+El servicio de **AWS S3** será el almacén principal para la carga de datos en crudo de los datasets este será utilizado por **TemporaryStorageHandler** en **dataset-upload-service**. También es importante mencionar que este servicio servirá para el acceso a los datasets por **validation-service** para el análisis de los datos.
 
-##### Monitoreo
+**Configuración de Hardware:** Servicio de almacenamiento de objetos, ilimitadamente escalable. No requiere configuración de hardware directa.
+
+**AWS KMS:**
+Los datasets necesitan ser protegidos para ello utilizamos **AWS KMS** ya que este servicio nos será de utilidad para proporcionar las claves criptográficas para el cifrado y descifrado de los datos.
+Se utilizará para proteger los datasets almacenados temporalmente en **S3** por **TemporaryStorageHandler** en **dataset-upload-service** y para el cifrado/descifrado de secretos gestionados por el **security-service**.
+
+**Configuración de Hardware:** Servicio gestionado, serverless. No requiere configuración de hardware. Sin embargo, se pueden configurar la creación de claves. 
+-	**Tipo de clave:**  Simétrico
+-	**Uso de claves:** Cifrado y descifrado
+-	**Origen del material de claves:** KMS
+-	**Regionalidad:** Clave de una sola región
+
+**AWS RDS**
+Servirá como la base de datos relacional primaria para metadatos estructurados. 
+Se utilizará para almacenar la metadata de los datasets en el microservicio de DatasetMetadata.
+
+**Configuración de Hardware:**
+- **Método de creación**
+  -	 Creación estándar
+- **Motor de base de datos**
+  -	Aurora PostgreSQL
+  -	Versión: Compatible con PostgreSQL 16.6
+  -	Soporte extendido de RDS: No
+- **Plantilla**
+  -	Desarrollo y pruebas
+- **Identificador del clúster**
+  -	database-1
+- **Credenciales**
+  -	Usuario maestro: postgres
+  -	Contraseña: Autoadministrada
+  -	Administración de credenciales: Autoadministrado
+  -	Clave de cifrado: aws/secretsmanager (por defecto)
+- **Almacenamiento**
+  -	Tipo: Aurora optimizado para operaciones de E/S
+- **Instancia**
+  -	Clase de instancia: db.r6g.2xlarge (8 vCPUs, 64 GiB RAM)
+  -	Multi-AZ: No (sin réplica de Aurora)
+- **Conectividad**
+  -	EC2 conectado: No
+  -	Tipo de red: IPv4
+  -	VPC: Default VPC (vpc-0d710bc7833e39b85)
+  -	Grupo de subredes: predeterminado
+  -	Acceso público: Sí
+  -	Grupo de seguridad de VPC: default
+
+**Amazon DynamoDB**
+Se consideraría como un complemento a RDS para metadatos de alta concurrencia o naturaleza dinámica como las sesiones de usuario, y los contadores de consumo de datasets en tiempo real. 
+Esta será utilizada por DatasetUploadTemp en el dataset-upload-service, dada su necesidad de escritura y lectura rápidas al gestionar el estado temporal de los archivos.
+
+**Configuración de Hardware:** Servicio completamente gestionado y serverless. La configuración se basa en las unidades de capacidad de lectura/escritura.
+
+
+**AWS RabbitMQ**
+Proporcionará el broker de mensajes gestionado para la comunicación asíncrona entre los microservicios.
+
+Los microservicios de **dataset-upload-service** y el **validation-service** lo usarán para publicar eventos de notificación a la **notification-queue**, y el **notification-service** actuará como un **NotificationListener** consumiendo estos mensajes.
+
+**Configuración de Hardware:**
+-	Tipo de instancia del agente: mq.m5.large (2 vCPU 8 GB de RAM)
+-	Versión del motor del agente: 3.13
+-	Configuración de red: Acceso privado
+
+**AWS SES**
+Será el servicio para el envío de correos electrónicos transaccionales a los usuarios finales (ej., notificación de carga exitosa, fallo de validación), gestionado por el **EmailNotificationHandler** dentro del **notification-service**.
+
+**Configuración de Hardware:** 
+Para configurar un SES simplemente necesitamos dirigirnos a crear una identidad. En tipo de identidad utilizaremos **Dirección de correo electrónico**, luego en **Dirección de correo electrónico** colocamos el correo electrónico que utilizaremos (ej. notificacionesDatos@gmail), luego nos llega una notificación al correo donde tendremos que verificar la dirección de correo electrónico.
+
+##### Sistema de Monitoreo
+El monitoreo del Componente del Centro de Carga de Datos se implementará siguiendo una estrategia de observabilidad integral que permita supervisar en tiempo real el comportamiento, rendimiento y seguridad de todo el proceso de ingesta inicial de datasets. Esta estrategia se alinea con las tecnologías definidas en el stack tecnológico del proyecto Data Pura Vida.
+
+**Métricas y Rendimiento**
+
+**AWS CloudWatch** será el servicio para monitoreo más importante se encargara de recopilar y almacenar métricas operacionales del Componente del Centro de Carga de Datos. Se monitorizarán aspectos críticos como:
+
+**Métricas de Negocio:**
+-	Cantidad de datasets cargados exitosamente por formato (CSV, Excel, JSON).
+-	Tasa de éxito en la validación inicial de esquema y estructura del archivo.
+-	Tiempo promedio del proceso completo de carga (desde la recepción hasta el almacenamiento temporal en S3).
+-	Volumen de datos (en GB) ingesados diariamente.
+-	Cantidad de notificaciones de carga enviadas (éxito/fracaso).
+
+**Métricas de Infraestructura:**
+-	**S3 (data-temp-storage):** Latencia de operaciones PutObject, GetObject, ListObjects; cantidad de PutRequests, GetRequests; tasa de errores (4xx, 5xx).
+-	**RDS/DynamoDB:** Latencia de conexiones, ReadIOPS, WriteIOPS, utilización de recursos para las tablas DatasetUploadTemp y DatasetMetadata.
+-	**AWS RabbitMQ:** Tamaño de la cola de notificaciones de notification-queue, mensajes entrantes/salientes, latencia de conexión al broker.
+-	**AWS KMS:** Tasa de solicitudes y errores en las operaciones de cifrado/descifrado de las claves usadas por dataset-upload-service.
+
+**Prometheus** complementará a CloudWatch recopilando métricas específicas como las del microservicio de **dataset-upload-service** a través de un **endpoint** dedicado. Esto permitirá obtener métricas más granulares sobre el comportamiento interno de la aplicación, como:
+-	Los contadores de operaciones específicas (ej., validation_attempts_total, encryption_calls_total).
+-	Los histogramas de distribución de tiempos (ej., file_parsing_duration_seconds, db_write_duration_seconds).
+
+**Visualización y Dashboards**
+**Grafana** se utilizará como plataforma principal de visualización, integrándose tanto con CloudWatch como con Prometheus para crear dashboards interactivos que permitan:
+-	**Dashboard Operacional de Carga:** Vista en tiempo real del estado general del proceso de carga de datos. Mostrará el volumen de cargas activas, la distribución de archivos por formato, la tasa de éxito/fracaso de las cargas, y el estado de salud de los pods de dataset-upload-service y sus dependencias (S3, DBs, MQ).
+
+-	**Dashboard de Rendimiento de Carga:** Monitoreo específico de las latencias. Incluirá el tiempo promedio del proceso de carga, la latencia de escritura en S3, la latencia de registro de metadatos en DBs, y el consumo de recursos (CPU/memoria) del **dataset-upload-service**.
+
+-	**Dashboard de Calidad y Seguridad de Carga:** Seguimiento de eventos relacionados con la calidad inicial y la seguridad del proceso de carga. Mostrará la tasa de errores en la validación inicial de esquema, intentos de acceso no autorizado a recursos de carga vía security-service, y monitoreo de las operaciones de cifrado.
+
+**Logs y Trazabilidad**
+El sistema de logging aprovechará **CloudWatch Logs** para centralizar todos los registros generados por los componentes del Centro de Carga de Datos. Se implementará un esquema de logging estructurado que facilite:
+
+-	**Trazabilidad Completa con AWS X-Ray:** Cada transacción de carga tendrá un identificador único de correlación (ID de traza X-Ray) que permitirá seguir su flujo desde la recepción del archivo, pasando por la interacción con S3, KMS, el registro de metadatos en RDS/DynamoDB, y la interacción con security-service o validation-service, hasta la notificación final.
+
+-	**Auditoría y Diagnóstico**
+    - **CloudWatch Logs Insights:** Permite la consulta interactiva de logs para identificar rápidamente la causa raíz de cualquier incidencia (ej., errores en el procesamiento de un tipo de archivo específico).
+    -  **AWS CloudTrail:** Registra todas las llamadas a la API de AWS realizadas por el dataset-upload-service y sus roles asociados (ej., s3:PutObject, kms:Encrypt, secretsmanager:GetSecretValue), esencial para auditoría y seguridad.
+
+**Sistema de Alertas y Notificaciones**
+Se configurará un sistema proactivo de alertas utilizando **CloudWatch Alarms** que notificará al equipo de operaciones cuando se detecten condiciones anómalas:
+-	**Alertas Críticas (respuesta inmediata requerida):**
+    -	Fallo total del **dataset-upload-service** o indisponibilidad de su **endpoint** de **health check**.
+    -	Tasa de error (HTTP 5xx en el UploadController o en S3) superior al 5% en una ventana de 5 minutos.
+    - Fallo en la conexión con servicios críticos (S3, RDS/DynamoDB, KMS, Amazon MQ).
+    -	Detección de un incremento súbito de errores en operaciones de cifrado/descifrado (KMS).
+    -	Errores críticos registrados en CloudWatch Logs por el dataset-upload-service (ej., Unhandled Exception).
+
+-	**Alertas de Advertencia (revisión prioritaria):**
+    -	Degradación del rendimiento con latencias de carga de datasets superiores a 30 segundos.
+    -	Uso de recursos (CPU, memoria) del pod de **dataset-upload-service** por encima del 80% de capacidad.
+    -	Incremento inusual en las validaciones iniciales de datasets fallidas.
+    -	Acumulación de objetos sin procesar en el bucket data-temp-storage por más de un umbral de tiempo.
+
+-	**Alertas Informativas (seguimiento regular):**
+    -	Resumen diario de métricas operacionales de carga (ej., total de cargas exitosas del día).
+    -	Reporte semanal de tendencias de volumen de datos ingesados.
+
+**Monitoreo de Cumplimiento y Seguridad**
+Dado el manejo de datos sensibles en la carga, se implementarán controles específicos de monitoreo para garantizar el cumplimiento normativo y la seguridad:
+-	**Auditoría de Accesos a Datos Cargados:** Registro detallado usando CloudTrail y CloudWatch Logs de todos los accesos PutObject, GetObject al bucket data-temp-storage, identificando quién accedió, cuándo y con qué propósito.
+-	**Verificación de Cifrado:** Monitoreo continuo del estado de cifrado de datos en reposo en S3 mediante políticas de bucket y eventos de KMS, asegurando que todos los archivos cargados estén cifrados correctamente.
+-	**Monitoreo de Acceso a Secretos:** Seguimiento de los intentos de acceso y las rotaciones de credenciales en AWS Secrets Manager utilizadas por el dataset-upload-service para conectarse a fuentes externas o bases de datos.
+
+**Health Checks y Disponibilidad**
+Los microservicios del Centro de Carga implementarán múltiples niveles de verificación de salud que serán monitoreados continuamente por Kubernetes y los sistemas de monitoreo:
+-	**Liveness Probe:** Verificación básica de que el dataset-upload-service está activo y respondiendo, ejecutada cada 10 segundos por Kubernetes.
+-	**Readiness Probe:** Verificación comprehensiva de que el dataset-upload-service puede procesar solicitudes de carga, incluyendo conectividad con S3, KMS, bases de datos (RDS/DynamoDB) y Amazon RabbitMQ.
+-	**Deep Health Checks:** Verificaciones periódicas más exhaustivas que validan la integridad de configuraciones críticas (ej., validación de esquemas de carga), la disponibilidad de claves de cifrado, y la correcta operación del flujo completo de carga de un archivo de prueba simulado.
+
+**Análisis y Mejora Continua**
+El sistema de monitoreo no solo detectará problemas, sino que proporcionará insights para la mejora continua del proceso de carga:
+-	**Análisis de Tendencias:** Identificación de patrones en el volumen y tipo de cargas (ej., picos horarios, aumento de un formato específico) para optimizar recursos y predecir necesidades futuras.
+-	**Detección de Anomalías:** Uso de las capacidades de CloudWatch para identificar comportamientos inusuales (ej., caída repentina en el número de cargas exitosas) que podrían indicar problemas emergentes.
+-	**Reportes de Capacidad:** Proyecciones basadas en datos históricos de volumen de carga y uso de recursos para planificar el crecimiento de la infraestructura de almacenamiento (S3) y cómputo (EKS).
+-	**Optimización de Costos:** Análisis del uso de recursos de S3, EKS y DBs para identificar oportunidades de optimización de costos sin comprometer el rendimiento.
+
+
 
 ##### Modelo de seguridad detallado
 
