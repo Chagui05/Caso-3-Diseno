@@ -4167,6 +4167,25 @@ Para PostgreSQL y Redshift utilizaremos el driver nativo psycopg2, integrado con
   - **Beneficios**:
     - Para PostgreSQL un driver nativo rápido, se aprovecha lo mejor.
 
+##### Diseño para IA
+
+**Implementaciones comunes a todas las tablas**
+
+Dado que es imposible predecir con exactitud el contenido específico de cada dataset, se aplicarán ciertas implementaciones transversales a todas las tablas de Redshift para facilitar su interpretación por parte de agentes de AI:
+
+- Cada registro deberá incluir una columna llamada **CategoriaSemantica**, que permitirá dar contexto sobre el tipo de información contenida en la tabla.
+- Se añadirá también una columna de **Descripción**, destinada a ofrecer una breve explicación sobre el contenido de cada fila, brindando aún más contexto semántico.
+- Estas columnas serán incorporadas automáticamente durante el proceso del motor de transformación.
+- Se registrarán todos los logs hechos a
+
+**Justificación**
+
+La orientación de **La Bóveda** hacia un diseño habilitado a agentes de AI responde a las siguientes necesidades:
+
+- Las consultas provenientes del centro de visualización y consumo podrán realizarse mediante lenguaje natural. Para que los agentes puedan generar consultas SQL adecuadas, necesitan contar con metadatos descriptivos y semánticos que les permitan comprender la estructura y el contenido del dataset.
+- En casos donde los datasets deban actualizarse tras una nueva carga o un cambio de esquema en la fuente original, los agentes deben tener suficiente contexto para rediseñar el modelo o adaptar la carga posterior de forma correcta y autónoma.
+
+
 
 ##### Diagrama de Base de Datos
 
