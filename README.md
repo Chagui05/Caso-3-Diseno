@@ -4345,7 +4345,7 @@ configuración metadatos → configuración permisos → procesamiento ETDL →
 monitoreo transformación → activación dataset
 ```
 
-Cabe aclarar que el flujo de procesamiento ETDL se realiza de forma asíncrona, por lo que el usuario podrá salirse del portal web y esperar a que le llegue una notificación por correo, y las notificaciones propias de la aplicación (Este sistema de notificación es gestionado por el Motor de Transformación).
+Cabe aclarar que el flujo de procesamiento ETDL se realiza de forma asíncrona, por lo que el usuario podrá salirse del portal web y esperar a que le llegue una notificación por correo, y las notificaciones propias de la aplicación.
 
 #### Componentes Principales
 
@@ -4945,14 +4945,14 @@ El servicio de **AWS S3** será el almacén principal para la carga de datos en 
 Los datasets necesitan ser protegidos para ello utilizamos **AWS KMS** ya que este servicio nos será de utilidad para proporcionar las claves criptográficas para el cifrado y descifrado de los datos.
 Se utilizará para proteger los datasets almacenados temporalmente en **S3** por **TemporaryStorageHandler** en **dataset-upload-service** y para el cifrado/descifrado de secretos gestionados por el **security-service**.
 
-**Configuración de Hardware:** Servicio gestionado, serverless. No requiere configuración de hardware. Sin embargo, se pueden configurar la creación de claves. 
+**Configuración de Hardware:** Servicio gestionado, serverless. No requiere configuración de hardware. Sin embargo, se pueden configurar la creación de claves.
 -	**Tipo de clave:**  Simétrico
 -	**Uso de claves:** Cifrado y descifrado
 -	**Origen del material de claves:** KMS
 -	**Regionalidad:** Clave de una sola región
 
 **AWS RDS**
-Servirá como la base de datos relacional primaria para metadatos estructurados. 
+Servirá como la base de datos relacional primaria para metadatos estructurados.
 Se utilizará para almacenar la metadata de los datasets en el microservicio de DatasetMetadata.
 
 **Configuración de Hardware:**
@@ -4985,7 +4985,7 @@ Se utilizará para almacenar la metadata de los datasets en el microservicio de 
   -	Grupo de seguridad de VPC: default
 
 **Amazon DynamoDB**
-Se consideraría como un complemento a RDS para metadatos de alta concurrencia o naturaleza dinámica como las sesiones de usuario, y los contadores de consumo de datasets en tiempo real. 
+Se consideraría como un complemento a RDS para metadatos de alta concurrencia o naturaleza dinámica como las sesiones de usuario, y los contadores de consumo de datasets en tiempo real.
 Esta será utilizada por DatasetUploadTemp en el dataset-upload-service, dada su necesidad de escritura y lectura rápidas al gestionar el estado temporal de los archivos.
 
 **Configuración de Hardware:** Servicio completamente gestionado y serverless. La configuración se basa en las unidades de capacidad de lectura/escritura.
@@ -4993,7 +4993,7 @@ Esta será utilizada por DatasetUploadTemp en el dataset-upload-service, dada su
 **AWS SES**
 Será el servicio para el envío de correos electrónicos transaccionales a los usuarios finales (ej., notificación de carga exitosa, fallo de validación), gestionado por el **EmailNotificationHandler** dentro del **notification-service**.
 
-**Configuración de Hardware:** 
+**Configuración de Hardware:**
 Para configurar un SES simplemente necesitamos dirigirnos a crear una identidad. En tipo de identidad utilizaremos **Dirección de correo electrónico**, luego en **Dirección de correo electrónico** colocamos el correo electrónico que utilizaremos (ej. notificacionesDatos@gmail), luego nos llega una notificación al correo donde tendremos que verificar la dirección de correo electrónico.
 
 ##### Sistema de Monitoreo
