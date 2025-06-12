@@ -1946,6 +1946,7 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 - **DynamoDB:** Base de datos NoSQL para gestionar metadatos dinámicos y de alto rendimiento.
 - **Redis:** Base de datos Clave Valor que sirve para caching o guardar información con TTL.
 - **AWS S3:** Almacenamiento de objetos escalable y seguro para grandes volúmenes de datos no estructurados, como archivos.
+- **Opensearch**: Elasticsearch gestionado por AWS que permite tener bases de datos time series altamente escalables.
 - **AWS Glue:** Servicio ETL gestionado para la transformación y preparación de datos en flujos automatizados.\*tentativo, puede que prefiramos implementar nuestro propio cluster de spark en EKS organizado con airflow.
 - **AWS RDS**: Es el servicio que AMazon ofrece para poder albergar bases de datos de PostgreSQL o MYSQL
 - **AWS SageMaker:** Plataforma integral para crear, entrenar y desplegar modelos de machine learning de forma segura y escalable.
@@ -3444,6 +3445,10 @@ El módulo de Bioregistro maneja información altamente sensible relacionada con
 | `bio:approver`  | Aprueba, certifica o valida registros | Escritura total + validación cruzada     |
 | `bio:admin`          | Gestión completa del módulo, incluyendo usuarios y configuración      | Acceso total y eliminación    |
 
+- La equivalencia de estos roles en la base de datos se puede mapear de la siguiente manera:
+  - Viewer: Son los usuarios en la tabla llamada AccesoDataset.
+  - Editor: Esto hace referencia a los representantes de los colectivos, ubicados en la tabla de Representantes.
+  - Approver: Hace referencia a los administradores del colectivo, se ubican en la tabla de cada colectivo.
 
 
 **Asociacion de RBAC a las bases de datos del sistema:**
@@ -3500,7 +3505,6 @@ Para proteger el backend del Bioregistro, se implementarán validaciones estrict
 
 La aplicación de esto sucede en los siguientes eventos:
 - En todos los endpoints RESTful del Bioregistro (registro, modificación, eliminación, consulta).
-- Cuando se integran datos desde archivos cargados con AWS Glue.
 - En validaciones internas antes de realizar operaciones sobre la base de datos.
 
 **Validaciones estructurales:**
@@ -3686,18 +3690,7 @@ Ejemplo de politicas de secretos con AWS IAM
 }
 ```
 
-**8. Política de Backup y Recuperación**
-
-La protección de la información crítica del módulo Bioregistro implica contar con una política de respaldo automatizada y confiable. Esta política toma en cuenta tanto los datos estructurados (en PostgreSQL) como los documentos y metadatos almacenados en otros servicios como Amazon S3 y DynamoDB. El objetivo principal es arantizar la disponibilidad y recuperación rápida ante pérdida de datos, errores humanos o ataques.
-
-| Recurso Crítico         | Servicio AWS            | Frecuencia de Backup               |  Tiempo de Retención                       |
-| ----------------------- | ----------------------- | ----------------------- | -------------------------- |
-| PostgreSQL | **Amazon RDS**          | Diario (automático)   | 30 días                    |
-| Documentos biométricos  | **Amazon S3**           | Versionado + replicación           |  Ilimitado   |
-| Metadatos JSON / Logs   | **Amazon DynamoDB**     | Backup continuo (PITR)             |  35 días            |
-| Secrets y claves        | **AWS Secrets Manager** | Versionado automático              | Hasta eliminación |
-
-**Procedimiento de Recuperación ante Incidente**
+**8. Procedimiento de Recuperación ante Incidente**
 1. Detección del incidente mediante alertas de CloudWatch.
 2. Validación del último snapshot válido en RDS o versión del objeto en S3.
 3. Restauración automática desde consola de AWS Backup, RDS o S3.
@@ -3897,11 +3890,14 @@ Luego, gracias a la funcionalidad de Amazon Redshift logs, se podrá ver detalla
 | xid               | ID de la transacción. |
 | query             | Un prefijo `LOG:` seguido del texto de la consulta. |
 
-Ahora bien, estos logs sirven tanto para tener un registro de qué consultas se han hecho, como para llevar cuotas de uso de datasets que se usan por cuotas definidas.
+Ahora bien, estos logs sirven tanto para tener un registro de qué consultas se han hecho (para más adelante dar contexto Agentes sobre como consultar un dataset), como para llevar cuotas de uso de datasets que se usan por cuotas definidas.
 
 Por ello, cuando estos logs lleguen a AWS CloudWatch, se disparará una Lambda Function que se encargue de obtener el query y también el ID del usuario que se seteó en la consulta. Luego, se revisará si el dataset al que se le realizó la consulta es de tipo cuota, y en dado caso se va a la tabla de cuota en RDS para hacer la deducción.
 
-A continuación un ejemplo de código de como se puede realizar esto:
+Para el resto de los casos (incluyendo cuando el dataset es de tipo cuota), se insertará el query en un índice de OpenSearch, el servicio gestionado de Elasticsearch que ofrece AWS. Gracias a la naturaleza de time series de Elastic Search, podremos almacenar estos logs de manera eficiente, organizándolos en índices mensuales por dataset con el formato de nombre `DATASETNAME-YYYY-MM`.
+Esto evitará almacenamiento masivo y poco escalable típico de motores SQL, y además funcionará como una fuente sencilla para que los agentes de IA puedan alimentarse con los queries asociados a cada dataset.
+
+A continuación un ejemplo de código de como se puede realizar dicha lambda function:
 ``` python
 import json
 import re
@@ -3942,7 +3938,8 @@ def lambda_handler(event, context):
             dataset_id = int(match.group(1))
 
             ######
-            # Aquí se revisa RDS para saber si es un dataset de pago por cuotas
+            # Aquí se revisa RDS para saber si es un dataset de pago por cuotas, y luego se hace
+            # la inserción en el índice correspondiente de Opensearch
             ######
 
             cuota = session.query(Cuotas).filter(Cuotas.IdDataset == dataset_id).first()
@@ -3988,6 +3985,45 @@ Más adelante se verá cómo se implementa el RBAC en el sistema, pero el API ta
 
 - Ya luego, si se pasó todo el proceso de autorización, se le asigna el rol de IAM correspondiente al dataset por medio de un STS que sirva solo para esa consulta.
 
+
+
+##### Servicios en AWS
+
+Se mencionarán solo los servicios de AWS que aún no han sido descritos en algún punto de la arquitectura. En caso de querer ver todos los servicios de AWS que se usarán y como se desplegarán por medio de terraform ir a dicha sección después de la explicación de los microservicios.
+
+**AWS Lambda:**
+Para las funciones serverless que obtienen información de los datasets y la loguean.
+
+**Configuración de Hardware:**  Aunque no gestionamos hardware directamente, sí configuraremos los recursos, como:
+- **Memoria:** 1024 MB
+- **Arquitectura:** arm64
+- **Tiempo de ejecución:** Node.js 22.x
+- **Almacenamiento efímero:** 512MB
+- **Tiempo de espera:** 5s
+- **Retry attempts:** 1
+
+**AWS OpenSearch:**
+
+Para el sistema de logs para posterior entrenamiento de Agentes de IA.
+
+**Configuración del Dominio OpenSearch:**
+
+- **Versión del motor**: OpenSearch 2.3
+- **Tipo de instancia**: t3.small.search
+- **Cantidad de instancias**: 2 (con zone awareness activado para alta disponibilidad)
+- **Almacenamiento EBS**: 20 GB, tipo gp3
+- **Encriptación**:
+  - En tránsito (TLS 1.2 mínimo)
+  - En reposo (AES-256)
+- **Seguridad**:
+  - Autenticación interna con usuario admin
+  - Acceso vía HTTPS obligatorio
+  - Index Lifecycle Management (ILM):
+- **Política de rollover**:
+  - Máximo 5GB por índice
+  - Máximo 1 día por índice
+- **Retención**:
+  - Borrado automático de índices después de 30 días
 
 #### Diseño de los Datos
 
@@ -4138,6 +4174,7 @@ No se usará RLS ya que el acceso a datasets se hace por tablas, entonces una ve
   - Tener multi-tenant agrega una capa de separación lógica que evita que entre colectivos puedan acceder a espacios que no les corresponde.
   - En caso de que alguién tenga acceso a la base de datos no podrá hacer nada ya que todo está encriptado.
   - Ya que para poder acceder a una tabla se ocupa tener el rol efímero de IAM que a su vez tenga los tags necesarios de LakeFormation, inclusive los administradores de la base de datos no van a poder ver que contenido tienen las tablas. Solo aquellos con los permisos podrán.
+  - Gracias a que Redshfit internamente es una base de datos columnar las consultas pueden ser realizadas de manera más eficiente ya que solo trae a memoria la información necesario y no todos los datos de un registro.
 
 ##### Conexión a Base de datos
 
@@ -4176,7 +4213,7 @@ Dado que es imposible predecir con exactitud el contenido específico de cada da
 - Cada registro deberá incluir una columna llamada **CategoriaSemantica**, que permitirá dar contexto sobre el tipo de información contenida en la tabla.
 - Se añadirá también una columna de **Descripción**, destinada a ofrecer una breve explicación sobre el contenido de cada fila, brindando aún más contexto semántico.
 - Estas columnas serán incorporadas automáticamente durante el proceso del motor de transformación.
-- Se registrarán todos los logs hechos a
+- Se registrarán todos los logs hechos a Opensearch, donde los módelos de inteligencia artificial podrán ver que consultas se le hacen a un dataset específico, y de esta forma puedan dar resultados de mayor calidad.
 
 **Justificación**
 
@@ -4184,6 +4221,9 @@ La orientación de **La Bóveda** hacia un diseño habilitado a agentes de AI re
 
 - Las consultas provenientes del centro de visualización y consumo podrán realizarse mediante lenguaje natural. Para que los agentes puedan generar consultas SQL adecuadas, necesitan contar con metadatos descriptivos y semánticos que les permitan comprender la estructura y el contenido del dataset.
 - En casos donde los datasets deban actualizarse tras una nueva carga o un cambio de esquema en la fuente original, los agentes deben tener suficiente contexto para rediseñar el modelo o adaptar la carga posterior de forma correcta y autónoma.
+- Mantener un registro de las consultas en una base de datos de time series permitirá proporcionar contexto actualizado y frecuente a los agentes de IA para futuras operaciones sobre los datasets.
+- Al utilizar una base de datos time series, se garantiza que la información registrada sea siempre reciente y relevante, facilitando análisis y respuestas más precisas por parte de los agentes.
+
 
 
 
@@ -4305,7 +4345,7 @@ configuración metadatos → configuración permisos → procesamiento ETDL →
 monitoreo transformación → activación dataset
 ```
 
-Cabe aclarar que el flujo de procesamiento ETDL se realiza de forma asíncrona, por lo que el usuario podrá salirse del portal web y esperar a que le llegue una notificación por correo, y las notificaciones propias de la aplicación (Este sistema de notificación es gestionado por el Motor de Transformación).
+Cabe aclarar que el flujo de procesamiento ETDL se realiza de forma asíncrona, por lo que el usuario podrá salirse del portal web y esperar a que le llegue una notificación por correo, y las notificaciones propias de la aplicación.
 
 #### Componentes Principales
 
@@ -4476,6 +4516,7 @@ class TemporaryStorageHandler:
   - Coherencia de tipos de datos por columna.
   - Detección de campos vacíos y estructura tabular.
   - Nombre unico de Dataset.
+  - Revisa si todos los registros vienen con un timestamp (este no es un criterio de rechazo, es de contexto).
 
 
 ```python
@@ -4501,7 +4542,7 @@ class ValidationManager:
             raise
 ```
 
-5. Notificación y confirmación:
+4. Notificación y confirmación:
 
 - `UploadFlowCoordinator` utiliza RabbitMQ para enviar mensajes al notification-service, el cual notifica al usuario por correo electrónico o bien por notificación del sistema en caso de estar online, sobre el éxito de la carga inicial y los siguientes pasos para configurar detalladamente el dataset.
 
@@ -4528,8 +4569,7 @@ class UploadFlowCoordinator:
             body=json.dumps(message)
         )
 ```
-
-6. Respuesta al frontend:
+5. Respuesta al frontend:
 ```json
 {
   "datasetId": "uuid-del-dataset",
@@ -4592,7 +4632,8 @@ Una vez el dataset haya sido cargado en el microservicio anterior, sigue el este
   "cron": "0 0 * * *",
   "connectionId": "secreto-en-secrets-manager",
   "mode": "delta",
-  "triggerMethod": "timed_pull|callback"
+  "triggerMethod": "timed_pull|callback",
+  "IgnoreColumns": "true|false"
 }
 ```
 
@@ -4602,9 +4643,18 @@ Una vez el dataset haya sido cargado en el microservicio anterior, sigue el este
   - A una hora específica del día: 1:00, 7:00, 13:00, 22:00, etc.
   - Opción para ejecutar cada 12, 6, 3 horas.
 
-- Si triggerMethod es callback, no se registra el dataset como timed_pull y se asumirá que solo se puede actualizar on demand.
+- Para el parámetro de mode están las siguientes opciones.
+  - Delta: Permite hacer cargas diferenciales. **Esta opción solo se permitirá si el dataset de la fuente tiene: timestamps en cada registro, garantiza que las PKs (o equivalente) no cambian y son incrementales**.
+  - Complete: Solicita que se cargue todo el dataset desde 0 y se deseche el que hay en Redshift.
 
-- Si triggerMethod es timed_pull entonces se registrará en `DatasetCrons` de RDS cada cuanto se hace el pull de los datos, cual es la fuente de datos, y que tipo es (SQL, MongoDB o API)
+- Para triggerMethod existen dos opciones:
+  - Callback: no se registra el dataset como timed_pull y se asumirá que solo se puede actualizar on demand.
+  - Si triggerMethod es timed_pull entonces se registrará en `DatasetCrons` de RDS cada cuanto se hace el pull de los datos, cual es la fuente de datos (el connection string o URL), que tipo es (SQL, MongoDB o API), y el modo en el que opera (Complete o Delta).
+
+- Para IgnoreColumns existen dos opciones:
+  - Si se desea que se ignoren columnas nuevas que vengan en los datasets posteriores a la primera carga.
+  - Si se desea que cuando venga una nueva columna en una tabla se le añada a toda la tabla destino en redshift.
+
 
 Respuesta al frontend:
 ```json
@@ -4881,7 +4931,7 @@ Además, existe una capa encargada de escuchar conexiones de usuarios al fronten
 
 Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Cada conexión es manejada utilizando el patrón Singleton.
 
-![identity clases](img/ClasesBioregistro5.png)
+![identity clases](img/ClasesCentroCarga4.png)
 
 
 
@@ -4895,14 +4945,14 @@ El servicio de **AWS S3** será el almacén principal para la carga de datos en 
 Los datasets necesitan ser protegidos para ello utilizamos **AWS KMS** ya que este servicio nos será de utilidad para proporcionar las claves criptográficas para el cifrado y descifrado de los datos.
 Se utilizará para proteger los datasets almacenados temporalmente en **S3** por **TemporaryStorageHandler** en **dataset-upload-service** y para el cifrado/descifrado de secretos gestionados por el **security-service**.
 
-**Configuración de Hardware:** Servicio gestionado, serverless. No requiere configuración de hardware. Sin embargo, se pueden configurar la creación de claves. 
+**Configuración de Hardware:** Servicio gestionado, serverless. No requiere configuración de hardware. Sin embargo, se pueden configurar la creación de claves.
 -	**Tipo de clave:**  Simétrico
 -	**Uso de claves:** Cifrado y descifrado
 -	**Origen del material de claves:** KMS
 -	**Regionalidad:** Clave de una sola región
 
 **AWS RDS**
-Servirá como la base de datos relacional primaria para metadatos estructurados. 
+Servirá como la base de datos relacional primaria para metadatos estructurados.
 Se utilizará para almacenar la metadata de los datasets en el microservicio de DatasetMetadata.
 
 **Configuración de Hardware:**
@@ -4935,7 +4985,7 @@ Se utilizará para almacenar la metadata de los datasets en el microservicio de 
   -	Grupo de seguridad de VPC: default
 
 **Amazon DynamoDB**
-Se consideraría como un complemento a RDS para metadatos de alta concurrencia o naturaleza dinámica como las sesiones de usuario, y los contadores de consumo de datasets en tiempo real. 
+Se consideraría como un complemento a RDS para metadatos de alta concurrencia o naturaleza dinámica como las sesiones de usuario, y los contadores de consumo de datasets en tiempo real.
 Esta será utilizada por DatasetUploadTemp en el dataset-upload-service, dada su necesidad de escritura y lectura rápidas al gestionar el estado temporal de los archivos.
 
 **Configuración de Hardware:** Servicio completamente gestionado y serverless. La configuración se basa en las unidades de capacidad de lectura/escritura.
@@ -4943,7 +4993,7 @@ Esta será utilizada por DatasetUploadTemp en el dataset-upload-service, dada su
 **AWS SES**
 Será el servicio para el envío de correos electrónicos transaccionales a los usuarios finales (ej., notificación de carga exitosa, fallo de validación), gestionado por el **EmailNotificationHandler** dentro del **notification-service**.
 
-**Configuración de Hardware:** 
+**Configuración de Hardware:**
 Para configurar un SES simplemente necesitamos dirigirnos a crear una identidad. En tipo de identidad utilizaremos **Dirección de correo electrónico**, luego en **Dirección de correo electrónico** colocamos el correo electrónico que utilizaremos (ej. notificacionesDatos@gmail), luego nos llega una notificación al correo donde tendremos que verificar la dirección de correo electrónico.
 
 ##### Sistema de Monitoreo
@@ -5040,7 +5090,7 @@ A continuación se presenta el diagrama de base de datos correspondiente al mód
 
 - **AccesoADataset**: registra qué personas tienen acceso a cada dataset.
 - **DatasetDePago y TipoDePago**: gestionan la configuración de pagos asociados a datasets, incluyendo su categorización.
-- **DatasetCrons**: define el tipo de tarea programada asociada a determinados tipos de datasets. Esta tabla será consultada por Airflow para aplicar los DAGs correspondientes de forma automatizada.
+- **DatasetCrons**: define el modo de carga que tendrán los datasets recurrentes (Delta, Complete), y el tipo de fuente del que pueden venir (Base de datos o API). Esta tabla será consultada por Airflow para aplicar los DAGs correspondientes de forma automatizada.
 
 ![image](img/DiagramaBDCentroCarga.png)
 
