@@ -4829,6 +4829,8 @@ Tabla de rutas posibles:
 | `quota_exceeded`    | `AppNotificationHandler`, `EmailNotificationHandler` |
 | `admin_warning`     | `AdminAuditHandler`, `EmailNotificationHandler`      |
 
+
+
 **Flujo típico de notificación por evento exitoso:**
 
 1. Otro microservicio (por ejemplo `upload-service` o `validation-service`) publica un mensaje a RabbitMQ con estructura:
@@ -5132,10 +5134,240 @@ El sistema de monitoreo no solo detectará problemas, sino que proporcionará in
 
 ##### Modelo de seguridad detallado
 
+El backend del componente Centro de Carga gestiona información crítica relacionada con datasets, incluyendo la carga, validación y categorización. Dado su rol esencial, se implementará un modelo de seguridad robusto y granular orientado a prevenir accesos no autorizados, asegurar integridad, confidencialidad, trazabilidad y disponibilidad continua de los datos.
+
+1. Control de Acceso Granular
+
+|Rol del usuario|Descripción|Permisos sobre recursos del Centro de Carga|
+|-------|--------|-----------|
+|`Carga:viewer`|Usuario con acceso de solo lectura|Visualizar historial de cargas, detalles de configuración, esquema de columnas y metadatos|
+|`Carga:editor`|Usuario autorizado a diseñar y actualizar cargas|Crear cargas nuevas, definir esquema de columnas, asociar metadata, configurar delta|
+|`Carga:approver`|Validador de configuraciones previas a la ejecución|Aprobar configuraciones antes de ser activadas, validar transformaciones, confirmar integridad estructural|
+|`Carga:admin`|Administrador completo del módulo de carga|Modificar permisos de carga, eliminar configuraciones, visualizar trazabilidad completa, forzar cargas|
+
+Ejemplo de flujo de autorización en RDS (PostgreSQL):
+
+1. Un usuario autenticado realiza una solicitud para modificar una configuración de carga.
+
+2. El backend identifica que el usuario tiene rol `Carga:editor` y autentica su token internamente.
+
+3. Se ejecuta una función almacenada en PostgreSQL:
+```SQL
+SELECT actualizar_configuracion_carga(:id_config, :nueva_metadata, :usuario);
+```
+4. Dentro de la función `actualizar_configuracion_carga`, se valida que el usuario tenga permisos equivalentes al rol editor en la tabla `roles_usuario`:
+```SQL
+IF NOT EXISTS (SELECT 1 FROM roles_usuario WHERE usuario = $3 AND rol = 'editor') THEN
+  RAISE EXCEPTION 'Acceso no autorizado';
+END IF;
+```
+5. Si pasa la validación, se actualizan los campos correspondientes; en caso contrario, se bloquea la operación y se registra un intento fallido en la bitácora de auditoría.
+
+**2. Cifrado de Información**
+
+###### Cifrado en tránsito
+
+Todas las comunicaciones entre el frontend del centro de carga, los microservicios y los servicios de almacenamiento (Amazon S3 y RDS), se ejecutan mediante HTTPS con TLS 1.3. Igualmente, EKS fuerza el uso de TLS con certificados actualizados gestionados mediante AWS Certificate Manager.
+
+###### Cifrado en reposo
+
+Cada tipo de dato gestionado por el Centro de Carga está protegido mediante mecanismos nativos de cifrado proporcionados por los servicios utilizados:
+
+|Tecnología|Elementos cifrados|Mecanismo de cifrado|Particularidades de seguridad|
+|----|------|-----|------|
+|Amazon S3|Archivos de datasets cargados + metadata asociada|AWS KMS|Bucket con políticas que rechazan cargas no cifradas y control de acceso restringido|
+|Amazon RDS|Configuraciones estructurales|Cifrado de disco automático con claves KMS|Acceso restringido a través de funciones y roles internos|
+|Amazon DynamoDB|Estados de carga, historial de ejecución|Cifrado nativo activado automáticamente|Acceso limitado por política IAM de microservicio|
+
+**Adicionalmente**
+
+- Los archivos cargados son escaneados y validados antes de ser almacenados. Solo si cumplen con los requisitos del esquema de columnas aprobado y no presentan fallos estructurales o semánticos, se escriben en el bucket correspondiente, con nombre aleatorio y metadata cifrada.
+
+- En caso de rechazo en el proceso de validación, el archivo se descarta y se registra el evento en la bitácora para trazabilidad.
+
+**3. Auditoría y Trazabilidad**
+
+###### Elementos auditados
+
+- Solicitudes de creación, modificación y eliminación de configuraciones de carga.
+- Procesos de validación estructural y semántica.
+- Aprobaciones manuales o automáticas.
+- Errores detectados en archivos cargados.
+- Consultas sobre configuraciones y ejecuciones pasadas.
+
+###### Origen y estructura del registro
+
+
+1. Identificador de usuario y rol.
+2. Timestamp exacto de la operación.
+3. Tipo de operación realizada.
+4. IP de origen o microservicio emisor.
+5. Resultado de la acción (éxito, error, rechazo por validación).
+
+###### Tecnologías utilizadas
+
+- **Amazon CloudWatch Logs:** Registro estructurado de eventos en tiempo real.
+
+- **Amazon DynamoDB Streams:** Replicación de eventos sensibles a una tabla de auditoría histórica.
+
+###### Acceso y resguardo
+
+El acceso a los registros está restringido a roles con privilegios de auditoría mediante políticas IAM. Se implementan estrategias de rotación, almacenamiento cifrado y retención mínima de 12 meses.
+
+**4. Monitoreo y Gestión de Incidentes**
+
+
+###### 4.1 Monitoreo en Tiempo Real
+- **Prometheus:** Se utiliza para recolectar métricas personalizadas relacionadas con la carga de datasets, como el tiempo promedio de validación de un archivo o la tasa de éxito en las cargas de datos.
+
+- **AWS CloudWatch:** Monitorea los logs generados por los microservicios del Centro de Carga, enviando alertas cuando se detectan patrones anómalos, como fallos recurrentes o tiempos de espera demasiado largos en el procesamiento de datos.
+
+###### 4.2 Gestión de Incidentes
+Esta sección está diseñada para identificar y responder rápidamente ante cualquier tipo de evento que pueda comprometer la integridad del sistema o la seguridad de los datos. 
+
+1. **Detección de Incidentes:** Se utilizan reglas de alerta configuradas en CloudWatch para detectar incidentes como errores en la carga de datos, archivos rechazados por validaciones o caídas de servicios externos (como bases de datos o APIs).
+
+2. **Clasificación:** Se evalúa la gravedad del incidente y se clasifica como crítico, medio o bajo. 
+
+
+| **Clasificación de Incidente** | **Descripción**    | **Ejemplo**   | **Acción Requerida**|
+|--------------------------------|-------------|----------------------|-------------------|
+| **Crítico**                    | Incidentes que afectan directamente la operación del sistema y pueden comprometer la seguridad o la integridad de los datos. Requieren una acción inmediata para restaurar el servicio. | - Caída de base de datos (Amazon RDS) durante una carga de datos. <br> - Exposición accidental de datos sensibles. | - Restauración inmediata desde backups. <br> - Notificación a los administradores a través de AWS SNS. <br> - Reinicio automático de servicios. |
+| **Medio**                      | Incidentes que afectan el rendimiento o la funcionalidad del sistema. Se pueden retrasar procesos o requerir una intervención manual. | - Error en la validación de un archivo de carga que retrasa la operación pero no detiene el flujo. <br> - Lento procesamiento de un dataset debido a un error de configuración temporal. | - Notificación al equipo de soporte. <br> - Revalidación y reintento de carga. |
+| **Bajo**                       | Incidentes menores que no afectan el funcionamiento principal del sistema, pero que requieren atención para evitar que se conviertan en problemas mayores. | - Un archivo rechazado por un error de formato menor. <br> - Una solicitud de visualización de metadatos que no devuelve resultados por una pequeña falla en el frontend. | - Registro del incidente en el sistema de auditoría. <br> - Resolución del error en la próxima actualización. |
+
+
+3. **Respuesta Automática:** En caso de un incidente, se utiliza AWS Lambda para ejecutar funciones que puedan mitigar el impacto.
+
+```py
+import json
+import boto3
+import logging
+
+# Configurar el cliente de S3
+s3_client = boto3.client('s3')
+lambda_client = boto3.client('lambda')
+
+# Configurar el cliente de SNS para notificaciones
+sns_client = boto3.client('sns')
+
+# Nombre del bucket y archivo que estamos tratando de cargar
+bucket_name = 'nombre-del-bucket'
+file_key = 'ruta/al/archivo/dataset.csv'
+
+# Tema de SNS para notificación de incidentes
+sns_topic_arn = 'arn:aws:sns:region:account-id:topic-name'
+
+# Función Lambda para manejar el incidente
+def lambda_handler(event, context):
+    try:
+        # Intentamos cargar el archivo desde S3 nuevamente (simulando la carga de datos)
+        response = s3_client.upload_file(file_key, bucket_name, file_key)
+        logging.info(f"Archivo cargado exitosamente: {file_key}")
+
+        # Si la carga fue exitosa, enviar una notificación de éxito
+        send_notification("Carga de datos exitosa", "El archivo se cargó correctamente.")
+        
+        return {
+            'statusCode': 200,
+            'body': json.dumps('Carga exitosa')
+        }
+    
+    except Exception as e:
+        logging.error(f"Error en la carga de datos: {str(e)}")
+
+        # Enviar una notificación de error
+        send_notification("Error en la carga de datos", f"Ocurrió un error: {str(e)}")
+
+        # Reintentar la carga, si la operación falló
+        logging.info(f"Reintentando carga para el archivo: {file_key}")
+        return retry_load()
+
+# Función para reintentar la carga del archivo
+def retry_load():
+    try:
+        # Intentar subir el archivo a S3 nuevamente
+        s3_client.upload_file(file_key, bucket_name, file_key)
+        logging.info("Carga reintentada exitosa.")
+        send_notification("Carga reintentada exitosa", f"El archivo {file_key} se ha cargado exitosamente después del reintento.")
+        
+        return {
+            'statusCode': 200,
+            'body': json.dumps('Carga reintentada exitosa')
+        }
+
+    except Exception as e:
+        logging.error(f"Error en el reintento de carga: {str(e)}")
+        send_notification("Error en el reintento de carga", f"Ocurrió un error en el reintento: {str(e)}")
+        
+        return {
+            'statusCode': 500,
+            'body': json.dumps('Fallo en la carga después del reintento')
+        }
+
+# Función para enviar notificaciones a SNS
+def send_notification(subject, message):
+    response = sns_client.publish(
+        TopicArn=sns_topic_arn,
+        Message=message,
+        Subject=subject
+    )
+    logging.info(f"Notificación enviada: {response}")
+
+```
+
+4. **Notificación de Incidentes:** Cuando un incidente es clasificado como crítico AWS SNS  envía notificaciones a los administradores y responsables de la seguridad.
+
+
+
+##### Elementos de Alta Disponibilidad
+
+**1. Almacenamiento Distribuido**
+
+Se utiliza Amazon S3 para el almacenamiento seguro de los datos de carga, incluyendo archivos de configuración, logs y otros datos asociados con el proceso. Con una política de replicación cruzada de objetos y versionado, cualquier archivo cargado se replica automáticamente a otra zona de disponibilidad. Con esto se cumple la disponibilidad de los datos en caso de fallo en una zona. Para los datos como logs de operaciones, se usa Amazon DynamoDB con activación de Point-in-Time Recovery para asegurar la disponibilidad continua de los metadatos asociados con las cargas.
+
+| Recurso        | Tecnología    | Implementación                                | Activación                     | Ubicación   |
+| -------------- | ------------- | --------------------------------------------- | ------------------------------ | ----------- |
+| Datos de Carga | **Amazon S3** | Replicación cruzada entre zonas y versionado  | Cada vez que se carga/modifica | `us-east-1` |
+| Metadatos      | **DynamoDB**  | Backup continuo con recuperación en el tiempo | En cada operación de escritura | `us-east-1` |
+
+**2. Monitoreo y Alertas**
+
+Se utiliza AWS CloudWatch para obtener métricas de disponibilidad de los recursos del backend del Centro de Carga como el uso de CPU, memoria y latencia. Por otro lado, se configura Prometheus para la recolección de métricas personalizadas sobre los microservicios que gestionan las cargas de trabajo y las interacciones del sistema, con visualización de las métricas en Grafana.
+
+| Tecnología     | Función                                         | Ubicación                           | Ejecución                           |
+| -------------- | ----------------------------------------------- | ----------------------------------- | ----------------------------------- |
+| **CloudWatch** | Monitoreo de métricas de infraestructura AWS    | Servicios de AWS                    | En tiempo real y continuo           |
+| **Prometheus** | Recolección de métricas específicas del sistema | Dentro del clúster EKS              | Cada vez que se actualizan métricas |
+| **Grafana**    | Visualización de datos para diagnóstico         | Conectado a CloudWatch y Prometheus | Monitoreo constante                 |
+
+**3. Balanceo de carga**
+
+###### 3.1 Distribución de Solicitudes a Microservicios
+
+Las solicitudes entrantes, como las que requieren la carga de datos o la consulta de estado, son dirigidas al Application Load Balancer de AWS. Este ALB distribuye las solicitudes entre las diferentes instancias de los microservicios encargados de procesar los datos.
+
+- Si el Centro de Carga recibe varias solicitudes simultáneas para cargar grandes volúmenes de datos desde Amazon S3, el ALB distribuye estas solicitudes entre las instancias disponibles que gestionan el procesamiento de estos archivos. 
+
+###### 3.2 Auto Scaling para Manejo de Picos de Tráfico
+
+El Centro de Carga está configurado con Auto Scaling Groups (ASG) para ajustarse automáticamente a los picos de tráfico. Cuando el volumen de solicitudes sube, el Auto Scaling agrega nuevas instancias para manejar la mayor carga.
+
+- Si se detecta un aumento en el tráfico durante un periodo de alta demanda, el Auto Scaling aumenta automáticamente el número de instancias disponibles para manejar las nuevas solicitudes de carga sin que se experimenten fallos en el sistema.
+
+##### 3.3 Integración con Kubernetes
+
+El Centro de Carga también se beneficia del uso de Amazon EKS para gestionar microservicios. El ALB trabaja en dirigir el trafico a contenedores específicos dentro del clúster de Kubernetes, mejorando la distribución de solicitudes.
+
+- En un escenario donde se requiere escalar dinámicamente los microservicios, el Ingress Controller en combinación con el ALB asegura que el tráfico se distribuya equitativamente entre los contenedores de Kubernetes.
+
+##### Diagrama del Backend
+
 #### Diseño de los Datos
 
 La influencia de este componente sobre la base de datos es mínima, ya que reutiliza la misma instancia de RDS compartida con La Bóveda y el Bioregistro, cuyas especificaciones ya fueron detalladas previamente. Del mismo modo, las configuraciones para DynamoDB y S3 se mantienen idénticas a las de esos componentes.
 El único aporte nuevo se encuentra reflejado en el diagrama de base de datos que se presenta a continuación, el cual será explicado en detalle.
+
 
 ##### Diagrama de Base de Datos
 
