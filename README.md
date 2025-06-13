@@ -5376,42 +5376,40 @@ A continuación se presenta el diagrama de base de datos correspondiente al mód
 
 ![image](img/DiagramaBDCentroCarga.png)
 
-## 5. Validación de los requerimientos
 
-- Validar que el diseño cubre todos los requerimientos funcionales y no funcionales del sistema
-- Identificar ventajas y desventajas del diseño, proponiendo mitigaciones a los riesgos y limitaciones
 
-### Componente: MarketPlace
+### 4.5 MarketPlace
 
-### Patrones de Diseño de Objetos - Frontend del Marketplace
+#### Diseño del Frontend
+#### Patrones de Diseño de Objetos - Frontend del Marketplace
 
 El diseño del frontend del componente Marketplace de Data Pura Vida sigue principios de diseño orientado a objetos que buscan flexibilidad, mantenibilidad y escalabilidad. Los principales patrones aplicados son los siguientes:
 
-#### 1 **Patrón de Strategy**
+##### 1 **Patrón de Strategy**
 
 - Ubicación: En los filtros de búsqueda de datasets.
 - Descripción: El frontend permite al usuario aplicar distintos tipos de filtros (por precio, categoría, tipo de dataset, popularidad, etc). Cada filtro implementa una estrategia diferente de ordenamiento o filtrado, pero todos heredan de una interfaz común, lo que permite agregar nuevos filtros en el futuro sin modificar el flujo principal.
 - Beneficio: Permite extender fácilmente nuevos criterios de búsqueda sin alterar el resto del sistema.
 
-#### 2️ **Patrón de Singleton**
+##### 2️ **Patrón de Singleton**
 
 - Ubicación: Cliente HTTP centralizado (por ejemplo ApiConnector o MarketplaceApiClient).
 - Descripción: Todo el frontend utiliza una única instancia para gestionar las conexiones al backend (requests HTTP a la API REST de Marketplace).
 - Beneficio: Garantiza un único punto de configuración de headers, manejo de tokens, interceptores de error, y manejo centralizado de respuestas.
 
-#### 3️ **Patrón de Observer (Pub-Sub)**
+##### 3️ **Patrón de Observer (Pub-Sub)**
 
 - Ubicación: Sistema de notificaciones y actualización de componentes de UI.
 - Descripción: Algunos componentes de la interfaz están suscritos a eventos globales como la finalización de una compra, actualización de un dataset o expiración de accesos.
 - Beneficio: Desacopla los componentes visuales del flujo de negocio, permitiendo que reaccionen a eventos sin depender directamente unos de otros.
 
-#### 4️ **Patrón de Facade**
+##### 4️ **Patrón de Facade**
 
 - Ubicación: Módulo de servicios de pago.
 - Descripción: Las operaciones de compra, validación de pagos, visualización de precios y confirmación de compra son orquestadas desde un único módulo de servicios, el cual encapsula la comunicación con Stripe y la lógica de negocio asociada.
 - Beneficio: Simplifica el uso de APIs externas, ocultando la complejidad de validaciones, formatos de respuesta y errores.
 
-#### 5️ Patrón MVVM (Model-View-ViewModel)
+##### 5️ Patrón MVVM (Model-View-ViewModel)
 
 - Ubicación: Arquitectura general del frontend.
 - Descripción:
@@ -5420,7 +5418,7 @@ El diseño del frontend del componente Marketplace de Data Pura Vida sigue princ
   - View: Los componentes visuales de React, organizados bajo Atomic Design.
 - Beneficio: Separa de forma clara la lógica de presentación, la lógica de negocio y el manejo de estado de UI.
 
-### Estructura de Carpetas del Sistema - Frontend del Marketplace
+#### Estructura de Carpetas del Sistema - Frontend del Marketplace
 
 El frontend del componente Marketplace sigue una estructura modular basada en el patrón de diseño Atomic Design, el patrón MVVM y principios de escalabilidad y mantenibilidad. La organización permite extender fácilmente nuevos módulos de negocio dentro del Marketplace.
 
@@ -5474,7 +5472,7 @@ frontend/
     └── integration/
 ```
 
-### Arquitectura del Cliente - Frontend del Marketplace
+#### Arquitectura del Cliente - Frontend del Marketplace
 
 El frontend del componente Marketplace sigue una arquitectura moderna basada en principios de MVVM (Model-View-ViewModel), Atomic Design y desacoplamiento de responsabilidades. Este diseño permite mantener la lógica de negocio separada de las vistas, simplificando su mantenimiento y escalabilidad.
 
@@ -5517,9 +5515,9 @@ El frontend del componente Marketplace sigue una arquitectura moderna basada en 
 - Lógica de negocio desacoplada de las vistas.
 - Facilidad para agregar nuevos tipos de datasets, métodos de pago o reglas de negocio sin romper el flujo principal.
 
-## Diseño del Backend
+#### Diseño del Backend
 
-### Microservicios por Componente
+#### Microservicios por Componente
 
 #### **marketplace-catalog-service**
 
@@ -6205,7 +6203,7 @@ Configuración de endpoints privados que mantiene todo el tráfico sensible del 
 
 ---
 
-## Motor de transformacion
+### 4.4 Motor de transformacion
 
 ### Diseño del backend
 
@@ -6404,3 +6402,9 @@ Las alertas se correlacionan automáticamente entre fuentes, evitando alert fati
 
 **Context-aware notifications:**
 Las alertas incluyen automáticamente links a dashboards relevantes, traces de X-Ray relacionados y logs específicos del período del incidente, acelerando resolution time.
+
+
+## 5. Validación de los requerimientos
+
+- Validar que el diseño cubre todos los requerimientos funcionales y no funcionales del sistema
+- Identificar ventajas y desventajas del diseño, proponiendo mitigaciones a los riesgos y limitaciones
