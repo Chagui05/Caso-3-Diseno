@@ -4829,8 +4829,6 @@ Tabla de rutas posibles:
 | `quota_exceeded`    | `AppNotificationHandler`, `EmailNotificationHandler` |
 | `admin_warning`     | `AdminAuditHandler`, `EmailNotificationHandler`      |
 
-
-
 **Flujo típico de notificación por evento exitoso:**
 
 1. Otro microservicio (por ejemplo `upload-service` o `validation-service`) publica un mensaje a RabbitMQ con estructura:
@@ -5138,12 +5136,12 @@ El backend del componente Centro de Carga gestiona información crítica relacio
 
 1. Control de Acceso Granular
 
-|Rol del usuario|Descripción|Permisos sobre recursos del Centro de Carga|
-|-------|--------|-----------|
-|`Carga:viewer`|Usuario con acceso de solo lectura|Visualizar historial de cargas, detalles de configuración, esquema de columnas y metadatos|
-|`Carga:editor`|Usuario autorizado a diseñar y actualizar cargas|Crear cargas nuevas, definir esquema de columnas, asociar metadata, configurar delta|
-|`Carga:approver`|Validador de configuraciones previas a la ejecución|Aprobar configuraciones antes de ser activadas, validar transformaciones, confirmar integridad estructural|
-|`Carga:admin`|Administrador completo del módulo de carga|Modificar permisos de carga, eliminar configuraciones, visualizar trazabilidad completa, forzar cargas|
+| Rol del usuario  | Descripción                                         | Permisos sobre recursos del Centro de Carga                                                                |
+| ---------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `Carga:viewer`   | Usuario con acceso de solo lectura                  | Visualizar historial de cargas, detalles de configuración, esquema de columnas y metadatos                 |
+| `Carga:editor`   | Usuario autorizado a diseñar y actualizar cargas    | Crear cargas nuevas, definir esquema de columnas, asociar metadata, configurar delta                       |
+| `Carga:approver` | Validador de configuraciones previas a la ejecución | Aprobar configuraciones antes de ser activadas, validar transformaciones, confirmar integridad estructural |
+| `Carga:admin`    | Administrador completo del módulo de carga          | Modificar permisos de carga, eliminar configuraciones, visualizar trazabilidad completa, forzar cargas     |
 
 Ejemplo de flujo de autorización en RDS (PostgreSQL):
 
@@ -5152,15 +5150,19 @@ Ejemplo de flujo de autorización en RDS (PostgreSQL):
 2. El backend identifica que el usuario tiene rol `Carga:editor` y autentica su token internamente.
 
 3. Se ejecuta una función almacenada en PostgreSQL:
+
 ```SQL
 SELECT actualizar_configuracion_carga(:id_config, :nueva_metadata, :usuario);
 ```
+
 4. Dentro de la función `actualizar_configuracion_carga`, se valida que el usuario tenga permisos equivalentes al rol editor en la tabla `roles_usuario`:
+
 ```SQL
 IF NOT EXISTS (SELECT 1 FROM roles_usuario WHERE usuario = $3 AND rol = 'editor') THEN
   RAISE EXCEPTION 'Acceso no autorizado';
 END IF;
 ```
+
 5. Si pasa la validación, se actualizan los campos correspondientes; en caso contrario, se bloquea la operación y se registra un intento fallido en la bitácora de auditoría.
 
 **2. Cifrado de Información**
@@ -5173,11 +5175,11 @@ Todas las comunicaciones entre el frontend del centro de carga, los microservici
 
 Cada tipo de dato gestionado por el Centro de Carga está protegido mediante mecanismos nativos de cifrado proporcionados por los servicios utilizados:
 
-|Tecnología|Elementos cifrados|Mecanismo de cifrado|Particularidades de seguridad|
-|----|------|-----|------|
-|Amazon S3|Archivos de datasets cargados + metadata asociada|AWS KMS|Bucket con políticas que rechazan cargas no cifradas y control de acceso restringido|
-|Amazon RDS|Configuraciones estructurales|Cifrado de disco automático con claves KMS|Acceso restringido a través de funciones y roles internos|
-|Amazon DynamoDB|Estados de carga, historial de ejecución|Cifrado nativo activado automáticamente|Acceso limitado por política IAM de microservicio|
+| Tecnología      | Elementos cifrados                                | Mecanismo de cifrado                       | Particularidades de seguridad                                                        |
+| --------------- | ------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------ |
+| Amazon S3       | Archivos de datasets cargados + metadata asociada | AWS KMS                                    | Bucket con políticas que rechazan cargas no cifradas y control de acceso restringido |
+| Amazon RDS      | Configuraciones estructurales                     | Cifrado de disco automático con claves KMS | Acceso restringido a través de funciones y roles internos                            |
+| Amazon DynamoDB | Estados de carga, historial de ejecución          | Cifrado nativo activado automáticamente    | Acceso limitado por política IAM de microservicio                                    |
 
 **Adicionalmente**
 
@@ -5197,7 +5199,6 @@ Cada tipo de dato gestionado por el Centro de Carga está protegido mediante mec
 
 ###### Origen y estructura del registro
 
-
 1. Identificador de usuario y rol.
 2. Timestamp exacto de la operación.
 3. Tipo de operación realizada.
@@ -5216,26 +5217,25 @@ El acceso a los registros está restringido a roles con privilegios de auditorí
 
 **4. Monitoreo y Gestión de Incidentes**
 
-
 ###### 4.1 Monitoreo en Tiempo Real
+
 - **Prometheus:** Se utiliza para recolectar métricas personalizadas relacionadas con la carga de datasets, como el tiempo promedio de validación de un archivo o la tasa de éxito en las cargas de datos.
 
 - **AWS CloudWatch:** Monitorea los logs generados por los microservicios del Centro de Carga, enviando alertas cuando se detectan patrones anómalos, como fallos recurrentes o tiempos de espera demasiado largos en el procesamiento de datos.
 
 ###### 4.2 Gestión de Incidentes
-Esta sección está diseñada para identificar y responder rápidamente ante cualquier tipo de evento que pueda comprometer la integridad del sistema o la seguridad de los datos. 
+
+Esta sección está diseñada para identificar y responder rápidamente ante cualquier tipo de evento que pueda comprometer la integridad del sistema o la seguridad de los datos.
 
 1. **Detección de Incidentes:** Se utilizan reglas de alerta configuradas en CloudWatch para detectar incidentes como errores en la carga de datos, archivos rechazados por validaciones o caídas de servicios externos (como bases de datos o APIs).
 
-2. **Clasificación:** Se evalúa la gravedad del incidente y se clasifica como crítico, medio o bajo. 
+2. **Clasificación:** Se evalúa la gravedad del incidente y se clasifica como crítico, medio o bajo.
 
-
-| **Clasificación de Incidente** | **Descripción**    | **Ejemplo**   | **Acción Requerida**|
-|--------------------------------|-------------|----------------------|-------------------|
-| **Crítico**                    | Incidentes que afectan directamente la operación del sistema y pueden comprometer la seguridad o la integridad de los datos. Requieren una acción inmediata para restaurar el servicio. | - Caída de base de datos (Amazon RDS) durante una carga de datos. <br> - Exposición accidental de datos sensibles. | - Restauración inmediata desde backups. <br> - Notificación a los administradores a través de AWS SNS. <br> - Reinicio automático de servicios. |
-| **Medio**                      | Incidentes que afectan el rendimiento o la funcionalidad del sistema. Se pueden retrasar procesos o requerir una intervención manual. | - Error en la validación de un archivo de carga que retrasa la operación pero no detiene el flujo. <br> - Lento procesamiento de un dataset debido a un error de configuración temporal. | - Notificación al equipo de soporte. <br> - Revalidación y reintento de carga. |
-| **Bajo**                       | Incidentes menores que no afectan el funcionamiento principal del sistema, pero que requieren atención para evitar que se conviertan en problemas mayores. | - Un archivo rechazado por un error de formato menor. <br> - Una solicitud de visualización de metadatos que no devuelve resultados por una pequeña falla en el frontend. | - Registro del incidente en el sistema de auditoría. <br> - Resolución del error en la próxima actualización. |
-
+| **Clasificación de Incidente** | **Descripción**                                                                                                                                                                         | **Ejemplo**                                                                                                                                                                              | **Acción Requerida**                                                                                                                            |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Crítico**                    | Incidentes que afectan directamente la operación del sistema y pueden comprometer la seguridad o la integridad de los datos. Requieren una acción inmediata para restaurar el servicio. | - Caída de base de datos (Amazon RDS) durante una carga de datos. <br> - Exposición accidental de datos sensibles.                                                                       | - Restauración inmediata desde backups. <br> - Notificación a los administradores a través de AWS SNS. <br> - Reinicio automático de servicios. |
+| **Medio**                      | Incidentes que afectan el rendimiento o la funcionalidad del sistema. Se pueden retrasar procesos o requerir una intervención manual.                                                   | - Error en la validación de un archivo de carga que retrasa la operación pero no detiene el flujo. <br> - Lento procesamiento de un dataset debido a un error de configuración temporal. | - Notificación al equipo de soporte. <br> - Revalidación y reintento de carga.                                                                  |
+| **Bajo**                       | Incidentes menores que no afectan el funcionamiento principal del sistema, pero que requieren atención para evitar que se conviertan en problemas mayores.                              | - Un archivo rechazado por un error de formato menor. <br> - Una solicitud de visualización de metadatos que no devuelve resultados por una pequeña falla en el frontend.                | - Registro del incidente en el sistema de auditoría. <br> - Resolución del error en la próxima actualización.                                   |
 
 3. **Respuesta Automática:** En caso de un incidente, se utiliza AWS Lambda para ejecutar funciones que puedan mitigar el impacto.
 
@@ -5267,12 +5267,12 @@ def lambda_handler(event, context):
 
         # Si la carga fue exitosa, enviar una notificación de éxito
         send_notification("Carga de datos exitosa", "El archivo se cargó correctamente.")
-        
+
         return {
             'statusCode': 200,
             'body': json.dumps('Carga exitosa')
         }
-    
+
     except Exception as e:
         logging.error(f"Error en la carga de datos: {str(e)}")
 
@@ -5290,7 +5290,7 @@ def retry_load():
         s3_client.upload_file(file_key, bucket_name, file_key)
         logging.info("Carga reintentada exitosa.")
         send_notification("Carga reintentada exitosa", f"El archivo {file_key} se ha cargado exitosamente después del reintento.")
-        
+
         return {
             'statusCode': 200,
             'body': json.dumps('Carga reintentada exitosa')
@@ -5299,7 +5299,7 @@ def retry_load():
     except Exception as e:
         logging.error(f"Error en el reintento de carga: {str(e)}")
         send_notification("Error en el reintento de carga", f"Ocurrió un error en el reintento: {str(e)}")
-        
+
         return {
             'statusCode': 500,
             'body': json.dumps('Fallo en la carga después del reintento')
@@ -5316,9 +5316,7 @@ def send_notification(subject, message):
 
 ```
 
-4. **Notificación de Incidentes:** Cuando un incidente es clasificado como crítico AWS SNS  envía notificaciones a los administradores y responsables de la seguridad.
-
-
+4. **Notificación de Incidentes:** Cuando un incidente es clasificado como crítico AWS SNS envía notificaciones a los administradores y responsables de la seguridad.
 
 ##### Elementos de Alta Disponibilidad
 
@@ -5347,7 +5345,7 @@ Se utiliza AWS CloudWatch para obtener métricas de disponibilidad de los recurs
 
 Las solicitudes entrantes, como las que requieren la carga de datos o la consulta de estado, son dirigidas al Application Load Balancer de AWS. Este ALB distribuye las solicitudes entre las diferentes instancias de los microservicios encargados de procesar los datos.
 
-- Si el Centro de Carga recibe varias solicitudes simultáneas para cargar grandes volúmenes de datos desde Amazon S3, el ALB distribuye estas solicitudes entre las instancias disponibles que gestionan el procesamiento de estos archivos. 
+- Si el Centro de Carga recibe varias solicitudes simultáneas para cargar grandes volúmenes de datos desde Amazon S3, el ALB distribuye estas solicitudes entre las instancias disponibles que gestionan el procesamiento de estos archivos.
 
 ###### 3.2 Auto Scaling para Manejo de Picos de Tráfico
 
@@ -5367,7 +5365,6 @@ El Centro de Carga también se beneficia del uso de Amazon EKS para gestionar mi
 
 La influencia de este componente sobre la base de datos es mínima, ya que reutiliza la misma instancia de RDS compartida con La Bóveda y el Bioregistro, cuyas especificaciones ya fueron detalladas previamente. Del mismo modo, las configuraciones para DynamoDB y S3 se mantienen idénticas a las de esos componentes.
 El único aporte nuevo se encuentra reflejado en el diagrama de base de datos que se presenta a continuación, el cual será explicado en detalle.
-
 
 ##### Diagrama de Base de Datos
 
@@ -5520,10 +5517,7 @@ El frontend del componente Marketplace sigue una arquitectura moderna basada en 
 - Lógica de negocio desacoplada de las vistas.
 - Facilidad para agregar nuevos tipos de datasets, métodos de pago o reglas de negocio sin romper el flujo principal.
 
-
-
-### Diseño del Backend
-
+## Diseño del Backend
 
 ### Microservicios por Componente
 
@@ -5534,24 +5528,28 @@ Activo constantemente durante horarios de operación, con picos durante búsqued
 ##### **Microservicios internos:**
 
 **catalog-metadata-sync-service**
+
 - **Función**: Sincroniza metadatos entre La Bóveda y marketplace cada 15 minutos, detectando nuevos datasets y cambios de estado
 - **Herramientas**: Apache Airflow para scheduling de jobs, PostgreSQL para tracking de cambios incrementales, gRPC client para comunicación con La Bóveda
 - **Operación**: Ejecuta continuamente con intensificación durante ventanas de ETL del Motor (2-6 AM) cuando más datasets se procesan
 - **Event-driven**: Consume eventos `dataset.processed` del Motor de Transformación para updates inmediatos, `dataset.quality_updated` para refresh de métricas
 
 **catalog-search-engine-service**
+
 - **Función**: Gestiona indexación y búsqueda avanzada en OpenSearch con soporte multilenguaje y faceted search
 - **Herramientas**: OpenSearch para búsqueda y analytics, Redis para cache de queries frecuentes, Apache Spark para batch indexing
 - **Operación**: Reindexación incremental cada hora, reindexación completa los domingos durante ventana de mantenimiento
 - **Event-driven**: Procesa eventos `search.performed` para analytics, `dataset.metadata_changed` para reindexación selectiva
 
 **catalog-quality-aggregator-service**
+
 - **Función**: Agrega métricas de calidad del Motor de Transformación con ratings de usuarios para scoring híbrido
 - **Herramientas**: Apache Spark para agregaciones complejas, PostgreSQL para almacenamiento de scores, ML models para weighting
 - **Operación**: Jobs diarios durante madrugada para recalcular scores de todos los datasets activos
 - **Event-driven**: Consume `user.rating_submitted` para updates inmediatos de scores
 
 **Endpoints expuestos al API Gateway:**
+
 - `GET /api/v1/catalog/search` - Búsqueda avanzada con filtros y faceting
 - `GET /api/v1/catalog/datasets/{id}` - Detalles completos de dataset individual
 - `GET /api/v1/catalog/categories` - Listado de categorías con conteos
@@ -5565,30 +5563,35 @@ Se mantiene activo 24/7 para gestión de sesiones globales, con mayor carga dura
 ##### **Microservicios internos:**
 
 **user-profile-manager-service**
+
 - **Función**: Gestiona perfiles comerciales complementando autenticación del Bioregistro
 - **Herramientas**: PostgreSQL con row-level security, Redis para cache de perfiles, gRPC client para Bioregistro
 - **Operación**: Sincronización con Bioregistro cada vez que usuario inicia sesión, cache de perfiles por 4 horas
 - **Event-driven**: Consume `user.authenticated` del Bioregistro, `subscription.updated` del payment service
 
 **user-behavior-tracker-service**
+
 - **Función**: Rastrea comportamiento de navegación, búsquedas, y interacciones para ML de recomendaciones
 - **Herramientas**: RabbitMQ para streaming de eventos, DynamoDB para storage de comportamiento, OpenSearch para analytics time-series, Apache Spark para feature engineering
 - **Operación**: Ingesta eventos en tiempo real, batch processing nocturno para agregaciones
 - **Event-driven**: Produce eventos `user.page_viewed`, `user.search_performed`, `user.dataset_clicked`
 
 **user-preference-engine-service**
+
 - **Función**: Motor de preferencias que aprende de comportamiento y permite configuración manual
 - **Herramientas**: Apache Spark MLlib para clustering de usuarios, Redis para cache de preferencias, PostgreSQL para storage
 - **Operación**: Recalcular preferencias semanalmente basado en actividad acumulada
 - **Event-driven**: Consume todos los eventos de behavior-tracker para updates de preferencias
 
 **user-session-manager-service**
+
 - **Función**: Gestión de sesiones distribuidas con sincronización cross-device
 - **Herramientas**: Redis Cluster para sesiones distribuidas, JWT para tokens, WebSocket para real-time sync
 - **Operación**: Mantiene sesiones activas por 8 horas, extensión automática durante actividad
 - **Event-driven**: Produce `user.session_started`, `user.session_expired` para analytics
 
 **Endpoints expuestos al API Gateway:**
+
 - `POST /api/v1/users/register` - Registro de nuevo usuario en marketplace
 - `GET /api/v1/users/me` - Perfil completo del usuario actual
 - `PUT /api/v1/users/me/preferences` - Actualización de preferencias
@@ -5602,36 +5605,42 @@ Opera con alta disponibilidad 24/7 para procesar pagos globales, manejando picos
 ##### **Microservicios internos:**
 
 **payment-processor-service**
+
 - **Función**: Procesamiento de pagos únicos con validación, fraud detection, y routing de providers
 - **Herramientas**: Stripe SDK para pagos internacionales, BAC Credomatic API para Costa Rica, Redis para idempotencia
 - **Operación**: Procesamiento inmediato con timeout de 30 segundos, retry automático en caso de fallos temporales
 - **Event-driven**: Produce `payment.initiated`, `payment.completed`, `payment.failed` para workflow orchestration
 
 **subscription-billing-service**
+
 - **Función**: Gestión de suscripciones recurrentes, billing cycles, y renovaciones automáticas
 - **Herramientas**: PostgreSQL para subscription state, DynamoDB para billing events, Apache Airflow para scheduling de billing, Stripe para recurring payments
 - **Operación**: Procesa renovaciones diariamente a las 3 AM UTC, retry logic para pagos fallidos
 - **Event-driven**: Consume `subscription.created`, produce `subscription.renewed`, `subscription.cancelled`
 
 **invoice-generator-service**
-- **Función**: Generación automática de facturas con PDF, cálculo de impuestos, y envío por email  
+
+- **Función**: Generación automática de facturas con PDF, cálculo de impuestos, y envío por email
 - **Herramientas**: Python para PDF generation, Amazon SES para email delivery, PostgreSQL para invoice storage
 - **Operación**: Generación inmediata post-pago, batch generation para suscripciones el día 1 de cada mes
 - **Event-driven**: Consume `payment.completed` para trigger de generación inmediata
 
 **fraud-detection-service**
+
 - **Función**: Risk scoring en tiempo real basado en patrones de comportamiento y machine learning
 - **Herramientas**: Apache Spark MLlib para models, Amazon SageMaker para model deployment, Redis para feature store, DynamoDB para historical data
 - **Operación**: Scoring en <200ms durante checkout, reentrenamiento de models semanalmente usando SageMaker
 - **Event-driven**: Consume todos los payment events para continuous learning
 
 **webhook-handler-service**
+
 - **Función**: Manejo seguro de webhooks de payment providers con signature validation
 - **Herramientas**: FastAPI con async processing, RabbitMQ para reliable delivery, Redis para deduplication
 - **Operación**: Procesamiento inmediato de webhooks, retry con exponential backoff para failures
 - **Event-driven**: Produce payment state updates basados en confirmaciones de providers
 
 **Endpoints expuestos al API Gateway:**
+
 - `POST /api/v1/payments/initiate` - Inicio de proceso de pago
 - `GET /api/v1/payments/{id}/status` - Estado de transacción específica
 - `POST /api/v1/subscriptions` - Creación de nueva suscripción
@@ -5646,36 +5655,42 @@ Ejecuta continuamente para gestionar acceso a datasets, con activación intensa 
 ##### **Microservicios internos:**
 
 **access-provisioning-service**
+
 - **Función**: Activación automática de acceso a datasets post-compra con integración a La Bóveda
 - **Herramientas**: gRPC clients para La Bóveda y Bioregistro, PostgreSQL para access records, RabbitMQ para event coordination
 - **Operación**: Provisioning inmediato (< 30 segundos) después de payment confirmation
 - **Event-driven**: Consume `payment.completed`, `subscription.activated`, produce `access.granted`
 
 **token-management-service**
+
 - **Función**: Generación y gestión de JWT tokens para acceso programático a datasets
 - **Herramientas**: JWT libraries con RS256 signing, Redis para token blacklisting, PostgreSQL para token metadata
 - **Operación**: Tokens con TTL de 24 horas, refresh automático para usuarios activos
 - **Event-driven**: Produce `token.generated`, `token.revoked` para audit logging
 
 **usage-tracking-service**
+
 - **Función**: Monitoreo de uso de datasets para billing, rate limiting, y analytics
 - **Herramientas**: RabbitMQ para real-time streaming, OpenSearch para time-series storage, Redis para rate limiting counters
 - **Operación**: Tracking en tiempo real de cada API call, batch aggregation horaria para billing
 - **Event-driven**: Consume `dataset.accessed`, produce `usage.threshold_exceeded`
 
 **permission-validator-service**
+
 - **Función**: Validación granular de permisos por dataset, usuario, y tipo de operación
 - **Herramientas**: Redis para cache de permissions, PostgreSQL para permission rules, gRPC para Bioregistro integration
 - **Operación**: Validación en <50ms para cada request, cache de permissions por 15 minutos
 - **Event-driven**: Consume `permission.updated` del Bioregistro, `access.revoked` events
 
 **audit-logger-service**
+
 - **Función**: Logging completo de accesos para compliance y auditoría
 - **Herramientas**: OpenSearch para log storage y analytics, PostgreSQL para audit summaries
 - **Operación**: Logging inmediato de cada acceso, retention de 7 años para compliance
 - **Event-driven**: Consume todos los access events para comprehensive audit trail
 
 **Endpoints expuestos al API Gateway:**
+
 - `POST /api/v1/access/provision` - Provisioning de acceso (sistema interno)
 - `GET /api/v1/access/my-datasets` - Datasets accesibles por usuario
 - `POST /api/v1/access/tokens/generate` - Generación de access token
@@ -5689,30 +5704,35 @@ Ejecuta batch processing nocturno (1-5 AM) para entrenar modelos ML con datos de
 ##### **Microservicios internos:**
 
 **behavioral-ml-service**
+
 - **Función**: Análisis de comportamiento de usuarios con machine learning para recommendations personalizadas
 - **Herramientas**: Apache Spark MLlib para collaborative filtering, Amazon SageMaker para model training y deployment, Hugging Face Transformers para embeddings
 - **Operación**: Entrenamiento nocturno con datos agregados, inference en tiempo real <100ms usando SageMaker endpoints
 - **Event-driven**: Consume `user.behavior_updated`, produce `recommendations.updated`
 
 **content-similarity-service**
+
 - **Función**: Cálculo de similaridad entre datasets basado en metadatos y contenido
 - **Herramientas**: Apache Spark para feature extraction, OpenSearch para similarity search, Hugging Face Transformers (all-mpnet-base-v2) para embeddings semánticos
 - **Operación**: Recálculo semanal de similarity matrix, updates incrementales cuando nuevos datasets se agregan
 - **Event-driven**: Consume `dataset.metadata_updated`, `dataset.added` para similarity recalculation
 
 **recommendation-engine-service**
+
 - **Función**: Motor principal que combina behavioral, content-based, y collaborative filtering
 - **Herramientas**: Redis para cache de recommendations, PostgreSQL para model weights, Apache Spark para ensemble methods
 - **Operación**: Pre-cálculo de recommendations para usuarios activos, real-time computation para cold users
 - **Event-driven**: Produce `recommendation.served` para effectiveness tracking
 
 **ab-testing-framework-service**
+
 - **Función**: Framework para testing de diferentes algoritmos de recomendación
 - **Herramientas**: PostgreSQL para experiment configuration, Redis for traffic splitting, Apache Spark para statistical analysis
 - **Operación**: Experimentos con duración de 2 semanas, análisis automático de significance
 - **Event-driven**: Consume `recommendation.clicked`, `recommendation.converted` para effectiveness measurement
 
 **Endpoints expuestos al API Gateway:**
+
 - `GET /api/v1/recommendations/personalized` - Recomendaciones personalizadas
 - `GET /api/v1/recommendations/similar/{dataset_id}` - Datasets similares
 - `GET /api/v1/recommendations/trending` - Trending recommendations
@@ -5725,36 +5745,42 @@ Opera continuamente para delivery de notificaciones multi-canal, con picos duran
 ##### **Microservicios internos:**
 
 **notification-dispatcher-service**
+
 - **Función**: Router central que determina canal óptimo y timing para cada notificación
 - **Herramientas**: RabbitMQ para message queuing, Redis for user preferences, machine learning para optimal timing
 - **Operación**: Dispatch inmediato para transactional, scheduling inteligente para marketing
 - **Event-driven**: Consume events de todos los marketplace services, produce `notification.dispatched`
 
 **email-delivery-service**
+
 - **Función**: Gestión completa de email campaigns con templates y personalization
 - **Herramientas**: Amazon SES para delivery, Python Jinja2 para templating, PostgreSQL para tracking, Redis para rate limiting
 - **Operación**: Delivery inmediato para transactional, batch delivery para newsletters
 - **Event-driven**: Consume `notification.email_requested`, produce `email.delivered`, `email.bounced`
 
 **push-notification-service**
+
 - **Función**: Push notifications para browsers y mobile apps con targeting avanzado
 - **Herramientas**: Firebase Cloud Messaging, WebSocket para real-time, Redis para device tokens
 - **Operación**: Delivery inmediato con retry logic, cleanup de inactive tokens semanalmente
 - **Event-driven**: Consume `notification.push_requested`, produce `push.delivered`
 
 **sms-service**
+
 - **Función**: SMS delivery para notificaciones críticas integrado con sistema de autenticación
 - **Herramientas**: Amazon SNS para SMS delivery, PostgreSQL para message tracking, Redis for rate limiting
 - **Operación**: Delivery para emergencies únicamente, strict rate limiting por usuario
 - **Event-driven**: Consume `notification.sms_required` para casos críticos únicamente
 
 **template-management-service**
+
 - **Función**: Gestión de templates con multi-lenguaje y A/B testing
 - **Herramientas**: PostgreSQL para template storage, Redis for template cache, Jinja2 para rendering
 - **Operación**: Cache de templates populares, invalidation automática en updates
 - **Event-driven**: Produce `template.updated` cuando hay cambios en messaging
 
 **Endpoints expuestos al API Gateway:**
+
 - `GET /api/v1/notifications/preferences` - Preferencias de notificación del usuario
 - `PUT /api/v1/notifications/preferences` - Actualización de preferencias
 - `GET /api/v1/notifications/history` - Historial de notificaciones
@@ -5767,36 +5793,42 @@ Ejecuta continuamente con dos modes: real-time para dashboards operacionales y b
 ##### **Microservicios internos:**
 
 **event-ingestion-service**
+
 - **Función**: Ingesta masiva de eventos de todos los microservicios del marketplace
 - **Herramientas**: RabbitMQ para streaming, Apache Spark Streaming para processing, OpenSearch para time-series storage, DynamoDB para event metadata
 - **Operación**: Ingesta 24/7 con processing en tiempo real, batch aggregation cada hora
 - **Event-driven**: Consume todos los marketplace events, produce `analytics.event_processed`
 
 **business-metrics-calculator-service**
+
 - **Función**: Cálculo de KPIs de negocio como revenue, conversion rates, churn
 - **Herramientas**: Apache Spark para complex aggregations, PostgreSQL para metrics storage, Redis para real-time counters
 - **Operación**: Cálculos en tiempo real para dashboards, recalculations completos nocturnos
 - **Event-driven**: Consume payment, subscription, user events para metric updates
 
 **user-analytics-service**
+
 - **Función**: Análisis de comportamiento de usuarios, journey mapping, segmentación
 - **Herramientas**: Apache Spark MLlib para clustering, OpenSearch para user timelines, DynamoDB para user segments
 - **Operación**: Segmentación diaria de usuarios, cohort analysis semanal
 - **Event-driven**: Consume user behavior events, produce `user.segment_updated`
 
 **dataset-performance-analyzer-service**
+
 - **Función**: Análisis de performance de datasets, popularidad, revenue attribution
 - **Herramientas**: Apache Spark para analytics, OpenSearch para search analytics, DynamoDB para rankings
 - **Operación**: Rankings diarios de datasets, trend analysis semanal
 - **Event-driven**: Consume dataset access events, produce `dataset.trending_updated`
 
 **reporting-service**
+
 - **Función**: Generación de reportes automáticos para stakeholders y dataset owners
 - **Herramientas**: Apache Spark para data processing, Python para PDF generation, Amazon SES para delivery
 - **Operación**: Reportes diarios para operations, reportes mensuales para business
 - **Event-driven**: Scheduled generation basado en calendar events
 
 **Endpoints expuestos al API Gateway:**
+
 - `GET /api/v1/analytics/dashboard` - Métricas para dashboard principal
 - `GET /api/v1/analytics/revenue` - Métricas de revenue y financial KPIs
 - `GET /api/v1/analytics/users` - Analytics de comportamiento de usuarios
@@ -5808,6 +5840,7 @@ Ejecuta continuamente con dos modes: real-time para dashboards operacionales y b
 ##### **Event Flow Principal**
 
 **User Journey Events:**
+
 1. `user.registered` → Triggers welcome email, initial recommendations calculation
 2. `user.search_performed` → Updates behavior tracking, feeds recommendation engine
 3. `user.dataset_viewed` → Records interest, updates popularity metrics
@@ -5816,6 +5849,7 @@ Ejecuta continuamente con dos modes: real-time para dashboards operacionales y b
 6. `dataset.accessed` → Records usage for billing, updates analytics
 
 **Marketplace Operation Events:**
+
 1. `dataset.processed` (from Motor) → Triggers metadata sync, search reindexing
 2. `dataset.quality_updated` (from Motor) → Updates catalog rankings, triggers notifications to interested users
 3. `subscription.expiring` → Triggers renewal reminders, offers relevant upgrades
@@ -5824,16 +5858,19 @@ Ejecuta continuamente con dos modes: real-time para dashboards operacionales y b
 #### **Event Processing Patterns**
 
 **Immediate Processing (< 1 second):**
+
 - Payment confirmations → Access provisioning
 - User authentication → Session creation
 - API access requests → Permission validation
 
 **Near Real-time (< 5 seconds):**
+
 - Search queries → Analytics updates
 - Dataset views → Popularity scoring
 - User behavior → Recommendation refresh
 
 **Batch Processing (hourly/daily):**
+
 - ML model training → Recommendation engine updates
 - Usage aggregation → Billing calculations
 - Analytics rollups → Business intelligence reports
@@ -5850,15 +5887,17 @@ Ejecuta continuamente con dos modes: real-time para dashboards operacionales y b
 ##### **API Gateway Routing Configuration**
 
 **Authentication & Authorization Layer:**
+
 - Validación de JWT tokens del Bioregistro
 - Rate limiting por usuario y endpoint
 - Request/response transformation
 - API key management para acceso programático
 
 **Service Routing:**
+
 ```
 /api/v1/catalog/* → marketplace-catalog-service
-/api/v1/users/* → marketplace-user-service  
+/api/v1/users/* → marketplace-user-service
 /api/v1/payments/* → marketplace-payment-service
 /api/v1/access/* → marketplace-access-service
 /api/v1/recommendations/* → marketplace-recommendation-service
@@ -5867,6 +5906,7 @@ Ejecuta continuamente con dos modes: real-time para dashboards operacionales y b
 ```
 
 **Cross-Cutting Concerns:**
+
 - Request correlation IDs para distributed tracing
 - Centralized logging de todas las API calls
 - Metrics collection para Prometheus
@@ -5875,18 +5915,295 @@ Ejecuta continuamente con dos modes: real-time para dashboards operacionales y b
 ##### **Rate Limiting Strategy**
 
 **Tier-based Limits:**
+
 - Free tier: 100 requests/hour para search, 10 dataset views/day
-- Basic tier: 1000 requests/hour, 100 dataset views/day  
+- Basic tier: 1000 requests/hour, 100 dataset views/day
 - Premium tier: 10000 requests/hour, unlimited views
 - Enterprise tier: Custom limits basados en SLA
 
 **Endpoint-specific Limits:**
+
 - Search endpoints: Higher limits para discovery
 - Payment endpoints: Lower limits para security
 - Analytics endpoints: Restricted to authorized users only
 - Data access endpoints: Based on purchased access levels
 
-----
+### Servicios de AWS - Componente Marketplace (Backend)
+
+#### Amazon EKS (Elastic Kubernetes Service)
+
+El cluster de Kubernetes funciona como la plataforma central de orquestación para todos los microservicios del marketplace, proporcionando escalabilidad automática y alta disponibilidad. Durante horarios de alta actividad comercial (8-10 AM) y finales de mes cuando ocurren renovaciones masivas, el cluster escala dinámicamente desde 2 nodos base hasta 12 nodos distribuidos estratégicamente en múltiples zonas de disponibilidad.
+
+Los pods especializados operan según la naturaleza de cada microservicio: marketplace-recommendation-service ejecuta en nodos t3.xlarge optimizados para inferencia de machine learning, mientras que servicios transaccionales como marketplace-payment-service utilizan nodos t3.large para alta concurrencia. El service mesh implementa circuit breakers y health checks que detectan degradaciones de performance automáticamente, manteniendo la experiencia de usuario fluida durante picos de tráfico.
+
+**Configuración de Hardware:**
+
+- **Versión de Kubernetes:** 1.29 (alineada con ecosistema Data Pura Vida)
+- **Tipo de nodos base:** t3.large (2 vCPU, 8 GB RAM)
+- **Nodos especializados ML:** t3.xlarge (4 vCPU, 16 GB RAM)
+- **Auto Scaling:** 2-12 nodos con métricas CPU/memoria >70% por 5 minutos
+- **Almacenamiento:** EBS gp3 50GB por nodo para cache local y logs
+- **Red:** VPC privada compartida con networking optimizado para ML
+
+#### Amazon RDS PostgreSQL
+
+Utiliza la misma instancia compartida establecida por Bioregistro y La Bóveda, extendiendo el esquema de base de datos con tablas específicas para operaciones comerciales del marketplace. Las transacciones de pago se procesan con integridad ACID completa, mientras que las suscripciones se sincronizan continuamente con Stripe para mantener consistencia entre sistemas.
+
+La configuración Multi-AZ garantiza failover automático en menos de 60 segundos durante operaciones críticas como confirmaciones de pago y activación de accesos a datasets. El motor procesa concurrentemente consultas intensivas de catálogo durante búsquedas de usuarios y escrituras de alta frecuencia generadas por tracking de comportamiento.
+
+**Tablas específicas del Marketplace:**
+
+- **MarketplaceOrder:** Órdenes de compra con estados y timestamps
+- **Subscription:** Suscripciones activas con calendarios de renovación
+- **PaymentTransaction:** Historial completo de transacciones
+- **DatasetPricing:** Configuraciones de precios por dataset
+- **UserPurchaseHistory:** Historial de compras por usuario
+
+#### Amazon DynamoDB
+
+Maneja datos de alta velocidad que requieren latencia ultra-baja, especialmente durante interacciones en tiempo real como navegación de catálogo, seguimiento de comportamiento y cache de recomendaciones. El modo On-Demand se adapta automáticamente a picos impredecibles de tráfico durante launches de datasets premium o campañas de marketing.
+
+Las tablas utilizan TTL automático para optimizar costos y performance, eliminando datos temporales como sesiones expiradas y cache obsoleto. DynamoDB Streams replica automáticamente cambios a pipelines de analytics y ML para mantener modelos de recomendación actualizados.
+
+**Configuración de Tablas:**
+
+- **UserBehavior:** Tracking de clics, búsquedas y tiempo en página
+  - Partition Key: user_id, Sort Key: timestamp
+  - TTL: 90 días para analytics históricos
+- **SessionData:** Sesiones distribuidas cross-device
+  - Partition Key: session_id, TTL: 8 horas
+- **RecommendationCache:** Cache personalizado de recomendaciones
+  - Partition Key: user_id, TTL: 4 horas
+- **NotificationQueue:** Cola de notificaciones pendientes
+  - Partition Key: user_id, Sort Key: notification_id
+
+#### Amazon OpenSearch
+
+Motor de búsqueda especializado que indexa metadatos de todos los datasets del marketplace, proporcionando capacidades avanzadas de búsqueda full-text, filtrado facetado y análisis semántico. Los analyzers personalizados para español optimizan resultados para usuarios costarricenses, mientras que la funcionalidad de auto-complete mejora la experiencia de búsqueda.
+
+El cluster procesa consultas complejas con agregaciones en tiempo real para generar facets dinámicos (por categoría, precio, popularidad) y analytics de búsqueda que alimentan el motor de recomendaciones. Los índices se actualizan automáticamente cuando La Bóveda notifica cambios en datasets.
+
+**Configuración del Dominio:**
+
+- **Versión:** OpenSearch 2.3
+- **Cluster:** 3 nodos t3.medium.search para alta disponibilidad
+- **Almacenamiento:** 100GB EBS gp3 por nodo con auto-scaling habilitado
+- **Índices principales:**
+  - `datasets-catalog`: Metadatos completos con embeddings semánticos
+  - `user-searches`: Historial de búsquedas para analytics y recomendaciones
+  - `marketplace-analytics`: Métricas de tiempo real del marketplace
+- **Seguridad:** VPC privada, HTTPS obligatorio, fine-grained access control
+
+#### Amazon S3
+
+Proporciona almacenamiento escalable para diferentes tipos de contenido del marketplace, desde assets visuales hasta documentación generada automáticamente. Las políticas de lifecycle management optimizan costos moviendo automáticamente contenido antiguo a clases de almacenamiento más económicas según patrones de acceso.
+
+**Buckets especializados:**
+
+- **`dpv-marketplace-assets`:**
+  - Thumbnails y previews de datasets generados automáticamente
+  - Configuración: Versionado habilitado, CDN optimizado
+- **`dpv-marketplace-reports`:**
+  - Facturas PDF, reportes de analytics, documentos legales
+  - Configuración: Cifrado SSE-KMS, retención 7 años
+- **`dpv-marketplace-backups`:**
+  - Respaldos de configuraciones críticas y datos de recovery
+  - Configuración: Cross-region replication a us-west-1
+- **`dpv-marketplace-logs`:**
+  - Logs de auditoría extendida para compliance
+  - Configuración: Lifecycle a Glacier después de 90 días
+
+#### AWS KMS (Key Management Service)
+
+Gestiona claves de cifrado específicas para diferentes tipos de datos del marketplace, proporcionando separación de responsabilidades y cumplimiento de normativas de seguridad. La rotación automática anual mantiene la postura de seguridad actualizada sin interrumpir operaciones.
+
+**Claves especializadas:**
+
+- **`dpv-marketplace-payments`:**
+  - Cifrado de datos de transacciones, tokens de pago y información financiera
+  - Política: Acceso restringido solo a payment-service
+- **`dpv-marketplace-analytics`:**
+  - Protección de datos de comportamiento y preferencias de usuarios
+  - Política: Acceso para analytics y recommendation services
+- **`dpv-marketplace-reports`:**
+  - Cifrado de facturas, reportes financieros y documentos sensibles
+  - Política: Acceso para generación automática y backoffice
+- **`dpv-marketplace-recommendations`:**
+  - Protección de algoritmos ML y datos de entrenamiento
+  - Política: Acceso exclusivo para SageMaker endpoints
+
+#### AWS Secrets Manager
+
+Centraliza el manejo seguro de credenciales y API keys utilizadas por microservicios del marketplace, implementando rotación automática donde sea posible y alertas para credenciales próximas a expirar. La integración con IAM garantiza que cada microservicio acceda únicamente a los secrets necesarios para su función.
+
+**Secrets del Marketplace:**
+
+- **`dpv/marketplace/stripe-keys`:**
+  - API keys públicas y privadas de Stripe
+  - Rotación: Manual coordinada con Stripe
+- **`dpv/marketplace/local-payment-providers`:**
+  - Credenciales para BAC Credomatic y otros procesadores locales
+  - Configuración: Cifrado adicional para compliance local
+- **`dpv/marketplace/recommendation-ml-tokens`:**
+  - Tokens de acceso para endpoints de SageMaker
+  - Rotación: Automática cada 30 días
+- **`dpv/marketplace/analytics-db-credentials`:**
+  - Credenciales específicas para acceso de solo lectura a analytics
+  - Configuración: Least privilege access
+
+#### Amazon SageMaker
+
+Plataforma de machine learning que potencia el motor de recomendaciones del marketplace mediante modelos especializados que analizan comportamiento de usuarios, similitud de datasets y patrones de compra. Los endpoints en tiempo real proporcionan recomendaciones personalizadas con latencia <100ms, mientras que jobs de entrenamiento nocturnos mantienen modelos actualizados con datos del día anterior.
+
+El sistema implementa A/B testing automático para evaluar efectividad de diferentes algoritmos de recomendación, optimizando continuamente para métricas de negocio como click-through rate y conversion rate.
+
+**Configuración para Recomendaciones:**
+
+- **Endpoints en tiempo real:**
+  - 2 instancias ml.t3.medium con auto-scaling hasta 6 instancias
+  - Latencia objetivo: <100ms para inference
+- **Modelos desplegados:**
+  - Collaborative filtering: Usuarios con preferencias similares
+  - Content-based filtering: Similitud de metadatos de datasets
+  - Hybrid ensemble: Combinación weighted de ambos enfoques
+- **Training Jobs:**
+  - Frecuencia: Semanal con datos agregados de comportamiento
+  - Instancias: ml.m5.xlarge para processing distribuido
+  - Feature engineering: Apache Spark integration para ETL de features
+
+#### Amazon RabbitMQ (Amazon MQ)
+
+Message broker que coordina comunicación asíncrona entre microservicios del marketplace, garantizando delivery confiable de eventos críticos como confirmaciones de pago, actualizaciones de suscripciones y triggers de notificaciones. La configuración active/standby en múltiples AZ elimina single points of failure en el sistema de messaging.
+
+Los dead letter queues capturan mensajes que fallan el procesamiento inicial, permitiendo retry logic sofisticado y análisis de fallos para mejorar la robustez del sistema.
+
+**Configuración:**
+
+- **Tipo:** RabbitMQ 3.11.x para compatibilidad con ecosystem existente
+- **Instancias:** mq.m5.large en producción, mq.t3.micro para desarrollo
+- **Alta disponibilidad:** Configuración active/standby en múltiples AZ
+- **Durabilidad:** Queues persistentes para eventos críticos de pago
+
+**Exchanges y Queues principales:**
+
+- **`marketplace.events`:** Exchange principal para routing de eventos
+- **`payment.processing`:** Cola específica para procesamiento de pagos
+- **`notification.delivery`:** Delivery de notificaciones con retry logic
+- **`recommendation.updates`:** Actualización de cache de recomendaciones
+- **`analytics.tracking`:** Streaming de eventos para analytics en tiempo real
+
+#### Amazon SES (Simple Email Service)
+
+Gestiona el envío confiable de notificaciones transaccionales del marketplace, desde confirmaciones de compra hasta alertas de límites de uso. Los templates personalizables mantienen consistencia de marca mientras que el tracking de engagement proporciona insights sobre efectividad de comunicaciones.
+
+La configuración de bounce y complaint handling protege la reputación del dominio, mientras que la integración con SNS permite procesamiento automatizado de eventos de email.
+
+**Configuración:**
+
+- **Región:** us-east-1 para consistencia con otros servicios
+- **Dominio verificado:** marketplace.datapuravida.cr con DKIM/SPF
+- **Templates de email:**
+  - Confirmación de compra con detalles de dataset adquirido
+  - Facturas y recibos con PDF adjunto
+  - Notificaciones de renovación de suscripción
+  - Alertas de límites de uso próximos a agotarse
+- **Bounce handling:** Automático con SNS integration
+- **Sending limits:** Configurados según volumen proyectado de usuarios
+
+#### AWS Lambda
+
+Funciones serverless que manejan procesamiento específico y respuesta a eventos sin mantener infraestructura dedicada. Las funciones se activan automáticamente en respuesta a webhooks de payment providers, schedules de renovación, y eventos de fraude detection, proporcionando respuesta rápida y costos optimizados.
+
+**Funciones principales:**
+
+- **`marketplace-webhook-processor`:**
+  - Procesa webhooks de Stripe y otros payment providers
+  - Timeout: 30 segundos, Memory: 512MB
+  - Integración: SQS para reliable processing
+- **`marketplace-invoice-generator`:**
+  - Genera PDFs de facturas automáticamente post-pago
+  - Timeout: 5 minutos, Memory: 1024MB
+  - Storage: S3 para archivos generados
+- **`marketplace-subscription-renewal`:**
+  - Procesa renovaciones automáticas y notificaciones
+  - Trigger: EventBridge schedule
+  - Integration: RDS para subscription state management
+- **`marketplace-fraud-detector`:**
+  - Análisis en tiempo real de patrones sospechosos
+  - Timeout: 15 segundos, Memory: 512MB
+  - ML Integration: SageMaker endpoint para scoring
+
+#### Amazon CloudFront
+
+Red de distribución de contenido que acelera la entrega de assets del marketplace a usuarios globales, aunque se enfoca principalmente en usuarios de Costa Rica. El cache inteligente diferencia entre contenido estático (thumbnails, assets) y dinámico (APIs, datos en tiempo real) para optimizar performance y reducir latencia.
+
+**Configuración de distribución:**
+
+- **Orígenes múltiples:**
+  - S3 bucket para assets estáticos del marketplace
+  - Application Load Balancer del EKS para contenido dinámico
+- **Behaviors de cache:**
+  - Assets estáticos: TTL 24 horas con compression habilitada
+  - APIs del marketplace: Sin cache, pass-through al backend
+  - Thumbnails de datasets: TTL 4 horas con invalidation automática
+- **Seguridad:** WAF integrado para protección contra ataques DDoS y bot traffic
+
+#### AWS Systems Manager Parameter Store
+
+Almacena configuraciones operacionales y feature flags que se ajustan dinámicamente sin requerir redespliegue de aplicaciones. Los parámetros se organizan jerárquicamente para facilitar management y se versionan para permitir rollback rápido de cambios problemáticos.
+
+**Parámetros organizados por categoría:**
+
+- **`/dpv/marketplace/pricing/`:**
+  - Configuraciones de precios dinámicos por región
+  - Descuentos automáticos basados en volumen
+- **`/dpv/marketplace/features/`:**
+  - Feature flags para rollout gradual de funcionalidades
+  - A/B testing configuration para UI experiments
+- **`/dpv/marketplace/limits/`:**
+  - Rate limiting específico por tipo de usuario
+  - Quotas de API calls y bandwidth por tier
+- **`/dpv/marketplace/ml/`:**
+  - Hyperparámetros para modelos de recomendación
+  - Thresholds para triggers de reentrenamiento
+
+#### Amazon EventBridge
+
+Servicio de eventos que orquesta integraciones complejas entre microservicios del marketplace y sistemas externos, permitiendo arquitectura event-driven que escala automáticamente. Las reglas configurables enrutan eventos específicos a targets apropiados, mientras que el retry automático garantiza delivery confiable.
+
+**Reglas principales:**
+
+- **Payment events:** Routing de confirmaciones de pago a múltiples servicios
+- **Subscription renewals:** Trigger automático de procesos de renovación
+- **Dataset updates:** Coordinación con La Bóveda para actualizar catálogo
+- **Analytics aggregation:** Scheduling de jobs de agregación de métricas
+
+**Targets integrados:**
+
+- Lambda functions para procesamiento inmediato de eventos críticos
+- SQS queues para procesamiento diferido y batching
+- SNS topics para notificaciones de sistema y alertas
+
+#### VPC Endpoints
+
+Configuración de endpoints privados que mantiene todo el tráfico sensible del marketplace dentro de la red privada de AWS, eliminando exposición a internet público y optimizando seguridad. Los endpoints se configuran específicamente para servicios utilizados frecuentemente por microservicios del marketplace.
+
+**Endpoints configurados:**
+
+- **S3 Gateway Endpoint:**
+  - Acceso directo a buckets de assets sin tráfico internet
+  - Optimización de latencia para operaciones de upload/download
+- **SES Interface Endpoint:**
+  - Envío de emails transaccionales desde VPC privada
+  - Compliance con políticas de seguridad gubernamentales
+- **SageMaker Interface Endpoint:**
+  - ML inference sin exposición de datos a internet público
+  - Protección de modelos propietarios y datos de entrenamiento
+- **Secrets Manager Interface Endpoint:**
+  - Acceso seguro a credenciales desde pods en EKS
+  - Eliminación de dependencies en internet para operaciones críticas
+
+---
 
 ## Motor de transformacion
 
