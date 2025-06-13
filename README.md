@@ -5525,128 +5525,113 @@ El frontend del componente Marketplace sigue una arquitectura moderna basada en 
 ### Diseño del Backend
 
 
-#### Microservicios por Componente
+### Microservicios por Componente
 
-**marketplace-catalog-service**
+#### **marketplace-catalog-service**
 
 Activo constantemente durante horarios de operación, con picos durante búsquedas matutinas (8-10 AM) cuando usuarios planifican análisis diarios, y durante sincronizaciones nocturnas (2-4 AM) cuando el Motor de Transformación completa procesamiento de nuevos datasets. Opera en EKS cluster dedicado del marketplace, con pods distribuidos en availability zones para alta disponibilidad durante búsquedas críticas de usuarios enterprise. Consume eventos de La Bóveda vía RabbitMQ cuando nuevos datasets están listos, actualiza índices de Elasticsearch en tiempo real, y sirve búsquedas através de cache Redis que se invalida automáticamente cuando metadatos cambian.
 
-**Microservicios internos:**
+##### **Microservicios internos:**
 
 **catalog-metadata-sync-service**
-
 - **Función**: Sincroniza metadatos entre La Bóveda y marketplace cada 15 minutos, detectando nuevos datasets y cambios de estado
 - **Herramientas**: Apache Airflow para scheduling de jobs, PostgreSQL para tracking de cambios incrementales, gRPC client para comunicación con La Bóveda
 - **Operación**: Ejecuta continuamente con intensificación durante ventanas de ETL del Motor (2-6 AM) cuando más datasets se procesan
 - **Event-driven**: Consume eventos `dataset.processed` del Motor de Transformación para updates inmediatos, `dataset.quality_updated` para refresh de métricas
 
 **catalog-search-engine-service**
-
-- **Función**: Gestiona indexación y búsqueda avanzada en Elasticsearch con soporte multilenguaje y faceted search
-- **Herramientas**: Elasticsearch 8.8 con custom analyzers, Redis para cache de queries frecuentes, Apache Spark para batch indexing
+- **Función**: Gestiona indexación y búsqueda avanzada en OpenSearch con soporte multilenguaje y faceted search
+- **Herramientas**: OpenSearch para búsqueda y analytics, Redis para cache de queries frecuentes, Apache Spark para batch indexing
 - **Operación**: Reindexación incremental cada hora, reindexación completa los domingos durante ventana de mantenimiento
 - **Event-driven**: Procesa eventos `search.performed` para analytics, `dataset.metadata_changed` para reindexación selectiva
 
 **catalog-quality-aggregator-service**
-
 - **Función**: Agrega métricas de calidad del Motor de Transformación con ratings de usuarios para scoring híbrido
 - **Herramientas**: Apache Spark para agregaciones complejas, PostgreSQL para almacenamiento de scores, ML models para weighting
 - **Operación**: Jobs diarios durante madrugada para recalcular scores de todos los datasets activos
 - **Event-driven**: Consume `user.rating_submitted` para updates inmediatos de scores
 
 **Endpoints expuestos al API Gateway:**
-
 - `GET /api/v1/catalog/search` - Búsqueda avanzada con filtros y faceting
 - `GET /api/v1/catalog/datasets/{id}` - Detalles completos de dataset individual
 - `GET /api/v1/catalog/categories` - Listado de categorías con conteos
 - `GET /api/v1/catalog/trending` - Datasets trending basados en analytics
 - `GET /api/v1/catalog/recommendations/{user_id}` - Recomendaciones personalizadas
 
-**marketplace-user-service**
+#### **marketplace-user-service**
 
 Se mantiene activo 24/7 para gestión de sesiones globales, con mayor carga durante horarios laborales de Costa Rica (6 AM - 6 PM UTC-6) cuando usuarios buscan y compran datasets. Distribuido en pods que escalan automáticamente durante eventos de alto tráfico como lanzamientos de datasets gubernamentales. Integra con Bioregistro en tiempo real para validación de tokens mientras mantiene información comercial independiente en PostgreSQL local, sincronizando cambios de permisos vía eventos para actualizar acceso a contenido premium.
 
-#### **Microservicios internos:**
+##### **Microservicios internos:**
 
 **user-profile-manager-service**
-
 - **Función**: Gestiona perfiles comerciales complementando autenticación del Bioregistro
 - **Herramientas**: PostgreSQL con row-level security, Redis para cache de perfiles, gRPC client para Bioregistro
 - **Operación**: Sincronización con Bioregistro cada vez que usuario inicia sesión, cache de perfiles por 4 horas
 - **Event-driven**: Consume `user.authenticated` del Bioregistro, `subscription.updated` del payment service
 
 **user-behavior-tracker-service**
-
 - **Función**: Rastrea comportamiento de navegación, búsquedas, y interacciones para ML de recomendaciones
-- **Herramientas**: Apache Kafka para streaming de eventos, ClickHouse para analytics time-series, Apache Spark para feature engineering
+- **Herramientas**: RabbitMQ para streaming de eventos, DynamoDB para storage de comportamiento, OpenSearch para analytics time-series, Apache Spark para feature engineering
 - **Operación**: Ingesta eventos en tiempo real, batch processing nocturno para agregaciones
 - **Event-driven**: Produce eventos `user.page_viewed`, `user.search_performed`, `user.dataset_clicked`
 
 **user-preference-engine-service**
-
 - **Función**: Motor de preferencias que aprende de comportamiento y permite configuración manual
 - **Herramientas**: Apache Spark MLlib para clustering de usuarios, Redis para cache de preferencias, PostgreSQL para storage
 - **Operación**: Recalcular preferencias semanalmente basado en actividad acumulada
 - **Event-driven**: Consume todos los eventos de behavior-tracker para updates de preferencias
 
 **user-session-manager-service**
-
 - **Función**: Gestión de sesiones distribuidas con sincronización cross-device
 - **Herramientas**: Redis Cluster para sesiones distribuidas, JWT para tokens, WebSocket para real-time sync
 - **Operación**: Mantiene sesiones activas por 8 horas, extensión automática durante actividad
 - **Event-driven**: Produce `user.session_started`, `user.session_expired` para analytics
 
 **Endpoints expuestos al API Gateway:**
-
 - `POST /api/v1/users/register` - Registro de nuevo usuario en marketplace
 - `GET /api/v1/users/me` - Perfil completo del usuario actual
 - `PUT /api/v1/users/me/preferences` - Actualización de preferencias
 - `POST /api/v1/users/behavior` - Tracking de eventos de comportamiento
 - `GET /api/v1/users/me/recommendations` - Recomendaciones personalizadas
 
-**marketplace-payment-service**
+#### **marketplace-payment-service**
 
 Opera con alta disponibilidad 24/7 para procesar pagos globales, manejando picos de tráfico durante horarios de oficina en diferentes zonas horarias. Distribuido en pods con affinity a nodos dedicados para cumplir PCI DSS compliance. Se activa intensivamente durante finales de mes cuando empresas renuevan suscripciones y durante launches de datasets premium. Integra con múltiples payment providers según ubicación geográfica del usuario, enruta pagos automáticamente y maneja webhooks asincrónicos para confirmaciones.
 
-#### **Microservicios internos:**
+##### **Microservicios internos:**
 
 **payment-processor-service**
-
 - **Función**: Procesamiento de pagos únicos con validación, fraud detection, y routing de providers
 - **Herramientas**: Stripe SDK para pagos internacionales, BAC Credomatic API para Costa Rica, Redis para idempotencia
 - **Operación**: Procesamiento inmediato con timeout de 30 segundos, retry automático en caso de fallos temporales
 - **Event-driven**: Produce `payment.initiated`, `payment.completed`, `payment.failed` para workflow orchestration
 
 **subscription-billing-service**
-
 - **Función**: Gestión de suscripciones recurrentes, billing cycles, y renovaciones automáticas
-- **Herramientas**: PostgreSQL para subscription state, Apache Airflow para scheduling de billing, provider APIs para recurring payments
+- **Herramientas**: PostgreSQL para subscription state, DynamoDB para billing events, Apache Airflow para scheduling de billing, Stripe para recurring payments
 - **Operación**: Procesa renovaciones diariamente a las 3 AM UTC, retry logic para pagos fallidos
 - **Event-driven**: Consume `subscription.created`, produce `subscription.renewed`, `subscription.cancelled`
 
 **invoice-generator-service**
-
-- **Función**: Generación automática de facturas con PDF, cálculo de impuestos, y envío por email
-- **Herramientas**: ReportLab para PDF generation, SendGrid para email delivery, PostgreSQL para invoice storage
+- **Función**: Generación automática de facturas con PDF, cálculo de impuestos, y envío por email  
+- **Herramientas**: Python para PDF generation, Amazon SES para email delivery, PostgreSQL para invoice storage
 - **Operación**: Generación inmediata post-pago, batch generation para suscripciones el día 1 de cada mes
 - **Event-driven**: Consume `payment.completed` para trigger de generación inmediata
 
 **fraud-detection-service**
-
 - **Función**: Risk scoring en tiempo real basado en patrones de comportamiento y machine learning
-- **Herramientas**: Apache Spark MLlib para models, Redis para feature store, PostgreSQL para historical data
-- **Operación**: Scoring en <200ms durante checkout, reentrenamiento de models semanalmente
+- **Herramientas**: Apache Spark MLlib para models, Amazon SageMaker para model deployment, Redis para feature store, DynamoDB para historical data
+- **Operación**: Scoring en <200ms durante checkout, reentrenamiento de models semanalmente usando SageMaker
 - **Event-driven**: Consume todos los payment events para continuous learning
 
 **webhook-handler-service**
-
 - **Función**: Manejo seguro de webhooks de payment providers con signature validation
 - **Herramientas**: FastAPI con async processing, RabbitMQ para reliable delivery, Redis para deduplication
 - **Operación**: Procesamiento inmediato de webhooks, retry con exponential backoff para failures
 - **Event-driven**: Produce payment state updates basados en confirmaciones de providers
 
 **Endpoints expuestos al API Gateway:**
-
 - `POST /api/v1/payments/initiate` - Inicio de proceso de pago
 - `GET /api/v1/payments/{id}/status` - Estado de transacción específica
 - `POST /api/v1/subscriptions` - Creación de nueva suscripción
@@ -5654,199 +5639,175 @@ Opera con alta disponibilidad 24/7 para procesar pagos globales, manejando picos
 - `GET /api/v1/invoices` - Listado de facturas del usuario
 - `POST /api/v1/payments/webhooks/{provider}` - Webhooks de payment providers
 
-### **marketplace-access-service**
+#### **marketplace-access-service**
 
 Ejecuta continuamente para gestionar acceso a datasets, con activación intensa post-compra cuando debe provisionar permisos inmediatamente. Opera distribuido para manejar múltiples usuarios accediendo datasets simultáneamente durante horarios peak. Se integra en tiempo real con La Bóveda para activar acceso y con Bioregistro para validar permisos. Monitorea uso continuo para aplicar rate limiting y generar billing por uso de APIs.
 
-#### **Microservicios internos:**
+##### **Microservicios internos:**
 
 **access-provisioning-service**
-
 - **Función**: Activación automática de acceso a datasets post-compra con integración a La Bóveda
 - **Herramientas**: gRPC clients para La Bóveda y Bioregistro, PostgreSQL para access records, RabbitMQ para event coordination
 - **Operación**: Provisioning inmediato (< 30 segundos) después de payment confirmation
 - **Event-driven**: Consume `payment.completed`, `subscription.activated`, produce `access.granted`
 
 **token-management-service**
-
 - **Función**: Generación y gestión de JWT tokens para acceso programático a datasets
 - **Herramientas**: JWT libraries con RS256 signing, Redis para token blacklisting, PostgreSQL para token metadata
 - **Operación**: Tokens con TTL de 24 horas, refresh automático para usuarios activos
 - **Event-driven**: Produce `token.generated`, `token.revoked` para audit logging
 
 **usage-tracking-service**
-
 - **Función**: Monitoreo de uso de datasets para billing, rate limiting, y analytics
-- **Herramientas**: Apache Kafka para real-time streaming, ClickHouse para time-series storage, Redis para rate limiting counters
+- **Herramientas**: RabbitMQ para real-time streaming, OpenSearch para time-series storage, Redis para rate limiting counters
 - **Operación**: Tracking en tiempo real de cada API call, batch aggregation horaria para billing
 - **Event-driven**: Consume `dataset.accessed`, produce `usage.threshold_exceeded`
 
 **permission-validator-service**
-
 - **Función**: Validación granular de permisos por dataset, usuario, y tipo de operación
 - **Herramientas**: Redis para cache de permissions, PostgreSQL para permission rules, gRPC para Bioregistro integration
 - **Operación**: Validación en <50ms para cada request, cache de permissions por 15 minutos
 - **Event-driven**: Consume `permission.updated` del Bioregistro, `access.revoked` events
 
 **audit-logger-service**
-
 - **Función**: Logging completo de accesos para compliance y auditoría
-- **Herramientas**: Elasticsearch para log storage, Logstash para processing, PostgreSQL para audit summaries
+- **Herramientas**: OpenSearch para log storage y analytics, PostgreSQL para audit summaries
 - **Operación**: Logging inmediato de cada acceso, retention de 7 años para compliance
 - **Event-driven**: Consume todos los access events para comprehensive audit trail
 
 **Endpoints expuestos al API Gateway:**
-
 - `POST /api/v1/access/provision` - Provisioning de acceso (sistema interno)
 - `GET /api/v1/access/my-datasets` - Datasets accesibles por usuario
 - `POST /api/v1/access/tokens/generate` - Generación de access token
 - `DELETE /api/v1/access/tokens/{id}` - Revocación de token
 - `GET /api/v1/access/usage` - Estadísticas de uso del usuario
 
-### **marketplace-recommendation-service**
+#### **marketplace-recommendation-service**
 
 Ejecuta batch processing nocturno (1-5 AM) para entrenar modelos ML con datos del día anterior, mientras sirve recomendaciones en tiempo real durante horas de navegación activa. Distribuido en pods optimizados para ML inference con GPU support para modelos complejos. Reutiliza infraestructura Spark del Motor de Transformación para feature engineering. Se activa especialmente durante onboarding de nuevos usuarios para cold-start recommendations.
 
-#### **Microservicios internos:**
+##### **Microservicios internos:**
 
 **behavioral-ml-service**
-
 - **Función**: Análisis de comportamiento de usuarios con machine learning para recommendations personalizadas
-- **Herramientas**: Apache Spark MLlib para collaborative filtering, TensorFlow para deep learning, MLflow para model management
-- **Operación**: Entrenamiento nocturno con datos agregados, inference en tiempo real <100ms
+- **Herramientas**: Apache Spark MLlib para collaborative filtering, Amazon SageMaker para model training y deployment, Hugging Face Transformers para embeddings
+- **Operación**: Entrenamiento nocturno con datos agregados, inference en tiempo real <100ms usando SageMaker endpoints
 - **Event-driven**: Consume `user.behavior_updated`, produce `recommendations.updated`
 
 **content-similarity-service**
-
 - **Función**: Cálculo de similaridad entre datasets basado en metadatos y contenido
-- **Herramientas**: Apache Spark para feature extraction, Elasticsearch para similarity search, scikit-learn para clustering
+- **Herramientas**: Apache Spark para feature extraction, OpenSearch para similarity search, Hugging Face Transformers (all-mpnet-base-v2) para embeddings semánticos
 - **Operación**: Recálculo semanal de similarity matrix, updates incrementales cuando nuevos datasets se agregan
 - **Event-driven**: Consume `dataset.metadata_updated`, `dataset.added` para similarity recalculation
 
 **recommendation-engine-service**
-
 - **Función**: Motor principal que combina behavioral, content-based, y collaborative filtering
 - **Herramientas**: Redis para cache de recommendations, PostgreSQL para model weights, Apache Spark para ensemble methods
 - **Operación**: Pre-cálculo de recommendations para usuarios activos, real-time computation para cold users
 - **Event-driven**: Produce `recommendation.served` para effectiveness tracking
 
 **ab-testing-framework-service**
-
 - **Función**: Framework para testing de diferentes algoritmos de recomendación
 - **Herramientas**: PostgreSQL para experiment configuration, Redis for traffic splitting, Apache Spark para statistical analysis
 - **Operación**: Experimentos con duración de 2 semanas, análisis automático de significance
 - **Event-driven**: Consume `recommendation.clicked`, `recommendation.converted` para effectiveness measurement
 
 **Endpoints expuestos al API Gateway:**
-
 - `GET /api/v1/recommendations/personalized` - Recomendaciones personalizadas
 - `GET /api/v1/recommendations/similar/{dataset_id}` - Datasets similares
 - `GET /api/v1/recommendations/trending` - Trending recommendations
 - `POST /api/v1/recommendations/feedback` - Feedback de calidad de recomendaciones
 
-### **marketplace-notification-service**
+#### **marketplace-notification-service**
 
 Opera continuamente para delivery de notificaciones multi-canal, con picos durante confirmaciones de pago y eventos de datasets. Distribuido geográficamente para optimal delivery según timezone del usuario. Se activa especialmente durante campaigns de marketing y launches de nuevos datasets premium. Consume eventos de todos los microservicios del marketplace para trigger automático de comunicaciones contextuales.
 
-#### **Microservicios internos:**
+##### **Microservicios internos:**
 
 **notification-dispatcher-service**
-
 - **Función**: Router central que determina canal óptimo y timing para cada notificación
 - **Herramientas**: RabbitMQ para message queuing, Redis for user preferences, machine learning para optimal timing
 - **Operación**: Dispatch inmediato para transactional, scheduling inteligente para marketing
 - **Event-driven**: Consume events de todos los marketplace services, produce `notification.dispatched`
 
 **email-delivery-service**
-
 - **Función**: Gestión completa de email campaigns con templates y personalization
-- **Herramientas**: SendGrid para delivery, Jinja2 para templating, PostgreSQL para tracking, Redis para rate limiting
+- **Herramientas**: Amazon SES para delivery, Python Jinja2 para templating, PostgreSQL para tracking, Redis para rate limiting
 - **Operación**: Delivery inmediato para transactional, batch delivery para newsletters
 - **Event-driven**: Consume `notification.email_requested`, produce `email.delivered`, `email.bounced`
 
 **push-notification-service**
-
 - **Función**: Push notifications para browsers y mobile apps con targeting avanzado
 - **Herramientas**: Firebase Cloud Messaging, WebSocket para real-time, Redis para device tokens
 - **Operación**: Delivery inmediato con retry logic, cleanup de inactive tokens semanalmente
 - **Event-driven**: Consume `notification.push_requested`, produce `push.delivered`
 
 **sms-service**
-
-- **Función**: SMS delivery para notificaciones críticas y two-factor authentication
-- **Herramientas**: Twilio API, PostgreSQL para message tracking, Redis for rate limiting
+- **Función**: SMS delivery para notificaciones críticas integrado con sistema de autenticación
+- **Herramientas**: Amazon SNS para SMS delivery, PostgreSQL para message tracking, Redis for rate limiting
 - **Operación**: Delivery para emergencies únicamente, strict rate limiting por usuario
 - **Event-driven**: Consume `notification.sms_required` para casos críticos únicamente
 
 **template-management-service**
-
 - **Función**: Gestión de templates con multi-lenguaje y A/B testing
 - **Herramientas**: PostgreSQL para template storage, Redis for template cache, Jinja2 para rendering
 - **Operación**: Cache de templates populares, invalidation automática en updates
 - **Event-driven**: Produce `template.updated` cuando hay cambios en messaging
 
 **Endpoints expuestos al API Gateway:**
-
 - `GET /api/v1/notifications/preferences` - Preferencias de notificación del usuario
 - `PUT /api/v1/notifications/preferences` - Actualización de preferencias
 - `GET /api/v1/notifications/history` - Historial de notificaciones
 - `POST /api/v1/notifications/mark-read` - Marcar notificaciones como leídas
 
-**marketplace-analytics-service**
+#### **marketplace-analytics-service**
 
 Ejecuta continuamente con dos modes: real-time para dashboards operacionales y batch processing nocturno para métricas complejas de negocio. Distribuido con pods dedicados para stream processing durante business hours. Reutiliza infraestructura Spark del Motor de Transformación para analytics pesados. Se intensifica durante fin de mes para reportes financieros y análisis de performance.
 
-#### **Microservicios internos:**
+##### **Microservicios internos:**
 
 **event-ingestion-service**
-
 - **Función**: Ingesta masiva de eventos de todos los microservicios del marketplace
-- **Herramientas**: Apache Kafka para streaming, Apache Spark Streaming para processing, ClickHouse para storage
+- **Herramientas**: RabbitMQ para streaming, Apache Spark Streaming para processing, OpenSearch para time-series storage, DynamoDB para event metadata
 - **Operación**: Ingesta 24/7 con processing en tiempo real, batch aggregation cada hora
 - **Event-driven**: Consume todos los marketplace events, produce `analytics.event_processed`
 
 **business-metrics-calculator-service**
-
 - **Función**: Cálculo de KPIs de negocio como revenue, conversion rates, churn
 - **Herramientas**: Apache Spark para complex aggregations, PostgreSQL para metrics storage, Redis para real-time counters
 - **Operación**: Cálculos en tiempo real para dashboards, recalculations completos nocturnos
 - **Event-driven**: Consume payment, subscription, user events para metric updates
 
 **user-analytics-service**
-
 - **Función**: Análisis de comportamiento de usuarios, journey mapping, segmentación
-- **Herramientas**: Apache Spark MLlib para clustering, ClickHouse para user timelines, PostgreSQL para segments
+- **Herramientas**: Apache Spark MLlib para clustering, OpenSearch para user timelines, DynamoDB para user segments
 - **Operación**: Segmentación diaria de usuarios, cohort analysis semanal
 - **Event-driven**: Consume user behavior events, produce `user.segment_updated`
 
 **dataset-performance-analyzer-service**
-
 - **Función**: Análisis de performance de datasets, popularidad, revenue attribution
-- **Herramientas**: Apache Spark para analytics, Elasticsearch para search analytics, PostgreSQL para rankings
+- **Herramientas**: Apache Spark para analytics, OpenSearch para search analytics, DynamoDB para rankings
 - **Operación**: Rankings diarios de datasets, trend analysis semanal
 - **Event-driven**: Consume dataset access events, produce `dataset.trending_updated`
 
 **reporting-service**
-
 - **Función**: Generación de reportes automáticos para stakeholders y dataset owners
-- **Herramientas**: Apache Spark para data processing, ReportLab para PDF generation, SendGrid para delivery
+- **Herramientas**: Apache Spark para data processing, Python para PDF generation, Amazon SES para delivery
 - **Operación**: Reportes diarios para operations, reportes mensuales para business
 - **Event-driven**: Scheduled generation basado en calendar events
 
 **Endpoints expuestos al API Gateway:**
-
 - `GET /api/v1/analytics/dashboard` - Métricas para dashboard principal
 - `GET /api/v1/analytics/revenue` - Métricas de revenue y financial KPIs
 - `GET /api/v1/analytics/users` - Analytics de comportamiento de usuarios
 - `GET /api/v1/analytics/datasets` - Performance analytics de datasets
 - `POST /api/v1/analytics/reports/generate` - Generación de reportes custom
 
-### Event-Driven Architecture Patterns
+#### Event-Driven Architecture Patterns
 
-**Event Flow Principal**
+##### **Event Flow Principal**
 
 **User Journey Events:**
-
 1. `user.registered` → Triggers welcome email, initial recommendations calculation
 2. `user.search_performed` → Updates behavior tracking, feeds recommendation engine
 3. `user.dataset_viewed` → Records interest, updates popularity metrics
@@ -5855,56 +5816,49 @@ Ejecuta continuamente con dos modes: real-time para dashboards operacionales y b
 6. `dataset.accessed` → Records usage for billing, updates analytics
 
 **Marketplace Operation Events:**
-
 1. `dataset.processed` (from Motor) → Triggers metadata sync, search reindexing
 2. `dataset.quality_updated` (from Motor) → Updates catalog rankings, triggers notifications to interested users
 3. `subscription.expiring` → Triggers renewal reminders, offers relevant upgrades
 4. `usage.threshold_exceeded` → Triggers upgrade suggestions, usage notifications
 
-
-**Event Processing Patterns**
+#### **Event Processing Patterns**
 
 **Immediate Processing (< 1 second):**
-
 - Payment confirmations → Access provisioning
 - User authentication → Session creation
 - API access requests → Permission validation
 
 **Near Real-time (< 5 seconds):**
-
 - Search queries → Analytics updates
 - Dataset views → Popularity scoring
 - User behavior → Recommendation refresh
 
 **Batch Processing (hourly/daily):**
-
 - ML model training → Recommendation engine updates
 - Usage aggregation → Billing calculations
 - Analytics rollups → Business intelligence reports
 
-**Event Reliability Patterns**
+#### **Event Reliability Patterns**
 
 **Dead Letter Queues:** Para eventos críticos como payment processing que requieren manual intervention si fallan
 **Event Replay:** Capability para replay events durante disaster recovery o data corrections
 **Idempotency:** Todos los event handlers implementan idempotency keys para safe replay
 **Circuit Breakers:** Protection contra event storms que podrían overwhelm downstream services
 
-### API Gateway Integration
+#### API Gateway Integration
 
-#### **API Gateway Routing Configuration**
+##### **API Gateway Routing Configuration**
 
 **Authentication & Authorization Layer:**
-
 - Validación de JWT tokens del Bioregistro
 - Rate limiting por usuario y endpoint
 - Request/response transformation
 - API key management para acceso programático
 
 **Service Routing:**
-
 ```
 /api/v1/catalog/* → marketplace-catalog-service
-/api/v1/users/* → marketplace-user-service
+/api/v1/users/* → marketplace-user-service  
 /api/v1/payments/* → marketplace-payment-service
 /api/v1/access/* → marketplace-access-service
 /api/v1/recommendations/* → marketplace-recommendation-service
@@ -5913,31 +5867,26 @@ Ejecuta continuamente con dos modes: real-time para dashboards operacionales y b
 ```
 
 **Cross-Cutting Concerns:**
-
 - Request correlation IDs para distributed tracing
 - Centralized logging de todas las API calls
 - Metrics collection para Prometheus
 - Error handling y standardized error responses
 
-#### **Rate Limiting Strategy**
+##### **Rate Limiting Strategy**
 
 **Tier-based Limits:**
-
 - Free tier: 100 requests/hour para search, 10 dataset views/day
-- Basic tier: 1000 requests/hour, 100 dataset views/day
+- Basic tier: 1000 requests/hour, 100 dataset views/day  
 - Premium tier: 10000 requests/hour, unlimited views
 - Enterprise tier: Custom limits basados en SLA
 
 **Endpoint-specific Limits:**
-
 - Search endpoints: Higher limits para discovery
 - Payment endpoints: Lower limits para security
 - Analytics endpoints: Restricted to authorized users only
 - Data access endpoints: Based on purchased access levels
 
-
------
-
+----
 
 ## Motor de transformacion
 
