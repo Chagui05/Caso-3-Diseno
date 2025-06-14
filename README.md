@@ -6238,6 +6238,314 @@ Configuración de endpoints privados que mantiene todo el tráfico sensible del 
   - Acceso seguro a credenciales desde pods en EKS
   - Eliminación de dependencies en internet para operaciones críticas
 
+#### Diseño de los datos
+
+##### Topología de Datos
+
+- **Tipo:** OLTP + OLAP + NoSQL + Event-Driven + Motor de búsqueda
+
+- Para el componente Marketplace se va a utilizar un arquitectura híbrida para la separación de responsabilidades entre transacciones, analítica y búsqueda. Las operaciones de compra, gestiones de permisos y accesos se maneja con una base de datos `OLTP` en RDS con PostgreSQl. Las consultas de usuario y logs se maneja en `OLAP` para realizar análisis. Para explorar el catálogo de datasets se usa un motor de búsqueda especializado. 
+
+- Para `OLTP`se usa la misma instancia de RDS que se utiliza en el componente Bioregistro, extendida con nuevas tablas para:
+  - Transacciones de compra de acceso.
+  - Historial de accesos por usuario.
+  - Registro de renovaciones, paquetes y métodos de pago.
+  - Vinculación entre usuarios, organizaciones y datasets adquiridos.
+
+- Para `OLAP`, se usa Amazon Redshift en Serverless, configurado con escalado  automático. Redshift se alimenta por cargas en batch diarias desde Amazon S3 y OpenSearch incluyendo.
+  - logs de acceso
+  - consultas de usuarios
+  - de navegación. 
+  - Redshift también consulta directamente algunas tablas de PostgreSQL mediante Federated Queries.
+
+- Como sección `NoSQL`, Amazon DynamoDB se usa como backend para estado temporal y comportamiento de usuarios:
+
+  - **SessionData:** sesiones activas por usuario.
+  - **UserBehavior:** métricas de navegación en vivo.
+  - **RecommendationCache:** resultados de sistemas de recomendación.
+  - **NotificationQueue:** notificaciones pendientes y estado de lectura.
+
+Estas tablas incluyen políticas de TTL y activan Streams que alimentan pipelines de entrenamiento en SageMaker o acciones via Lambda.
+
+- Para `tareas asincronicas` se utiliza AWS Lambda para tareas como:
+  - Procesamiento de pagos y validación antifraude.
+  - Generación de facturas PDF y almacenamiento en S3.
+  - Activación de renovaciones automáticas o cancelaciones.
+  - Limpieza de sesiones y sincronización de estados en DynamoDB.
+
+- La arquitectura `Event-Driven` se aplica enAmazon EventBridge:
+  - `payment.completed`, `dataset.viewed`, `session.expired`, etc.
+  - Estos eventos disparan Lambdas, envían notificaciones vía SNS/SES o actualizan los índices en OpenSearch.
+
+- Para `mensajería interna` se utiliza RabbitMQ, en donde se coordinan los microservicios desplegados en EKS:
+  - Control de flujo de compra.
+  - Validación cruzada de permisos.
+  - Disparadores para entrenamientos en SageMaker.
+
+- Como `motor de busqueda` se usa OpenSearch que es el motor principal para la exploración de datasets:
+
+  - Indexación de metadatos enriquecidos.
+  - Búsqueda facetada por categoría, colectivo, año, palabras clave.
+  - Exploración semántica usando embeddings y puntuación por relevancia.
+  - También almacena logs de búsqueda (`user-searches`) y métricas de uso (`marketplace-analytics`).
+
+
+
+- **Tecnología Cloud**:
+
+  - Amazon RDS (PostgreSQL)
+  - Amazon Redshift Serverless
+  - Amazon DynamoDB
+  - Amazon OpenSearch
+  - Amazon S3
+  - AWS Lambda
+  - AWS EventBridge
+  - AWS SNS, SES
+  - RabbitMQ (en EKS)
+
+- **Polítcias y Reglas**:
+
+- **Single-region:** Toda la infraestructura estará localizada en `us-east-1`
+- **Backups automáticos:** 
+  - RDS y Redshift con respaldo diario a la 1 a.m. en S3.
+  - DynamoDB habilitado con backups automáticos y TTL por tabla.
+  - S3 tiene versionado y reglas de ciclo de vida para archivar logs.
+- **Backups cruzados:** Replicación semanal a us-west-1 (viernes, 3 a.m.) usando S3 IA.
+- **Failover automático:**
+  - RDS con Multi-AZ.
+  - Redshift con snapshots automáticos.
+  - OpenSearch con replicación de shards entre zonas de disponibilidad.
+  - DynamoDB es multi-AZ por diseño y no requiere configuración adicional.
+
+
+
+- **Beneficios**:
+  - Separación clara entre operaciones transaccionales, analíticas, temporales y de búsqueda.
+  - Uso de múltiples motores optimizados por tipo de dato: PostgreSQL (consistencia), Redshift (consulta masiva), DynamoDB (estado rápido), OpenSearch (búsqueda).
+  - Arquitectura event-driven permite desacoplar procesos complejos como pagos, notificaciones, y ML.
+  - OpenSearch puede integrarse con SageMaker para enriquecer búsquedas con modelos IA.
+  - Redshift permite consultar tablas de RDS directamente:
+```sql
+CREATE EXTERNAL SCHEMA marketplace_schema
+FROM POSTGRES
+DATABASE 'admin_db'
+URI 'dpv-rds-postgres.c8xyzxyz.us-east-1.rds.amazonaws.com'
+PORT 5432
+IAM_ROLE 'arn:aws:iam::123456789012:role/marketplace-query'
+SECRET_ARN 'arn:aws:secretsmanager:us-east-1:123456789012:secret:MarketplaceRDSSecret'
+```
+- Redshift maneja archivos en formato Parquet desde cargas diarias de logs almacenados en S3:
+```sql
+COPY marketplace.analytics_logs
+FROM 's3://dpv-marketplace-logs/diario/'
+IAM_ROLE 'arn:aws:iam::123456789012:role/marketplace-etl'
+FORMAT AS PARQUET;
+```
+
+##### RLS
+
+No se hace uso de RLS al igual que en la bóveda, por las mismas razones.
+
+##### Tenency, Seguridad y Privacidad
+
+- **Modelo**: Single-Access-Point, RBAC, Multi-Tenant 
+
+  - Todo acceso a datos se hace a través del Single Access Point. Solo las clases autorizadas como `MarketplaceRDSRepository`, `MarketplaceSearchRepository`, `MarketplaceAnalyticsRepository`, `MarketplaceDynamoRepository` y `MarketplaceEventBridgeHandler` están habilitadas para interactuar con las fuentes de datos. Esto incluye RDS, Redshift, DynamoDB y OpenSearch. Toda consulta o acción desde APIs, Lambda o dashboards debe pasar por estas clases.
+
+  - Se usará multi-tenant, ya que múltiples colectivos y organizaciones pueden publicar y consumir datasets dentro del Marketplace. El aislamiento se garantiza de dos formas:
+
+    - **Aislamieno físico:** Cada dataset publicado por un colectivo se almacena en su propia tabla en Redshift o RDS. En DynamoDB, todos los ítems llevan un `tenant_id` obligatorio.
+
+    - **Aislaiento lógico:** El acceso a cada dataset se controla por medio de roles IAM asignados dinámicamente tras la compra del recurso, usando LakeFormation para enlazar los permisos a recursos etiquetados.
+
+  - Para hacer el manejo de control de acceso y RBAC se hara lo siguiente:
+    - **LakeFormation + IAM:**
+      - **Rol IAM de Colectivo:** Cada colectivo tiene un rol IAM vinculado a sus datasets. Al publicar un nuevo dataset, se genera un tag LakeFormation `dataset=xyz`, el cual se asigna a la tabla correspondiente. Ese tag se asocia al rol IAM del colectivo.
+
+      - **Rol IAM por Dataset Adquirido:** Cuando un usuario compra un dataset, se le asigna un rol IAM con permisos limitados (`SELECT`, `DESCRIBE`) sobre las tablas asociadas. Esto ocurre mediante backend y EventBridge.
+
+      - **Rol Público por Defecto:** Datasets públicos son accesibles mediante el rol IAM asociado al tag `dataset=public-free`, asignado automáticamente a usuarios autenticados.
+
+    - **OpenSearch:**
+      - El acceso a índices está filtrado por tenant_id y validado desde backend antes de enviar la consulta.
+      - La búsqueda semántica también aplica dataset_access para evitar exposición de recursos no adquiridos.
+
+    - **DynamoDB:**
+      - Cada ítem incluye tenant_id y user_id, lo que permite el uso de condiciones en IAM Policies para evitar lectura cruzada de tenants.
+
+    - **Ejemplo de implementación con LakeFormation**
+    
+      ```py
+      import boto3
+      client = boto3.client('lakeformation')
+      # Creación del tag de acceso a dataset:
+      client.create_lf_tag(
+          TagKey='dataset',
+          TagValues=['marketplace_inclusion_2025']
+      )
+      ```
+
+      ```py
+      # Asignación del tag a la tabla en Redshift:
+      client.assign_lf_tags_to_resource(
+      Resource={
+          'Table': {
+              'CatalogId': 'AWS_ACCOUNT_ID',
+              'DatabaseName': 'marketplace',
+              'Name': 'dataset_inclusion_table'
+          }
+      },
+      LFTags=[
+          {
+              'TagKey': 'dataset',
+              'TagValues': ['marketplace_inclusion_2025']
+          }
+        ]
+      )
+      ```
+
+      ```py
+      # Asignación del tag a un rol IAM de usuario comprador:
+      client.grant_permissions(
+      Principal={
+          'DataLakePrincipalIdentifier': 'arn:aws:iam::ACCOUNT_ID:role/Buyer_Dataset_123'
+      },
+      Resource={
+          'LFTagPolicy': {
+              'ResourceType': 'TABLE',
+              'Expression': [
+                  {
+                      'TagKey': 'dataset',
+                      'TagValues': ['marketplace_inclusion_2025']
+                  }
+              ]
+          }
+        },
+        Permissions=['SELECT', 'DESCRIBE']
+      )
+      ```
+
+- **Cloud**: 
+
+  - AWS RDS para PostgreSQL, esquema por colectivo.
+  - AWS Redshift Serverless, segmentado por tags.
+  - AWS DynamoDB, por tabla con tenant_id y TTL.
+  - AWS LakeFormation, control de acceso a tablas.
+  - AWS IAM, para permisos a roles por dataset o colectivo.
+  - AWS KMS, cifrado de datos sensibles.
+  - Amazon OpenSearch Service, con acceso filtrado por tenant.
+  - AWS Lambda y EventBridge, para eventos y automatización.
+  - AWS SNS/SES, para notificaciones de seguridad y actividad.
+
+- **Beneficios**:
+
+  - Gracias a Single-Access-Point, los accesos a datos del Marketplace (compras, validación de permisos, consultas de visualización) pasan por validadores como `TenantManager` y `MarketplaceRepository`. Esto minimiza el riesgo de acceso directo a las bases de datos sin control lógico o sin trazabilidad.
+
+  - Como cada colectivo tiene su propio esquema en PostgreSQL, y los datasets de pago se asocian a tablas individuales, se elimina el riesgo de filtración de datos entre organizaciones. 
+
+  - Se pueden diferenciar los datasets públicos, privados y pagos, y aplicar diferentes niveles de acceso y visibilidad sin necesidad de duplicar datos usando tags como `dataset=public-free`.
+
+##### Conexión a Base de datos
+
+- **Modelo**: Transaccional vía Statements / ORM / Funciones asincronicas
+
+El componente Marketplace maneja su acceso a datos utilizando una arquitectura híbrida:
+
+  - SQLAlchemy será el ORM principal para la interacción con RDS y Amazon Redshift.
+  - Para NoSQL como DynamoDB y OpenSearch, se usaran SDKs nativos en clases de repositorio independientes (`MarketplaceDynamoRepository`, `MarketplaceSearchRepository`).
+  - Algunas operaciones asincrónicas (actualizaciones post-compra o notificaciones) se manejan mediante AWS Lambda, que consulta directamente las fuentes de datos o lanza eventos de actualización.
+
+- **Patrones de POO**:
+
+Factory: Se aplica el patrón Factory para crear instancias de conexión y repositorios específicos para cada motor de base de datos:       
+
+  - `MarketplaceRDSFactory`, `MarketplaceRDSRepository`
+  - `MarketplaceRedshiftFactory`, `MarketplaceRedshiftRepository`   
+  - `MarketplaceSearchFactory`, `MarketplaceSearchRepository`
+  - `MarketplaceDynamoFactory`, `MarketplaceDynamoRepository`
+
+
+- **Beneficios**:
+
+  - SQLAlchemy permite trabajar con objetos Python sin renunciar a la flexibilidad del SQL cuando es necesario.
+  - Se protege contra vulnerabilidades como SQL Injection.
+  - Se puede garantizar el cumplimiento de las propiedades ACID.
+  - Permite combinar declaraciones ORM con consultas SQL puras dentro del mismo flujo transaccional.
+  - Las funciones Lambda pueden ser probadas y versionadas de forma independiente, ayudando a mantener un sistema robusto.
+
+
+- **Pool de Conexiones:** Usaremos el pool integrado en SQLAlchemy (QueuePool), el cual es dinámico. El tamaño base del pool será de 10 conexiones, y podrá escalar hasta 15 conexiones simultáneas. 
+
+  - Tamaño base del pool: 10 conexiones
+  - Tamaño máximo: 15 conexiones
+  - Tiempo de espera: 30 segundos
+  - Tiempo de vida de conexión inactiva: 60 segundos
+  - **Beneficios**:
+    - La escalabilidad se ajusta bajo demanda.
+    - Proporciona mayor estabilidad en ambientes productivos.
+    - Para DynamoDB y OpenSearch no se usan pools persistentes, ya que los SDKs están optimizados para conexiones breves y asincrónicas (HTTP bajo demanda).
+  
+
+- **Drivers y SDKs:** 
+
+  - **PostgreSQL / Redshift:**
+
+    - Driver nativo `psycopg2` + SQLAlchemy
+    - Soporte para queries directas y federadas desde Redshift hacia RDS
+
+  - **DynamoDB:**
+    - SDK oficial de AWS para Python (`boto3`)
+    - Conexión segura bajo IAM, acceso controlado por políticas y validaciones de `tenant_id`
+
+  - **OpenSearch:**
+    - Cliente oficial de AWS (`opensearch-py`)
+    - Firma de solicitudes con AWS Signature v4
+    - Todas las consultas pasan por `MarketplaceSearchRepository`, que incluye validadores de permisos y filtrado por tenant
+
+  - **AWS Lambda:**
+    - Las Lambdas usan el runtime `python3.11` y acceden mediante SDKs (`boto3`, `sqlalchemy`, `opensearch-py`)
+    - Están conectadas vía EventBridge a eventos como:
+      - payment.completed
+      - dataset.access.revoked
+      - search.query.malicious
+
+##### Diseño para IA
+
+**Implementaciones comunes a todas las tablas**
+
+Con el objetivo de habilitar al componente Marketplace para interoperar con agentes de IA, se implementan las siguientes medidas en los procesos de publicación, consulta y análisis de datasets:
+
+  - Todas las tablas publicadas en Redshift incluirán las siguientes columnas adicionales generadas automáticamente por el sistema de transformación:
+    - `CategoriaSemantica`: Asignada por clasificación automática o proporcionada por el colectivo.
+    - `DescripcionFila`: Texto breve generado automáticamente por modelo ML para describir el contenido de cada fila con lenguaje natural.
+
+- Los documentos indexados en OpenSearchincluirán:
+  - Embeddings semánticos del título, descripción y contenido estructurado, generados por SageMaker.
+
+- Todas las búsquedas y visualizaciones realizadas por los usuarios en el frontend serán:
+  - Registradas en OpenSearch bajo el índice `marketplace-analytics`.
+  - Enviadas a DynamoDB y procesadas vía Streams para alimentar modelos de recomendación en SageMaker.
+
+- Se construye una base de consultas históricas de usuarios en formato vectorial, almacenada en S3 y DynamoDB, utilizada para entrenar modelos de:
+  - Recomendación personalizada.
+  - Generación automática de resúmenes.
+
+- Los modelos de generación de texto y recomendación se entrenan y ejecutan mediante AWS SageMaker en procesos periódicos y orquestados por EventBridge + Lambda.
+
+
+**Justificación**
+
+- Los usuarios podrán explorar el catálogo mediante lenguaje natural. Gracias a los embeddings generados y al uso de metadatos semánticos, los agentes de IA podrán transformar preguntas o intenciones en consultas de búsqueda relevantes y explicables.
+
+- Mediante el análisis de comportamiento histórico (clics, compras, visualizaciones), el sistema puede generar recomendaciones automáticas ajustadas al perfil del usuario, su historial y sus intereses recientes.
+
+- Las descripciones automáticas por fila y por dataset permiten a los agentes generar documentación y contenido explicativo sin intervención humana, incluso para datasets nuevos.
+
+- Cuando un dataset se actualiza o cambia su estructura, los agentes de IA utilizan las columnas semánticas y los históricos de búsqueda para adaptar automáticamente visualizaciones, reportes y modelos entrenados.
+
+##### Diagrama de Base de Datos
+
+
 ---
 
 ### 4.4 Motor de transformacion
