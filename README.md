@@ -6476,9 +6476,35 @@ Factory: Se aplica el patrón Factory para crear instancias de conexión y repos
 
 **Implementaciones comunes a todas las tablas**
 
+Con el objetivo de habilitar al componente Marketplace para interoperar con agentes de IA, se implementan las siguientes medidas en los procesos de publicación, consulta y análisis de datasets:
+
+  - Todas las tablas publicadas en Redshift incluirán las siguientes columnas adicionales generadas automáticamente por el sistema de transformación:
+    - `CategoriaSemantica`: Asignada por clasificación automática o proporcionada por el colectivo.
+    - `DescripcionFila`: Texto breve generado automáticamente por modelo ML para describir el contenido de cada fila con lenguaje natural.
+
+- Los documentos indexados en OpenSearchincluirán:
+  - Embeddings semánticos del título, descripción y contenido estructurado, generados por SageMaker.
+
+- Todas las búsquedas y visualizaciones realizadas por los usuarios en el frontend serán:
+  - Registradas en OpenSearch bajo el índice `marketplace-analytics`.
+  - Enviadas a DynamoDB y procesadas vía Streams para alimentar modelos de recomendación en SageMaker.
+
+- Se construye una base de consultas históricas de usuarios en formato vectorial, almacenada en S3 y DynamoDB, utilizada para entrenar modelos de:
+  - Recomendación personalizada.
+  - Generación automática de resúmenes.
+
+- Los modelos de generación de texto y recomendación se entrenan y ejecutan mediante AWS SageMaker en procesos periódicos y orquestados por EventBridge + Lambda.
+
 
 **Justificación**
 
+- Los usuarios podrán explorar el catálogo mediante lenguaje natural. Gracias a los embeddings generados y al uso de metadatos semánticos, los agentes de IA podrán transformar preguntas o intenciones en consultas de búsqueda relevantes y explicables.
+
+- Mediante el análisis de comportamiento histórico (clics, compras, visualizaciones), el sistema puede generar recomendaciones automáticas ajustadas al perfil del usuario, su historial y sus intereses recientes.
+
+- Las descripciones automáticas por fila y por dataset permiten a los agentes generar documentación y contenido explicativo sin intervención humana, incluso para datasets nuevos.
+
+- Cuando un dataset se actualiza o cambia su estructura, los agentes de IA utilizan las columnas semánticas y los históricos de búsqueda para adaptar automáticamente visualizaciones, reportes y modelos entrenados.
 
 ##### Diagrama de Base de Datos
 
