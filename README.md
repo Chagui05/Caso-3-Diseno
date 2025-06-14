@@ -6201,6 +6201,187 @@ Configuración de endpoints privados que mantiene todo el tráfico sensible del 
   - Acceso seguro a credenciales desde pods en EKS
   - Eliminación de dependencies en internet para operaciones críticas
 
+#### Diseño de los datos
+
+##### Topología de Datos
+
+- **Tipo:** OLTP + OLAP + Motor de búsqueda
+
+- Para el componente Marketplace se va a utilizar un arquitectura híbrida para la separación de responsabilidades entre transacciones, analítica y búsqueda. Las operaciones de compra, gestiones de permisos y accesos se maneja con una base de datos `OLTP` en RDS con PostgreSQl. Las consultas de usuario y logs se maneja en `OLAP` para realizar análisis. Para explorar el catálogo de datasets se usa un motor de búsqueda especializado. 
+
+- Para `OLTP`se usa la misma instancia de RDS que se utiliza en el componente Bioregistro, extendida con nuevas tablas para:
+  - Transacciones de compra de acceso.
+  - Historial de accesos por usuario.
+  - Registro de renovaciones, paquetes y métodos de pago.
+  - Vinculación entre usuarios, organizaciones y datasets adquiridos.
+
+- Para `OLAP`, se usa Amazon Redshift en Serverless, configurado con escalado  automático. Redshift se alimenta por cargas en batch diarias desde Amazon S3 y OpenSearch incluyendo.
+  - logs de acceso
+  - consultas de usuarios
+  - de navegación. 
+  - Redshift también consulta directamente algunas tablas de PostgreSQL mediante Federated Queries.
+
+- Se OpenSearch como motor de búsqueda semántica y facetada, indexando los metadatos de los datasets disponibles en el Marketplace. 
+
+- **Tecnología Cloud**:
+
+- AWS RDS
+- AWS Redshift Serverless
+- AWS OpenSearch Service
+- AWS S3 para staging y respaldos de logs
+- AWS Lambda y Glue para transformación ETL
+
+- **Polítcias y Reglas**:
+
+- **Single-region:** Toda la infraestructura estará localizada en `us-east-1`
+- **Backups automáticos:** PostgreSQL y Redshift realizarán respaldos diarios a las 1 a.m., almacenados en un bucket S3.
+- **Backups cruzados:** Los backups críticos del Marketplace se replicarán semanalmente a `us-west-1` los viernes a las 3 a.m., priorizando bajo costo de almacenamiento.
+- **Failover automático:**
+  - Redshift utiliza snapshots.
+  - RDS usa configuración Multi-AZ.
+  - OpenSearch replica todos los shards críticos.
+
+- **Beneficios**:
+- PostgreSQL permite consistencia transaccional "todo o nada" en procesos de compra, acceso y renovación de datasets.
+- OpenSearch provee búsqueda semántica en tiempo real con filtros, sugerencias inteligentes y categorización automática.
+- OpenSearch puede integrarse con SageMaker y S3 para enriquecer la experiencia de búsqueda mediante IA.
+- El uso compartido de RDS con el Bioregistro reduce complejidad y evita duplicidad de usuarios y permisos.
+- Redshift permite federar consultas hacia PostgreSQL, reduciendo redundancia:
+```sql
+CREATE EXTERNAL SCHEMA marketplace_schema
+FROM POSTGRES
+DATABASE 'admin_db'
+URI 'dpv-rds-postgres.c8xyzxyz.us-east-1.rds.amazonaws.com'
+PORT 5432
+IAM_ROLE 'arn:aws:iam::123456789012:role/marketplace-query'
+SECRET_ARN 'arn:aws:secretsmanager:us-east-1:123456789012:secret:MarketplaceRDSSecret'
+```
+- Redshift maneja archivos en formato Parquet desde cargas diarias de logs almacenados en S3:
+```sql
+COPY marketplace.analytics_logs
+FROM 's3://dpv-marketplace-logs/diario/'
+IAM_ROLE 'arn:aws:iam::123456789012:role/marketplace-etl'
+FORMAT AS PARQUET;
+```
+
+##### RLS
+
+No se hace uso de RLS al igual que en la bóveda, por las mismas razones.
+
+##### Tenency, Seguridad y Privacidad
+
+- **Modelo**: Single-Access-Point, RBAC, Multi-Tenant 
+
+  - Se controlan RDS y RedShift mediante `Single Access Point`. Solo las clases `MarketplaceRDSRepository`, `MarketplaceSearchRepository` y `MarketplaceAnalyticsRepository` estarán autorizadas para interactuar con los motores de datos. Cualquier acceso a datos por parte de servicios externos (API, dashboards, reportes) debe pasar obligatoriamente por estas capas autorizadas.
+
+  - Se usará multi-tenant, ya que múltiples colectivos y organizaciones pueden publicar y consumir datasets dentro del Marketplace. El aislamiento se garantiza de dos formas:
+
+    - **Nivel físico:** Cada dataset publicado por un colectivo se almacena en su propia tabla en Redshift o RDS. No se mezclan datos de diferentes colectivos en la misma tabla.
+
+    - **Nivel lógico:** El acceso a cada dataset es por medio de IAM. Se asigna el rol a los usuarios una vez adquieren un dataset mediante compra o suscripción.
+
+  - Para hacer el manejo de RBAC se usarán LakeFormation y IAM de AWS.
+
+    - **Rol IAM de Colectivo:** Al crear un nuevo dataset, se generan tags específicos de LakeFormation que controlan el acceso a las tablas asociadas. Estos tags se vinculan al rol IAM del colectivo. El rol es asignado únicamente a los administradores del colectivo y sus representantes. Este rol tiene privilegios sobre todas las tablas que el colectivo ha publicado en el Marketplace.
+
+    - **Rol IAM por Dataset Adquirido:** Cada vez que un usuario adquiere un dataset, se le asigna un rol IAM individual vinculado a ese dataset específico, con permisos `SELECT` y `DESCRIBE`. Este rol es creado automáticamente tras la compra, y se basa en los mismos tags de LakeFormation generados en el momento de la publicación del dataset.
+
+    - **Rol Público por Defecto:** Se define un rol IAM genérico asociado al tag `dataset=public-free`, el cual se asigna automáticamente a todos los usuarios autenticados que deseen consultar datasets públicos y gratuitos sin necesidad de compra.
+
+  - **Ejemplo de implementación con LakeFormation**
+  
+    ```py
+    import boto3
+    client = boto3.client('lakeformation')
+    # Creación del tag de acceso a dataset:
+    client.create_lf_tag(
+        TagKey='dataset',
+        TagValues=['marketplace_inclusion_2025']
+    )
+    ```
+
+    ```py
+    # Asignación del tag a la tabla en Redshift:
+    client.assign_lf_tags_to_resource(
+    Resource={
+        'Table': {
+            'CatalogId': 'AWS_ACCOUNT_ID',
+            'DatabaseName': 'marketplace',
+            'Name': 'dataset_inclusion_table'
+        }
+    },
+    LFTags=[
+        {
+            'TagKey': 'dataset',
+            'TagValues': ['marketplace_inclusion_2025']
+        }
+      ]
+    )
+    ```
+
+    ```py
+    # Asignación del tag a un rol IAM de usuario comprador:
+    client.grant_permissions(
+    Principal={
+        'DataLakePrincipalIdentifier': 'arn:aws:iam::ACCOUNT_ID:role/Buyer_Dataset_123'
+    },
+    Resource={
+        'LFTagPolicy': {
+            'ResourceType': 'TABLE',
+            'Expression': [
+                {
+                    'TagKey': 'dataset',
+                    'TagValues': ['marketplace_inclusion_2025']
+                }
+            ]
+        }
+      },
+      Permissions=['SELECT', 'DESCRIBE']
+    )
+    ```
+
+- **Cloud**: 
+
+  - AWS RDS para PostgreSQL, esquema por colectivo.
+  - AWS Redshift Serverless, segmentado por tags.
+  - AWS LakeFormation, control de acceso a tablas.
+  - AWS IAM, para permisos a roles por dataset o colectivo.
+  - AWS KMS, encriptación completa.
+  - Amazon OpenSearch Service, indexación segura con aislamiento por tenant.
+
+- **Beneficios**:
+
+  - Gracias a Single-Access-Point, los accesos a datos del Marketplace (compras, validación de permisos, consultas de visualización) pasan por validadores como `TenantManager` y `MarketplaceRepository`. Esto minimiza el riesgo de acceso directo a las bases de datos sin control lógico o sin trazabilidad.
+
+  - Como cada colectivo tiene su propio esquema en PostgreSQL, y los datasets de pago se asocian a tablas individuales, se elimina el riesgo de filtración de datos entre organizaciones. 
+
+  - Se pueden diferenciar los datasets públicos, privados y pagos, y aplicar diferentes niveles de acceso y visibilidad sin necesidad de duplicar datos usando tags como `dataset=public-free`.
+
+##### Conexión a Base de datos
+
+- **Modelo**: 
+
+- **Patrones de POO**:
+
+- **Beneficios**:
+
+- **Pool de Conexiones**
+  - **Beneficios**:
+
+- **Drivers**
+  - **Beneficios**:
+
+##### Diseño para IA
+
+**Implementaciones comunes a todas las tablas**
+
+
+**Justificación**
+
+
+##### Diagrama de Base de Datos
+
+
 ---
 
 ### 4.4 Motor de transformacion
