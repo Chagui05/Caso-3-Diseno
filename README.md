@@ -5515,6 +5515,43 @@ El frontend del componente Marketplace sigue una arquitectura moderna basada en 
 - Lógica de negocio desacoplada de las vistas.
 - Facilidad para agregar nuevos tipos de datasets, métodos de pago o reglas de negocio sin romper el flujo principal.
 
+### Componentes Visuales - Marketplace
+
+#### Patrones y Principios:
+
+- **Diseño Responsivo:** Aplicado desde el desarrollo inicial, permitiendo que el Marketplace sea visualizado correctamente en desktop, tablets y móviles. Se utiliza Tailwind para web y Nativewind para mobile. Las clases CSS usan unidades relativas (rem, %, vw) y los breakpoints de Tailwind manejan la adaptación automática.
+
+- **SOLID:**
+  - Single Responsibility: Cada componente de React cumple una única función. Los componentes visuales están completamente separados de los hooks de lógica.
+  - Open/Closed Principle: Los componentes son extensibles sin modificar su código interno, como los botones (Button) o tarjetas de datasets (DatasetCard).
+  - Liskov Substitution Principle: Las listas de datasets permiten diferentes tarjetas de visualización que pueden reemplazar a las generales según el tipo de dataset.
+  - Interface Segregation Principle: Gracias a Atomic Design, los componentes solo exponen las props necesarias.
+  - Dependency Inversion Principle: La lógica de negocio reside en los ViewModels (custom hooks), manteniendo los componentes visuales desacoplados.
+
+- **DRY (Don't Repeat Yourself):** Los componentes son reutilizables (atoms, molecules). Además, las funciones utilitarias en `utils/` centralizan validaciones de pago, cálculos de carrito, formateo de precios, etc.
+
+- **Separación de Responsabilidades:** Los componentes visuales solo presentan la información. Toda la lógica está en hooks como `useDatasetSearch()`, `useCart()`, `usePayment()`. Los modelos (Dataset, Order, Payment) manejan la conexión con la API.
+
+- **Atomic Design:** Implementado en la carpeta `components/`:
+  - Atoms: `Button`, `Input`, `Icon`, `Badge`.
+  - Molecules: `SearchBar`, `DatasetCard`, `PriceFilter`.
+  - Organisms: `DatasetList`, `ShoppingCartPanel`, `PaymentForm`.
+  - Templates: `MarketplaceLayout`, `CartLayout`.
+  - Pages: `MarketplaceHomePage`, `DatasetDetailsPage`, `CheckoutPage`.
+
+- **MVVM:** 
+  - Model: Clases de datos y funciones que manejan las llamadas a la API (ejemplo: `DatasetApi`).
+  - View: Componentes visuales React organizados por Atomic Design.
+  - ViewModel: Hooks como `useCart()`, `usePayment()`, `useDatasetSearch()` que gestionan la lógica de negocio.
+
+#### Herramientas y estándares:
+
+- Material Design 3: Aplicado en el diseño visual del Marketplace.
+- Tailwind/Nativewind: Framework principal de estilos responsivos.
+- Amplify: Maneja la integración continua, despliegue en AWS y conexión con Cognito.
+
+
+
 #### Diseño del Backend
 
 #### Microservicios por Componente
