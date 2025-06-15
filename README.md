@@ -1,12 +1,13 @@
 # Caso-3-Diseno
 
-## 1. Planeamiento
+
+# 1. Planeamiento
 
 En esta sección se detallan los aspectos relacionados con la comprensión del problema, la forma en que se dividirá el trabajo dentro del equipo, los hitos en los que se estructura el desarrollo del proyecto y los mecanismos que permitirán evaluar si se está avanzando conforme a lo planificado.
 
-### 1.1 Estructura del Equipo, Stakeholders, Key Players
+## 1.1 Estructura del Equipo, Stakeholders, Key Players
 
-#### Estructura Interna
+### Estructura Interna
 
 El equipo de trabajo consiste de 5 integrantes:
 
@@ -20,7 +21,7 @@ Todos tenemos asignaciones distintas dentro del proyecto, pero como vamos a trab
 
 Además, una pieza muy importante en el proyecto será Rodrigo Núñez, el cuál actuará como Product Owner de Data Pura Vida, y consultor de diseño de software en caso de que tengamos algún tipo de duda.
 
-#### Stakeholders y Key Players:
+### Stakeholders y Key Players:
 
 Se identificaron los principales actores que influyen o se ven afectados por el desarrollo de la plataforma. A continuación, se presenta una matriz que los muestra:
 
@@ -36,11 +37,11 @@ Finalmente, aquellos actores que incurren en prácticas como el lavado de dinero
 
 Ahora bien, ya que se conocen los stakeholders principales se puede evidenciar que los key players son tanto el Product Owner, como el Equipo de trabajo, ya que serán los encargados de que el proyecto tenga exito.
 
-#### Sistemas y Ecosistemas de Software Existentes:
+### Sistemas y Ecosistemas de Software Existentes:
 
 En Costa Rica no existe ningún sistema ni ecosistema previo que funcione como antecedente directo de Data Pura Vida, por lo que no se anticipan problemas de integración con plataformas existentes. Si bien existen herramientas puntuales, como el API del TSE para consultas por cédula, estas no representan un obstáculo, ya que los requerimientos del proyecto contemplan la capacidad del sistema para aceptar datos provenientes de APIs externas.
 
-### 1.2 Gestión de la Comunicación y Documentación del proyecto
+## 1.2 Gestión de la Comunicación y Documentación del proyecto
 
 Para la comunicación interna del equipo se utilizará Slack. A través de esta herramienta se coordinará la asignación de tareas en ClickUp, y también se notificará cuando una tarea haya sido finalizada. Antes de marcarla como completada, la tarea deberá pasar al estado de "Esperando Aprobación" en ClickUp, para que Rodrigo pueda revisarla y aprobarla.
 
@@ -48,7 +49,7 @@ Además, se utilizará Discord para realizar al menos una reunión semanal, en l
 
 La documentación principal del proyecto se mantendrá en el README del repositorio de GitHub Chagui05/Caso-3-Diseno. En ese archivo se incluirán todos los detalles relevantes. Si existieran anexos, como la hoja de requerimientos o la entrevista con el profesor, se agregarán al mismo repositorio en archivos separados con nombres descriptivos, y se hará referencia a ellos desde el README. Toda la documentación será escrita en formato Markdown.
 
-### 1.3 Entendimiento del problema
+## 1.3 Entendimiento del problema
 
 Para entender adecuadamente el problema, el equipo realizó una entrevista al Product Owner, basada en una serie de preguntas que surgieron tras revisar la especificación del proyecto. Las respuestas obtenidas fueron registradas en el archivo RespuestaEntrevista, y permitieron extraer información clave, como por ejemplo:
 
@@ -85,11 +86,11 @@ El segundo diagrama arranca una vez que el dataset ya fue validado. Ahí se defi
 
 Es importante aclarar que en el diagrama II no se detalla paso a paso lo que hace el motor ETDL, pero sí se deja claro que va a encargarse de tareas como: detectar duplicados, relacionar datos con otros ya cargados, ajustar el modelo según las conexiones que encuentre, y aplicar automáticamente un flujo con extracción, transformación, limpieza, detección de contexto, modelado y carga con ayuda de AI.
 
-#### Componentes del Sistema
+### Componentes del Sistema
 
 Con el fin de lograr una arquitectura modular, segura y mantenible, el sistema se divide en macrocomponentes. Cada uno aborda un conjunto específico de requerimientos funcionales y no funcionales. En esta sección se listan los componentes y sus principales responsabilidades. La implementación técnica y subdivisión de estos se detalla más adelante en el documento.
 
-##### Bioregistro
+#### Bioregistro
 
 Este módulo gestiona el proceso de incorporación de personas físicas y jurídicas a la plataforma. Abarca desde el llenado de formularios hasta la validación de identidad y la emisión de credenciales digitales. Debe cumplir con regulaciones AML y estándares avanzados de identidad digital.
 
@@ -112,7 +113,7 @@ Requerimientos:
 - El componente debe permitir únicamente IPs costarricenses en el registro
 - El sistema debe proteger las claves generadas mediante un esquema de llave tripartita, distribuidas entre Data Pura Vida y dos custodios.
 
-##### La Bóveda
+#### La Bóveda
 
 La Bóveda es el almacén central de datos del sistema, diseñado para ser seguro, escalable y auditable. Unifica todos los datos cargados, sin importar su formato de origen, y permite relaciones entre datasets. Cifra la información en tránsito y reposo, controla el acceso por roles y entidades, y mantiene trazabilidad completa del uso y movimientos de los datos. Está pensada para soportar millones de registros con alto rendimiento y cumplir estándares de gobierno de datos.
 
@@ -131,7 +132,7 @@ Requerimientos:
 - Controlar accesos lógicos por entidad, usuario o tipo de dato.
 - Implementar control de acceso a nivel de rol (RBAC) y a nivel de fila (RLS) o equivalentes.
 
-##### Centro de Carga
+#### Centro de Carga
 
 Este módulo permite a los usuarios cargar sus datasets a la plataforma. Desde acá pueden definir qué datos desean cifrar, especificar el formato de origen y configurar otros parámetros clave para asegurar que la carga se procese correctamente.
 
@@ -152,7 +153,7 @@ Requerimientos:
 - Configurar parámetros para carga por deltas: campos diferenciales, frecuencia (timed pull) o mediante callbacks.
 - Habilitar control granular de acceso por institución, persona o grupo.
 
-##### Motor de Transformación
+#### Motor de Transformación
 
 Este módulo es clave para garantizar que los datasets se almacenen correctamente en la Bóveda. Se encarga de recibir datos desde distintas fuentes, validar que el formato coincida con el indicado en el formulario de ingesta y, en caso contrario, rechazar la carga. Una vez superada esta validación, aplica todo el proceso de ETDL y mapea los datos al formato interno de la Bóveda.
 
@@ -168,7 +169,7 @@ Requerimientos:
 - Soportar cargas delta con identificación de cambios.
 - Realizar merges eficientes sin pérdida de integridad.
 
-##### Centro de Visualización y Consumo
+#### Centro de Visualización y Consumo
 
 Este módulo está compuesto por 3 subcomponentes clave:
 
@@ -207,7 +208,7 @@ Requerimientos:
 - El sistema debe minimizar al máximo el riesgo de descargas indirectas mediante presunción de uso en IA.
 - Los datos deben ser envíados en un formato que no permita poder ser desencriptado para otro uso que no sea alimentar IA (por ejemplo uso de embeddings).
 
-##### Marketplace
+#### Marketplace
 
 Este módulo está enfocado en ofrecer una interfaz amigable que permita a los usuarios encontrar datasets de forma eficiente, con descripciones claras y navegación fluida. Además, incluye una sección adicional para buscar dashboards creados por otros usuarios, facilitando el descubrimiento y reutilización de visualizaciones dentro de la plataforma.
 
@@ -220,7 +221,7 @@ Requerimientos:
 - Mostrar confirmaciones de transacción y activar el acceso según condiciones (tiempo, volumen, frecuencia).
 - El sistema debe mostrar opciones para renovar o ampliar los paquetes de acceso en caso de superar el límite.
 
-##### Backoffice Administrativo
+#### Backoffice Administrativo
 
 Este módulo concentra las herramientas de backoffice necesarias para la gestión integral de la plataforma. Su enfoque está en el control, la seguridad, la gobernanza de datos y la trazabilidad completa de las operaciones.
 
@@ -240,7 +241,7 @@ Requerimientos:
 - Debe ofrecer una interfaz robusta y segura solo para personal autorizado.
 - Debe permitir gestión flexible pero estricta de accesos y configuraciones.
 
-#### Prototipado
+### Prototipado
 
 Se desarrolló un prototipo funcional de la página del Bioregistro Verde con el objetivo principal de probar el comportamiento de los formularios dinámicos. Este prototipo no incluye procesos de prueba de vida ni captura de datos biométricos, y tampoco recolecta la información final que se almacenará en el sistema definitivo. Su propósito es demostrar, a alto nivel, cómo el formulario se adapta dinámicamente según las selecciones del usuario.
 
@@ -265,7 +266,7 @@ Además, se adjunta el proceso de registar compañía pública:
 
 Si deseá probar el prototipo visite el siguiente [link](https://gentle-signup-wizard.lovable.app/).
 
-### 1.4 Customer Journeys
+## 1.4 Customer Journeys
 
 Este Service Blueprint representa el recorrido completo de un ciudadano dentro del ecosistema Data Pura Vida, desde el descubrimiento de la plataforma hasta la creación, publicación y monitoreo de un dashboard personalizado con datos públicos.
 
@@ -320,9 +321,9 @@ Este blueprint se organiza en siete fases principales:
 
 ![alt text](img/journey2.png)
 
-### 1.5 Plan de ejecución del proyecto
+## 1.5 Plan de ejecución del proyecto
 
-#### Plan de Diseño
+### Plan de Diseño
 
 El proyecto se estructura en cinco hitos principales que marcarán su progreso:
 
@@ -342,11 +343,11 @@ Además, como se indicó anteriormente, se realizarán reuniones semanales para 
 
 Además, como se dijo previamente, se harán reuniones semanales para verificar que el proyecto se esté realizando según lo dice el plan.
 
-#### Plan de Ejecución para Desarrolladores
+### Plan de Ejecución para Desarrolladores
 
 Este plan indica cómo avanzar progresivamente en la construcción del sistema, desde preparar el entorno hasta desplegar y probar los módulos principales. No detalla cómo funciona cada módulo, sino cómo se implementan y conectan entre sí, con sus respectivos entregables por etapa.
 
-##### 1. Preparación del Entorno de Desarrollo
+#### 1. Preparación del Entorno de Desarrollo
 
 **Objetivo:** Sentar las bases para que todo el equipo trabaje de forma coordinada, segura y replicable.
 
@@ -364,7 +365,7 @@ Este plan indica cómo avanzar progresivamente en la construcción del sistema, 
 - Plantilla de CI/CD con al menos una validación básica.
 - Ambiente de desarrollo replicable con un comando (ej. Docker Compose).
 
-##### 2. Implementación del Bioregistro
+#### 2. Implementación del Bioregistro
 
 **Objetivo:** Habilitar la incorporación de personas físicas y jurídicas a la plataforma.
 
@@ -382,7 +383,7 @@ Este plan indica cómo avanzar progresivamente en la construcción del sistema, 
 - Simulación de validaciones automáticas y manuales.
 - Sistema de emisión de llaves y notificación por correo.
 
-##### 3. Habilitar el Centro de Carga de Datos
+#### 3. Habilitar el Centro de Carga de Datos
 
 **Objetivo:** Permitir a los usuarios cargar datasets desde distintas fuentes.
 
@@ -400,7 +401,7 @@ Este plan indica cómo avanzar progresivamente en la construcción del sistema, 
 - Log de cargas realizadas para trazabilidad.
 - Cargas almacenadas provisionalmente.
 
-##### 4. Desarrollar el Motor de Transformación
+#### 4. Desarrollar el Motor de Transformación
 
 **Objetivo:** Procesar los datos cargados, limpiarlos y convertirlos a un formato interno.
 
@@ -436,7 +437,7 @@ Este plan indica cómo avanzar progresivamente en la construcción del sistema, 
 - Trazabilidad de acceso a cada dataset.
 - Esquema inicial de relaciones entre datasets (si corresponde).
 
-##### 6. Activar la Visualización y los Dashboards
+#### 6. Activar la Visualización y los Dashboards
 
 **Objetivo:** Permitir a los usuarios explorar datos mediante gráficos sin exportarlos.
 
@@ -454,7 +455,7 @@ Este plan indica cómo avanzar progresivamente en la construcción del sistema, 
 - Lógica de límites de uso aplicada.
 - Registro de interacciones y consultas realizadas.
 
-##### 7. Simular el Consumo para Modelos de IA
+#### 7. Simular el Consumo para Modelos de IA
 
 **Objetivo:** Simular acceso regulado a datasets por sistemas externos autorizados.
 
@@ -472,7 +473,7 @@ Este plan indica cómo avanzar progresivamente en la construcción del sistema, 
 - Log de accesos con usuario, contexto y volumen consultado.
 - Validación de cumplimiento de reglas definidas.
 
-##### 8. Prototipar el Marketplace de Datos
+#### 8. Prototipar el Marketplace de Datos
 
 **Objetivo:** Permitir explorar, adquirir y acceder a datasets bajo condiciones.
 
@@ -490,7 +491,7 @@ Este plan indica cómo avanzar progresivamente en la construcción del sistema, 
 - Historial de transacciones por usuario.
 - Permisos temporales aplicados tras cada compra.
 
-##### 9. Activar el Backoffice Administrativo
+#### 9. Activar el Backoffice Administrativo
 
 **Objetivo:** Brindar herramientas de gestión y supervisión al equipo administrador.
 
@@ -508,7 +509,7 @@ Este plan indica cómo avanzar progresivamente en la construcción del sistema, 
 - Herramientas para revisión y auditoría básica.
 - Generación de reportes automáticos.
 
-##### 10. Pruebas Integradas y Simulación de Casos Reales
+#### 10. Pruebas Integradas y Simulación de Casos Reales
 
 **Objetivo:** Asegurar que todo funcione de forma integrada.
 
@@ -526,7 +527,7 @@ Este plan indica cómo avanzar progresivamente en la construcción del sistema, 
 - Validación de flujos completos con usuarios simulados.
 - Lista de bugs o ajustes para corregir.
 
-##### 11. Despliegue Controlado y Evaluación
+#### 11. Despliegue Controlado y Evaluación
 
 **Objetivo:** Publicar la plataforma en un entorno accesible para validación final.
 
@@ -544,7 +545,7 @@ Este plan indica cómo avanzar progresivamente en la construcción del sistema, 
 - Feedback recolectado para iteración.
 - Material de presentación o demo funcional lista.
 
-### 1.6 WBS del sistema
+## 1.6 WBS del sistema
 
 Como parte del análisis inicial del sistema **Data Pura Vida**, se realizó una descomposición de alto nivel para identificar los límites del sistema y los actores involucrados. A continuación, se presenta el diagrama de contexto basado en las técnicas descritas para la identificación del sistema y sus límites:
 
@@ -552,7 +553,7 @@ Como parte del análisis inicial del sistema **Data Pura Vida**, se realizó una
 
 Esta representación facilita el entendimiento general del sistema y servirá como base para la posterior descomposición en subsistemas, componentes funcionales y diseño arquitectónico detallado.
 
-#### Propósito del diagrama
+### Propósito del diagrama
 
 - **Identificación de límites del sistema:** El diagrama establece una frontera clara entre lo que está dentro y fuera del alcance del desarrollo, lo cual es crucial para evitar ambigüedades durante el diseño detallado.
 
@@ -560,7 +561,7 @@ Esta representación facilita el entendimiento general del sistema y servirá co
 
 - **Detección de puntos de integración:** Ayuda a anticipar necesidades de interoperabilidad, seguridad, formatos de intercambio de datos y protocolos de comunicación.
 
-#### Consideraciones adicionales
+### Consideraciones adicionales
 
 Este diagrama será utilizado como punto de partida para:
 
@@ -572,17 +573,17 @@ Este diagrama será utilizado como punto de partida para:
 
 En resumen, este modelo de contexto es una herramienta clave para asegurar un entendimiento compartido del dominio del problema y sentar las bases de una solución técnica coherente, escalable y alineada con los objetivos del proyecto.
 
-### 1.7 Evaluación de Riesgos
+## 1.7 Evaluación de Riesgos
 
-#### Metodología ISO 31000
+### Metodología ISO 31000
 
 La evaluación de riesgos sigue los principios de **ISO 31000** para la gestión de riesgos del proyecto Data Pura Vida.
 
-#### Marco de Evaluación:
+### Marco de Evaluación:
 
 La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basada en criterios específicos del proyecto Data Pura Vida y su contexto de diseño de sistemas complejos.
 
-#### Escala de probabilidad:
+### Escala de probabilidad:
 
 - Muy Alta (100%) : Es prácticamente seguro que el riesgo ocurrirá durante el proyecto (9 de cada 10 proyectos similares)
 - Alta (80%) : Es muy probable que el riesgo se materialice (7-8 de cada 10 casos)
@@ -590,7 +591,7 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 - Baja (40%) : Es poco probable pero posible que suceda (3-4 de cada 10 casos)
 - Muy Baja (20%) : Es muy poco probable que se materialice (1-2 de cada 10 casos)
 
-#### Escala de Impacto:
+### Escala de Impacto:
 
 - Muy Alto (100%) : Falla completa del proyecto, rediseño total necesario, o retraso superior a 4 semanas
 - Alto (80%) : Compromete objetivos principales del proyecto, retraso de 2-4 semanas, o afecta múltiples componentes críticos
@@ -598,7 +599,7 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 - Bajo (40%) : Impacto menor en cronograma (3-7 días) o calidad, se puede resolver con ajustes menores
 - Muy Bajo (20%) : Impacto mínimo (menos de 3 días), no afecta objetivos principales del proyecto
 
-#### Riesgos para el Diseño de Data Pura Vida
+### Riesgos para el Diseño de Data Pura Vida
 
 | ID      | Categoría         | Riesgo                                               | Descripción Detallada                                                                                                                                                                           | Probabilidad        | Impacto             | Clasificación   | Estrategia     | Plan de Respuesta                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | ------- | ----------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ------------------- | --------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -613,11 +614,10 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 | **R09** | **Recursos**      | **Disponibilidad limitada del Product Owner**        | El Product Owner puede no estar disponible para validar decisiones arquitectónicas críticas o para resolver ambigüedades en los requerimientos técnicos                                         | **Media (60%)**     | **Bajo (40%)**      | **🟡 MODERADO** | **ACEPTAR**    | **Prevención:** Agenda fija martes/viernes, decisiones escritas en Slack, timeboxing 24h para respuestas<br>**Contingencia:** Escalación a stakeholders si > 48h sin respuesta, decisiones técnicas por equipo con validación posterior, documentar en GitHub para trazabilidad                                                                                                                                                    |
 | **R10** | **Coordinación**  | **Diseños de componentes desconectados**             | Los diferentes integrantes del equipo pueden diseñar sus componentes sin suficiente coordinación, resultando en interfaces incompatibles o duplicación de funcionalidades                       | **Media (60%)**     | **Medio (60%)**     | **🟡 MODERADO** | **MITIGAR**    | **Prevención:** Sincronización semanal viernes 1h, documentación centralizada GitHub, daily stand-ups 15min<br>**Contingencia:** Workshop alineación medio día si interfaces incompatibles, rediseño coordinado 3 días máximo, matriz de dependencias actualizada                                                                                                                                                                  |
 
-### 1.8 Definición de KPIs
+## 1.8 Definición de KPIs
+### KPIs por Hito del Proyecto
 
-#### KPIs por Hito del Proyecto
-
-##### Hito 1: Planeamiento del Proyecto
+#### Hito 1: Planeamiento del Proyecto
 
 **Período**: 18-22 Mayo 2025 (Semana W20)
 
@@ -628,7 +628,7 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 | **Participación del equipo**     | % de integrantes activos en tareas | 100%     | ClickUp - asignación y progreso de tareas          |
 | **Validación del Product Owner** | % de entregables aprobados         | 100%     | Estado "Aprobado" en ClickUp                       |
 
-##### Hito 2: Supuestos del Proyecto
+#### Hito 2: Supuestos del Proyecto
 
 **Período**: 25-31 Mayo 2025 (Semana W21)
 
@@ -638,7 +638,7 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 | **Calidad de supuestos**       | Número de supuestos validados con PO | 100%     | Documentación de validaciones en Slack/GitHub    |
 | **Identificación de riesgos**  | Número de riesgos documentados       | ≥10      | Matriz de riesgos actualizada                    |
 
-##### Hito 3: Stack Tecnológico
+#### Hito 3: Stack Tecnológico
 
 **Período**: 1-7 Junio 2025 (Semana W22)
 
@@ -649,7 +649,7 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 | **Factibilidad técnica**          | Prototipos de concepto funcionando            | ≥2       | Repositorio con ejemplos funcionales         |
 | **Compatibilidad con requisitos** | % de requisitos cubiertos por stack           | 100%     | Matriz de trazabilidad requisitos-tecnología |
 
-##### Hito 4: Diseño de los Componentes
+#### Hito 4: Diseño de los Componentes
 
 **Período**: 8-14 Junio 2025 (Semana W23)
 
@@ -660,7 +660,7 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 | **Calidad del diseño**            | Revisiones aprobadas por PO               | 100%     | Estados de aprobación en ClickUp      |
 | **Integración entre componentes** | % de interfaces definidas                 | 100%     | Diagramas de integración documentados |
 
-##### Hito 5: Validación de los Requerimientos
+#### Hito 5: Validación de los Requerimientos
 
 **Período**: 15-21 Junio 2025 (Semana W24)
 
@@ -671,9 +671,9 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 | **Calidad de documentación**   | Checklist de atributos completado | 100%     | Revisión contra checklist oficial |
 | **Aprobación final**           | Validación del Product Owner      | 100%     | Confirmación formal de aceptación |
 
-#### KPIs Transversales del Proyecto
+### KPIs Transversales del Proyecto
 
-##### Gestión y Comunicación
+#### Gestión y Comunicación
 
 | KPI                         | Métrica                        | Objetivo | Frecuencia de Medición |
 | --------------------------- | ------------------------------ | -------- | ---------------------- |
@@ -682,7 +682,7 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 | **Actualización de tareas** | Tareas actualizadas en ClickUp | Diario   | Diario                 |
 | **Resolución de bloqueos**  | Tiempo promedio de resolución  | <48h     | Semanal                |
 
-##### Calidad y Riesgos
+#### Calidad y Riesgos
 
 | KPI                        | Métrica                             | Objetivo | Frecuencia de Medición |
 | -------------------------- | ----------------------------------- | -------- | ---------------------- |
@@ -690,30 +690,31 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 | **Incidencias críticas**   | Número de riesgos materializados    | 0        | Semanal                |
 | **Calidad de entregables** | % de entregables sin retrabajos     | 90%      | Por hito               |
 
-#### Mecanismos de Recolección y Cálculo
+### Mecanismos de Recolección y Cálculo
 
-##### Herramientas de Monitoreo
+#### Herramientas de Monitoreo
 
 1. **ClickUp**: Seguimiento automático de tareas, tiempos y estados
 2. **Slack**: Métricas de comunicación y tiempo de respuesta
 3. **GitHub**: Commits, documentación y versiones
 4. **Reuniones semanales**: Revisión manual de KPIs y ajustes
 
-## 2. Supuestos del proyecto
 
-### 2.1 Estándares y Regulaciones
+# 2. Supuestos del proyecto
+
+## 2.1 Estándares y Regulaciones
 
 Para el proyecto "Data Pura Vida", la revisión de estándares y regulaciones nacionales e internacionales es crucial para garantizar la legalidad, seguridad, privacidad y gobernanza de los datos. A continuación, se detalla la relevancia de cada una de las normativas mencionadas y cómo se aplican a los requerimientos de la plataforma:
 
-#### 1. Ley 8968 (Costa Rica) - Ley de Protección de la Persona frente al Tratamiento de sus Datos Personales
+### 1. Ley 8968 (Costa Rica) - Ley de Protección de la Persona frente al Tratamiento de sus Datos Personales
 
 Esta es la normativa nacional fundamental que rige la protección de datos personales en Costa Rica. "Data Pura Vida" debe cumplir íntegramente con sus disposiciones, dado que el sistema manejará una gran cantidad de datos personales de personas físicas y jurídicas.
 
-##### Aplicación a los Requerimientos de la Plataforma:
+#### Aplicación a los Requerimientos de la Plataforma:
 
-##### Bioregistro:
+#### Bioregistro:
 
-##### ARTÍCULO 5.- Principio de consentimiento informado:\*\*REST, GraphQL,
+#### ARTÍCULO 5.- Principio de consentimiento informado:\*\*REST, GraphQL,
 
 El principio del consentimiento de información se regie por dos puntos importantes, a continuación, se mencionan los dos puntos y su aplicación dentro de la plataforma:
 
@@ -739,7 +740,7 @@ Durante el proceso de registro en **Bio Registro Verde**, el sistema debe presen
 
 - La autenticación avanzada (identidad digital, biometría, prueba de vida, MFA) y la validación documental automatizada por IA refuerzan la seguridad del proceso de consentimiento, asegurando que la persona que da el consentimiento es quien dice ser.
 
-##### ARTÍCULOS 6 y 7 - Principio de calidad de la información; y Derechos que le asisten a la persona( Derechos ARCO ):
+#### ARTÍCULOS 6 y 7 - Principio de calidad de la información; y Derechos que le asisten a la persona( Derechos ARCO ):
 
 Estos principios garantizan que los datos sean apropiados y que los usuarios mantengan el control sobre su información.
 
@@ -751,11 +752,11 @@ La implementación de IA para verificar la completitud y validez de los document
 
 El portal debe ofrecer mecanismos claros y accesibles para que los usuarios puedan acceder, rectificar o solicitar la eliminación de sus datos personales, directamente desde su perfil o mediante un proceso de solicitud documentado, en cumplimiento con el Artículo 7 (Derechos ARCO). Esto incluye la posibilidad de actualizar información o cerrar cuentas.
 
-##### ARTÍCULO 9 - Categorías particulares de los datos:
+#### ARTÍCULO 9 - Categorías particulares de los datos:
 
 Aunque los requerimientos actuales del "Bio Registro Verde" no mencionan explícitamente la recolección de "datos sensibles" (como salud, origen racial, etc.), si el alcance de la plataforma evolucionara para incluirlos, "Data Pura Vida" deberá implementar garantías adicionales y obtener un consentimiento aún más explícito y específico para el tratamiento de estas categorías, según lo exige el Artículo 9 (Datos Sensibles).
 
-##### ARTÍCULO 10 - Seguridad de los Datos:
+#### ARTÍCULO 10 - Seguridad de los Datos:
 
 Este artículo impone la obligación de proteger los datos de carácter personal y evitar su alteración, destrucción accidental o ilícita, pérdida, tratamiento o acceso no autorizado, así como cualquier otra acción contraria a esta ley al responsable de la base de datos.
 
@@ -769,9 +770,9 @@ Los requerimientos de seguridad del **Bioregistro** son una respuesta directa al
 
 - El cifrado de datos en reposo y en tránsito y el control de acceso estricto para ingenieros (para evitar acceso a datos en claro) son vitales para cumplir con el deber de confidencialidad y proteger la información sensible.
 
-##### Feliz Compartiendo Datos:
+#### Feliz Compartiendo Datos:
 
-##### ARTÍCULO 4.- Autodeterminación informativa:
+#### ARTÍCULO 4.- Autodeterminación informativa:
 
 La capacidad de los usuarios para gestionar sus datasets es central para este principio.
 
@@ -784,7 +785,7 @@ La sección **Feliz Compartiendo Datos** encarna el Artículo 4 (Autodeterminaci
 
 Estas funcionalidades garantizan que el titular mantenga el control sobre el uso y la difusión de su información.
 
-##### ARTÍCULO 6 - Principio de calidad de la información:
+#### ARTÍCULO 6 - Principio de calidad de la información:
 
 La Ley 8968 exige que la recolección y uso de datos sea proporcional a la finalidad.
 
@@ -794,13 +795,13 @@ Los requerimientos de **Feliz Compartiendo Datos** se alinean con el Artículo 6
 
 - La capacidad de restringir acceso a datos por límites de tiempo, volumen o frecuencia de consulta asegura que el acceso y uso de los datos se realice únicamente para la finalidad acordada y bajo las condiciones definidas por el titular.
 
-##### ARTÍCULO 14 - Transferencia de datos personales, regla general:
+#### ARTÍCULO 14 - Transferencia de datos personales, regla general:
 
 Si bien la "comercialización" dentro del ecosistema se enfoca en el acceso y consumo interno, el Artículo 20 es una consideración preventiva. Si la plataforma habilitara en el futuro transferencias a entidades o servicios fuera de Costa Rica (por ejemplo, para alimentar modelos de IA en la nube en otros países), se deberían cumplir las condiciones establecidas por este artículo, que incluyen el consentimiento del titular y garantías de seguridad adecuadas para los datos transferidos.
 
-##### Descubriendo Costa Rica:
+#### Descubriendo Costa Rica:
 
-##### ARTÍCULOS 4 y 10 - Autodeterminación informativa; Seguridad de los datos:
+#### ARTÍCULOS 4 y 10 - Autodeterminación informativa; Seguridad de los datos:
 
 La protección de la autodeterminación informativa y la seguridad son cruciales en la visualización.
 
@@ -810,9 +811,9 @@ La sección **Descubriendo Costa Rica** refuerza el Artículo 4 (Autodeterminaci
 
 - Al obligar a la visualización exclusivamente dentro del portal, "Data Pura Vida" implementa una medida de seguridad lógica que reduce el riesgo de fugas de datos y asegura que el uso de la información esté bajo la gobernanza y protección de la Ley 8968. Esto también apoya el principio de limitación de la finalidad.
 
-##### Backend API y Datalake: Aplicación de la Ley 8968 (Costa Rica)
+#### Backend API y Datalake: Aplicación de la Ley 8968 (Costa Rica)
 
-##### Artículo 10 y 30 - Seguridad de los datos; Faltas graves:
+#### Artículo 10 y 30 - Seguridad de los datos; Faltas graves:
 
 Estos son el muy importantes para la infraestructura de seguridad.
 
@@ -838,13 +839,13 @@ La auditoría detallada de todas las operaciones realizadas en el sistema (por u
 
 - Facilitar la extracción de evidencias para procesos legales o regulatorios.
 
-#### 2. GDPR (General Data Protection Regulation)
+### 2. GDPR (General Data Protection Regulation)
 
 Aunque es una regulación de la Unión Europea, el GDPR tiene un alcance extraterritorial. Si "Data Pura Vida" procesa datos de ciudadanos o residentes de la UE, o si ofrece bienes y servicios a ellos, entonces el GDPR es aplicable, independientemente de dónde se encuentre el servidor o la empresa. Dado que Costa Rica es un destino turístico y centro de negocios internacional, es muy probable que haya interacción con datos de la UE. Además, el GDPR ha influenciado muchas leyes de privacidad a nivel mundial, por lo que su cumplimiento a menudo supera los requisitos de otras normativas locales.
 
-##### Aplicación a los Requerimientos de la Plataforma:
+#### Aplicación a los Requerimientos de la Plataforma:
 
-##### Bio Registro Verde:
+#### Bio Registro Verde:
 
 **Bases Legales para el Tratamiento:** El registro debe establecer claramente la base legal para el procesamiento de cada tipo de dato (consentimiento, obligación legal, interés legítimo, etc.) según lo establece el GDPR (artículos 6 y 7). El consentimiento debe ser libre, específico, informado e inequívoco, y fácilmente revocable.
 
@@ -868,7 +869,7 @@ Aunque es una regulación de la Unión Europea, el GDPR tiene un alcance extrate
 
 - **Derechos en relación con Decisiones Automatizadas y Perfilado:** El uso de IA debe considerar el derecho a no ser objeto de decisiones basadas únicamente en procesamiento automatizado (artículo 22).
 
-##### Feliz Compartiendo Datos:
+#### Feliz Compartiendo Datos:
 
 **Transferencias Internacionales de Datos:** Si los datos pudieran ser accedidos o transferidos fuera del Espacio Económico Europeo, deben cumplirse los requisitos del Capítulo V del GDPR (artículos 44 al 50), incluyendo garantías como cláusulas tipo o reglas corporativas vinculantes.
 
@@ -880,11 +881,11 @@ Aunque es una regulación de la Unión Europea, el GDPR tiene un alcance extrate
 
 **Notificación de Violaciones de Seguridad:** En caso de una brecha de seguridad que afecte datos personales, el GDPR exige la notificación a la autoridad de control en un plazo de 72 horas y, en ciertos casos, también a los interesados (Artículos 33 y 34). Esto implica un robusto sistema de monitoreo y respuesta a incidentes.
 
-#### 3. ISO/IEC 27001 - Sistemas de Gestión de la Seguridad de la Información (SGSI)
+### 3. ISO/IEC 27001 - Sistemas de Gestión de la Seguridad de la Información (SGSI)
 
 Relevancia para **Data Pura Vida**: Aunque no es una ley obligatoria, la ISO/IEC 27001 es un estándar internacional que proporciona un marco para establecer, implementar, mantener y mejorar continuamente un Sistema de Gestión de la Seguridad de la Información (SGSI). Obtener la certificación ISO 27001 demostraría un compromiso serio con la seguridad de la información y la protección de activos, generando confianza en un ecosistema de datos.
 
-##### Aplicación a los Requerimientos de la Plataforma:
+#### Aplicación a los Requerimientos de la Plataforma:
 
 La ISO 27001 se basa en la identificación y gestión de riesgos de seguridad de la información. Esto es fundamental para "Data Pura Vida", dada la sensibilidad y el volumen de los datos. Se debe realizar una evaluación de riesgos exhaustiva para determinar las medidas de seguridad necesarias.
 
@@ -905,29 +906,29 @@ Estan los controles de seguidad ubicadas en el anexo A de ISO 27001/ISO 27002 en
 
 **Mejora Continua (Ciclo PDCA):** ISO 27001 promueve un ciclo de Planificar-Hacer-Verificar-Actuar (PDCA), lo que se alinea con la necesidad de monitoreo continuo de métricas, auditorías y revisión de la dirección para garantizar la mejora continua de la seguridad y el cumplimiento normativo.
 
-#### 4. OECD Data Governance
+### 4. OECD Data Governance
 
 La OCDE establece principios fundamentales de gobernanza de datos que sirven como referencia para proyectos como Data Pura Vida, orientados a maximizar el uso y la compartición responsable de datos, mientras se protege la privacidad y se fortalece la confianza.
 
-##### Principios Fundamentales de la OCDE
+#### Principios Fundamentales de la OCDE
 
-##### Enfoque Integral (Whole-of-Government)
+#### Enfoque Integral (Whole-of-Government)
 
 - Promueve la participación de todos los actores (públicos y privados) y la coherencia entre sectores y niveles de gobierno.
 
-##### Equilibrio de Beneficios y Riesgos
+#### Equilibrio de Beneficios y Riesgos
 
 - Reconoce la necesidad de equilibrar los beneficios del acceso y uso de datos con los riesgos asociados (privacidad, seguridad, propiedad intelectual).
 
-##### Diversidad de Datos y Respeto a Derechos
+#### Diversidad de Datos y Respeto a Derechos
 
 - Reconoce distintos niveles de sensibilidad y riesgo de los datos, y garantiza derechos como el acceso, la rectificación y la autodeterminación informativa.
 
-##### Fortalecimiento de Capacidades y Confianza
+#### Fortalecimiento de Capacidades y Confianza
 
 - Fomenta la cultura de datos, el desarrollo de infraestructura y el establecimiento de relaciones de confianza entre actores.
 
-##### Recomendaciones de la OCDE Aplicables
+#### Recomendaciones de la OCDE Aplicables
 
 La OCDE ha emitido siete recomendaciones que sirven como marco para la gobernanza de datos y que deben integrarse a Data Pura Vida:
 
@@ -937,27 +938,27 @@ La OCDE ha emitido siete recomendaciones que sirven como marco para la gobernanz
 - Gobernanza de datos de salud (2016).
 - Estrategias de gobierno digital (2014).
 
-##### Aplicación a los Requerimientos de la Plataforma
+#### Aplicación a los Requerimientos de la Plataforma
 
-##### Bio Registro Verde
+#### Bio Registro Verde
 
 Aplica el enfoque integral al registrar a todos los actores relevantes con autenticación avanzada (MFA, biometría, prueba de vida).
 
 Implementa controles criptográficos (llaves simétricas y asimétricas) y segmentación de acceso por roles, siguiendo los estándares de confianza y seguridad.
 
-##### Feliz Compartiendo Datos
+#### Feliz Compartiendo Datos
 
 Permite la clasificación de datasets (públicos, privados, gratuitos o pagados) y la definición de controles de acceso granular, balanceando beneficios de compartición con protección de derechos.
 
 Soporta múltiples formatos de carga y mecanismos de conexión, fomentando la interoperabilidad.
 
-##### Descubriendo Costa Rica
+#### Descubriendo Costa Rica
 
 Limita la descarga directa y exportación de datos, asegurando que el acceso a datos se haga solo en entornos seguros y controlados.
 
 Construcción de dashboards personalizables con visibilidad granular, respetando la autonomía de los usuarios y el principio de minimización.
 
-##### Backend API y Datalake
+#### Backend API y Datalake
 
 Implementación de MFA, whitelists de IPs y control de acceso estricto para proteger la confidencialidad y cumplir con las recomendaciones de seguridad de la OCDE.
 
@@ -965,59 +966,59 @@ Uso de IA para normalización, relación de datos y detección de duplicidades, 
 
 La implementación de **Data Pura Vida** no solo debe enfocarse en la funcionalidad, sino que debe tener la privacidad y seguridad integradas desde el diseño. El cumplimiento de la Ley 8968 es mandatorio para operar en Costa Rica. La incorporación de principios del GDPR y ISO 27001 garantizará un nivel de protección de datos de clase mundial y facilitará la confianza, mientras que las directrices de la OCDE proporcionarán la base para una gobernanza de datos efectiva y una promoción responsable del intercambio y uso de la información.
 
-#### 5. Checklist para el Equipo de Desarrollo de "Data Pura Vida"
+### 5. Checklist para el Equipo de Desarrollo de "Data Pura Vida"
 
 Este checklist tiene como objetivo presentar los requisitos legales y de seguridad de **Data Pura Vida** en acciones concretas para el equipo de desarrollo, asegurando el cumplimiento con la Ley 8968, GDPR, ISO/IEC 27001 y los principios de la OCDE.
 
-##### Datalake
+#### Datalake
 
-###### Cifrado de Datos:
+##### Cifrado de Datos:
 
 - [ ] Implementar cifrado en reposo para todos los datos sensibles en el Datalake.
 - [ ] Implementar cifrado en tránsito para todas las comunicaciones hacia y desde el Datalake.
 - [ ] Asegurar que los campos específicos marcados como sensibles puedan ser cifrados a nivel de campo.
 
-###### Control de Acceso:
+##### Control de Acceso:
 
 - [ ] Configurar RBAC (Role-Based Access Control) para todos los usuarios y servicios que interactúan con el Datalake, otorgando el mínimo privilegio necesario.
 - [ ] Implementar RLS (Row-Level Security) para asegurar que los usuarios solo puedan ver las filas de datos a las que tienen autorización explícita.
 - [ ] Asegurar que ningún ingeniero o personal técnico pueda acceder a los datos en claro sin autorización.
 
-###### Calidad y Gobernanza de Datos:
+##### Calidad y Gobernanza de Datos:
 
 - [ ] Implementar mecanismos de validación de datos en el punto de entrada para asegurar la calidad y exactitud.
 - [ ] Desarrollar y aplicar algoritmos de IA para normalización, relación de datos y detección de duplicidades.
 
-###### Auditoría y Trazabilidad:
+##### Auditoría y Trazabilidad:
 
 - [ ] Implementar auditoría detallada de todas las operaciones de CRUD (Crear, Leer, Actualizar, Borrar) en el Datalake, registrando usuario, acción, fecha, hora y efecto.
 - [ ] Mantener un historial de consumo de datos por parte de los usuarios y servicios.
 
-##### Backend API
+#### Backend API
 
-###### Seguridad de la API:
+##### Seguridad de la API:
 
 - [ ] Proteger la API con whitelist de IPs (si aplica, para IPs institucionales o de Costa Rica).
 - [ ] Implementar un robusto sistema de validación de tokens (ej. JWT) para todas las solicitudes.
 - [ ] Exigir Multi-Factor Authentication (MFA) para el acceso a la API para usuarios administrativos o con privilegios elevados.
 
-###### Gestión de Credenciales y Criptografía:
+##### Gestión de Credenciales y Criptografía:
 
 - [ ] Desarrollar módulos separados para la gestión de credenciales, firmas y cifrado de datos.
 - [ ] Implementar el sistema de llave tripartita para la protección de identidades y datos asociados.
 
-###### Registro y Monitoreo:
+##### Registro y Monitoreo:
 
 - [ ] Asegurar la trazabilidad y registro de cada transacción que pase por la API.
 - [ ] Implementar monitoreo continuo de la API para detectar actividades anómalas o intentos de acceso no autorizado.
 
-###### Transferencia de Datos:
+##### Transferencia de Datos:
 
 - [ ] Si hay transferencia de datos fuera de Costa Rica, asegurar que se cumplen las garantías de seguridad.
 
-##### Interfaz de Usuario (UI) - Bio Registro Verde
+#### Interfaz de Usuario (UI) - Bio Registro Verde
 
-###### Consentimiento Informado (Ley 8968 Artículo. 5, GDPR Artículos. 6 y 7):
+##### Consentimiento Informado (Ley 8968 Artículo. 5, GDPR Artículos. 6 y 7):
 
 - [ ] Diseñar una sección clara y destacada en el registro para informar sobre:
 
@@ -1029,13 +1030,13 @@ Este checklist tiene como objetivo presentar los requisitos legales y de segurid
 - [ ] Implementar un checkbox explícito de "Acepto los Términos y Condiciones y la Política de Privacidad" que el usuario debe marcar activamente.
 - [ ] Almacenar de forma segura la documentación del consentimiento vinculada al registro del usuario.
 
-###### Autenticación y Validación:
+##### Autenticación y Validación:
 
 - [ ] Integrar identidad digital, biometría o prueba de vida en el proceso de autenticación inicial.
 - [ ] Implementar MFA para el acceso de los usuarios a sus cuentas.
 - [ ] Integrar validación documental automatizada por IA para verificar la completitud y validez de documentos (ej. cédulas, etc.).
 
-###### Derechos ARCO (Acceso, Rectificación, Cancelación y Oposición) (Ley 8968 Artículo. 7, GDPR Artículos. 15-21):
+##### Derechos ARCO (Acceso, Rectificación, Cancelación y Oposición) (Ley 8968 Artículo. 7, GDPR Artículos. 15-21):
 
 - [ ] Proporcionar un mecanismo claro y accesible en el perfil del usuario para:
 
@@ -1046,13 +1047,13 @@ Este checklist tiene como objetivo presentar los requisitos legales y de segurid
 - [ ] Si aplica, ofrecer opciones para limitar el tratamiento y ejercer la portabilidad de datos.
 - [ ] Considerar el derecho a oponerse a decisiones basadas únicamente en procesamiento automatizado si la IA afecta decisiones legales significativas sobre el usuario.
 
-###### Privacidad de Datos (Ley 8968 Artículo. 6, GDPR Artículo. 25):
+##### Privacidad de Datos (Ley 8968 Artículo. 6, GDPR Artículo. 25):
 
 - [ ] Asegurar que sistema integre la privacidad desde el inicio (ej. el cifrado de datos, el control granular de acceso, la minimización de datos por defecto).
 
-##### Interfaz de Usuario (UI) - Feliz Compartiendo Datos
+#### Interfaz de Usuario (UI) - Feliz Compartiendo Datos
 
-###### Autodeterminación Informativa (Ley 8968 Artículo. 4):
+##### Autodeterminación Informativa (Ley 8968 Artículo. 4):
 
 - [ ] Desarrollar funcionalidades para que el usuario pueda:
       Decidir qué datasets compartir.
@@ -1065,69 +1066,69 @@ Este checklist tiene como objetivo presentar los requisitos legales y de segurid
 
 - [ ] Habilitar la capacidad de restringir el acceso a datos por límites de tiempo, volumen o frecuencia de consulta.
 
-###### Interoperabilidad (Principios OCDE):
+##### Interoperabilidad (Principios OCDE):
 
 - [ ] Soportar múltiples formatos de carga y mecanismos de conexión para datasets.
 
-##### Interfaz de Usuario (UI) - Descubriendo Costa Rica
+#### Interfaz de Usuario (UI) - Descubriendo Costa Rica
 
-###### Seguridad en Visualización (Ley 8968 Artículo. 10):
+##### Seguridad en Visualización (Ley 8968 Artículo. 10):
 
 - [ ] Bloquear la descarga directa de datos desde los dashboards o visualizaciones.
 - [ ] Impedir la exportación de gráficos y contenidos a formatos externos.
 - [ ] Asegurar que la visualización de datos solo sea posible dentro del entorno seguro del portal.
 
-###### Control Granular y Personalización:
+##### Control Granular y Personalización:
 
 - [ ] Permitir la construcción de dashboards personalizables por los usuarios.
 - [ ] Asegurar que la visibilidad granular aplicada en "Feliz Compartiendo Datos" se refleje correctamente en las visualizaciones.
 
-##### Seguridad General y Operaciones
+#### Seguridad General y Operaciones
 
-###### Políticas y Procedimientos (ISO 27001 A.5, A.6, A.8):
+##### Políticas y Procedimientos (ISO 27001 A.5, A.6, A.8):
 
 - [ ] Colaborar con el equipo de PM/Seguridad para la implementación de las políticas de seguridad de la información.
 - [ ] Asegurar que el personal de desarrollo (ingenieros, backoffice) cumpla con los controles de seguridad antes, durante y después del empleo.
 
-###### Controles de Acceso Lógico (ISO 27001 A.11):
+##### Controles de Acceso Lógico (ISO 27001 A.11):
 
 - [ ] Restringir el acceso al portal solo desde direcciones IP ubicadas en Costa Rica o a través de listas blancas de IPs institucionales.
 
-###### Monitoreo y Gestión de Incidentes (ISO 27001 A.10.10, A.13, GDPR Artículos. 33 y 34):
+##### Monitoreo y Gestión de Incidentes (ISO 27001 A.10.10, A.13, GDPR Artículos. 33 y 34):
 
 - [ ] Implementar monitoreo de sistemas y gestión de logs para todas las plataformas.
 - [ ] Desarrollar un proceso claro y automatizado para la detección, reporte y respuesta a incidentes de seguridad.
 - [ ] Preparar la capacidad técnica para notificar brechas de seguridad a la autoridad de control (PRODHAB, DPA de la UE) y a los interesados dentro de los plazos establecidos (ej. 72 horas para GDPR).
 
-##### Cifrado General (ISO 27001 A.12.3):
+#### Cifrado General (ISO 27001 A.12.3):
 
 - [ ] Asegurar el uso de cifrado para todos los datos en reposo y en tránsito a través de la plataforma.
 
-###### Pruebas de Seguridad:
+##### Pruebas de Seguridad:
 
 - [ ] Realizar pruebas de penetración y escaneos de vulnerabilidades de forma regular.
 - [ ] Incluir pruebas de seguridad en el ciclo de vida de desarrollo de software.
 
-###### Continuidad del Negocio (ISO 27001 A.14.1):
+##### Continuidad del Negocio (ISO 27001 A.14.1):
 
 - [ ] Implementar planes de respaldo y recuperación para todos los componentes críticos del sistema.
 
-##### Gobernanza de Datos y Cumplimiento
+#### Gobernanza de Datos y Cumplimiento
 
-###### Auditoría Interna y Externa:
+##### Auditoría Interna y Externa:
 
 - [ ] Estar preparado para auditorías internas y externas para demostrar el cumplimiento con la Ley 8968, GDPR e ISO 27001.
 - [ ] Asegurar la disponibilidad de evidencias (logs, configuraciones, políticas) para procesos legales o regulatorios.
 
-###### Documentación:
+##### Documentación:
 
 - [ ] Mantener una documentación actualizada de la arquitectura de seguridad, controles implementados y flujos de datos.
 
-### 2.2 Prácticas de Manejo de Código
+## 2.2 Prácticas de Manejo de Código
 
 Para garantizar que el código fuente de Data Pura Vida sea seguro, mantenible y escalable, se adoptan tres marcos principales de buenas prácticas:
 
-#### 1. OWASP Secure Coding Practices
+### 1. OWASP Secure Coding Practices
 
 Basados en los estándares de OWASP Top 10 y OWASP ASVS:
 
@@ -1163,7 +1164,7 @@ Basados en los estándares de OWASP Top 10 y OWASP ASVS:
     - **JWT (JSON Web Token):** es un formato compacto y seguro para transmitir información entre partes como un objeto JSON firmado. Se usa para manejar sesiones de forma segura, ya que contiene los datos del usuario y sus permisos codificados y firmados digitalmente, lo que permite validar su autenticidad sin necesidad de consultar una base de datos en cada petición.
   - Además, toda cuenta que acceda a áreas críticas deberá utilizar autenticación multifactor (MFA), y se exigirá prueba de vida y biometría en el registro de representantes legales.
 
-#### 2. Clean code
+### 2. Clean code
 
 El proyecto aplicará los principios fundamentales de Clean Code propuestos por Robert C. Martin y enriquecidos con buenas prácticas reconocidas de la industria, con el objetivo de asegurar un código legible, mantenible y confiable.
 
@@ -1206,7 +1207,7 @@ El proyecto aplicará los principios fundamentales de Clean Code propuestos por 
 
 Estas prácticas no solo mejoran la calidad del software, sino que también reducen los costos de mantenimiento, facilitan las auditorías de seguridad y mejoran la experiencia del equipo de desarrollo durante todo el ciclo de vida del sistema.
 
-#### 3. The Twelve-Factor App
+### 3. The Twelve-Factor App
 
 El desarrollo de Data Pura Vida también se alinea con los principios del manifiesto Twelve-Factor App, con el objetivo de garantizar una arquitectura moderna, portable, escalable y apta para despliegues en la nube o entornos híbridos. A continuación se detallan los factores aplicados:
 
@@ -1234,7 +1235,7 @@ El desarrollo de Data Pura Vida también se alinea con los principios del manifi
 
 12. **Procesos administrativos como tareas one-off:** Scripts de migración, pruebas y carga inicial de datos se ejecutan como procesos independientes (npm run seed, python manage.py migrate), no embebidos en el ciclo de vida principal de la app.
 
-#### Buenas Prácticas Complementarias de Codificación Segura
+### Buenas Prácticas Complementarias de Codificación Segura
 
 | Objetivo                      | Práctica                                       | Aplicación                                                                       |
 | ----------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------- |
@@ -1243,7 +1244,7 @@ El desarrollo de Data Pura Vida también se alinea con los principios del manifi
 | **Gestión de secretos**       | Manejo seguro de claves, tokens y credenciales | Uso de servicios como AWS Secrets Manager o archivos .env con acceso restringido |
 | **Protección de endpoints**   | CORS y rate-limiting                           | Configuración estricta de origen cruzado (CORS) y límites de solicitudes por IP  |
 
-#### Validación automatizada de código
+### Validación automatizada de código
 
 Con el fin de reforzar las prácticas de codificación segura, mantenible y coherente, el proyecto Data Pura Vida adoptará una estrategia de validación automatizada. Esta estrategia abarcará tanto el estilo y la calidad del código como la seguridad y el cumplimiento de reglas internas de desarrollo.
 
@@ -1360,7 +1361,7 @@ module.exports = {
 - Se hará uso de `Dependabot` para revisar librerías vulnerables.
 - En estas validaciones se revisan versiones desactualizadas o inseguras de paquetes, licencias incompatibles con el proyecto, paquetes abandonados, entre otros.
 
-### 2.3 Sistema de Versionamiento
+## 2.3 Sistema de Versionamiento
 
 Para el versionamiento de los distintos componentes de Data Pura Vida manejaremos un solo repositorio en GitHub, utilizando un enfoque inspirado en Git Flow, adaptado para flujos modernos con automatización CI/CD, de la siguiente forma:
 
@@ -1374,7 +1375,7 @@ Para el versionamiento de los distintos componentes de Data Pura Vida manejaremo
 
 Todo cambio realizado en las ramas de feature y hotfix, una vez estén listos, se deben fusionar a la rama dev, donde se ejecutarán las pruebas correspondientes. Luego, cuando todo esté aprobado, se harán merge a la rama main para que se realice el despliegue a producción.
 
-#### Versionado
+### Versionado
 
 Se seguirá un esquema de versionado semántico usando la notación MAJOR.MINOR.PATCH, por ejemplo: 2.3.1. Esto permitirá comunicar de forma clara el tipo de cambios introducidos:
 
@@ -1392,7 +1393,7 @@ Agregar una nueva funcionalidad al generador de dashboards → 2.1.0
 
 Corregir un bug en la visualización de gráficos → 2.1.1
 
-#### Estructura del repositorio
+### Estructura del repositorio
 
 A continuación, esta será la estructura del repositorio:
 
@@ -1504,37 +1505,33 @@ jobs:
           --set image.tag=latest
 ```
 
-### 2.4 Sistemas de Terceros
+## 2.4 Sistemas de Terceros
 
 Durante el desarrollo e integración de la plataforma Data Pura Vida, se contempla el uso de múltiples sistemas de terceros que habilitan funciones clave como autenticación, verificación de identidad, procesamiento inteligente y orquestación de datos. A continuación, se describen los principales:
 
-#### Protocolos de Autenticación
+### Protocolos de Autenticación
 
 - OAuth2: Protocolo estándar utilizado para autorización segura entre frontend, backend y terceros que acceden a APIs protegidas.
 - JWT (JSON Web Token): Para transmisión segura de credenciales y validación de sesiones, especialmente en dashboards y servicios personalizados.
 - MFA: Autenticación multifactor implementada mediante servicios externos como Google Authenticator o Auth0, fortaleciendo el inicio de sesión y la gestión de cuentas.
 
-#### Verificación de Identidad y Seguridad
-
+### Verificación de Identidad y Seguridad
 - SumSub: Plataforma externa para verificación de identidad (KYC), validación documental automática y prueba de vida para personas físicas o representantes institucionales.
 
-#### Proveedor de Nube
+### Proveedor de Nube
 
 - AWS: Plataforma seleccionada para el despliegue de componentes, incluyendo servicios de hosting, bases de datos, colas de eventos, control de accesos, API Gateway, y otros servicios específicos como S3, Lambda, DynamoDB, etc.
 
-#### Inteligencia Artificial y Recomendaciones
+### Inteligencia Artificial y Recomendaciones
 
 - Hugging Face / GPT Recommender: Integraciones exploradas para generar recomendaciones de datasets mediante modelos preentrenados de lenguaje natural.
 
-#### Orquestación y Flujos de Datos
 
-- Google Cloud Workflows y BigQuery: Se valorará el uso de servicios de Google para tareas específicas de integración de datos y análisis en el datalake, incluyendo procesamiento por lotes, consultas distribuidas y automatización de flujos de datos complejos.
-
-### 2.5 Aspectos de Calidad/SLA
+## 2.5 Aspectos de Calidad/SLA
 
 Para garantizar que **Data Pura Vida** funcione exitosamente como ecosistema nacional de datos de Costa Rica, se establecen cinco aspectos de calidad fundamentales con implementaciones técnicas específicas que guiarán el diseño y operación del sistema.
 
-#### **2.5.1 Escalabilidad**
+### **2.5.1 Escalabilidad**
 
 La escalabilidad es la capacidad del sistema para manejar un crecimiento progresivo de usuarios, datos y transacciones sin que se degrade el rendimiento o la calidad del servicio.
 
@@ -1594,7 +1591,7 @@ Dado que modificar el diseño de modelos concurrentemente es peligroso, se imple
 
 El sistema utilizará escalado automático, que significa que cuando detecta mayor actividad, automáticamente asigna más recursos computacionales (servidores adicionales) para mantener el rendimiento. Cada componente puede crecer independientemente según su demanda específica, y el sistema se optimiza continuamente basándose en los patrones de uso reales de los costarricenses.
 
-#### **2.5.2 Mantenibilidad**
+### **2.5.2 Mantenibilidad**
 
 La mantenibilidad se refiere a la facilidad con que el sistema puede ser actualizado, corregido y mejorado a lo largo del tiempo sin interrumpir el servicio a los usuarios.
 
@@ -1648,7 +1645,7 @@ Los scripts que permiten evolucionar la estructura de la base de datos de forma 
 
 El sistema utiliza una arquitectura modular, lo que significa que cada componente puede actualizarse independientemente sin afectar los demás. Los despliegues son automatizados con validación previa, y existe documentación que se actualiza automáticamente. El sistema incluye observabilidad completa, que es la capacidad de monitorear en tiempo real el rendimiento, errores y patrones de uso.
 
-#### **2.5.3 Reutilización**
+### **2.5.3 Reutilización**
 
 La reutilización maximiza el aprovechamiento de cada funcionalidad desarrollada, permitiendo que sea utilizada en múltiples componentes del sistema para optimizar recursos y garantizar consistencia.
 
@@ -1709,7 +1706,7 @@ Según directorio /infra/terraform/:
 - Mantenimiento simplificado donde un cambio se propaga automáticamente
 - Mejora continua de la calidad a medida que los componentes se refinan con el uso
 
-#### **2.5.4 Eficiencia**
+### **2.5.4 Eficiencia**
 
 La eficiencia busca optimizar el uso de recursos computacionales y financieros para ofrecer el mejor rendimiento posible con el menor costo operativo, utilizando responsablemente los recursos públicos.
 
@@ -1761,7 +1758,7 @@ Orquestación de contenedores según arquitectura seleccionada:
 
 El sistema implementa caché multicapa, que mantiene los datos más consultados en memoria de acceso rápido para respuestas inmediatas. Utiliza consultas optimizadas diseñadas para ser eficientes incluso con millones de registros, y compresión automática que reduce el espacio de almacenamiento sin pérdida de información. Incluye balanceo de carga inteligente que distribuye las consultas entre múltiples servidores para evitar sobrecargas.
 
-#### **2.5.5 Claridad y Gestión de Complejidad**
+### **2.5.5 Claridad y Gestión de Complejidad**
 
 La claridad asegura que un sistema técnicamente sofisticado sea comprensible y fácil de usar tanto para usuarios finales como para desarrolladores que lo mantienen.
 
@@ -1840,7 +1837,7 @@ El sistema utiliza separación de responsabilidades, donde cada componente tiene
 
 Las APIs (interfaces de programación) utilizan nomenclatura semánticamente clara que explica exactamente qué hacen. El manejo de errores es estructurado, proporcionando mensajes que incluyen qué ocurrió y cómo solucionarlo. La arquitectura se organiza en capas claras que separan presentación, lógica de negocio y datos.
 
-#### **2.5.6 Métricas y SLAs Específicos**
+### **2.5.6 Métricas y SLAs Específicos**
 
 **Métricas de Rendimiento alineadas con requerimientos**
 
@@ -1893,7 +1890,7 @@ Las APIs (interfaces de programación) utilizan nomenclatura semánticamente cla
 - 50TB almacenamiento (volumen significativo de datos históricos)
 - 100M llamadas de API mensuales
 
-#### **Aseguramiento de Calidad específica para Costa Rica**
+### **Aseguramiento de Calidad específica para Costa Rica**
 
 **Puertas de Calidad de Código:**
 
@@ -1909,11 +1906,12 @@ Las APIs (interfaces de programación) utilizan nomenclatura semánticamente cla
 - **Recuperación ante desastres**: Tiempo de recuperación máximo 8 horas
 - **Integridad de datos**: 98% integridad en transferencias entre componentes (tolerancia a errores menores)
 
-## 3. Stack Tecnológico
+
+# 3. Stack Tecnológico
 
 En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas utilizadas, así como sus restricciones y licencias
 
-### Frontend
+## Frontend
 
 - **React.js**: Un framework de javascript especializado en web apps
 - **Vite**: Empaquetador de react.
@@ -1925,7 +1923,7 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 - **AWS S3:** Servicio de almacenamiento escalable donde se alojan los archivos estáticos de la aplicación React (HTML, CSS, JS, imágenes, etc.).
 - **AWS Cloudfront:** Red de distribución de contenido (CDN) que entrega los archivos desde S3 con baja latencia y alta velocidad, mejorando el rendimiento y la disponibilidad global.
 
-### Backend
+## Backend
 
 - **Python**: Lenguaje de programación versatil, con variedad de librerías y frameworks especializados en ETL e IA.
 - **FastAPI**: Framework asíncrono en Python ideal para construir APIs rápidas y escalables.
@@ -1936,7 +1934,7 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 - **Helm**: Herramienta para gestionar despliegues Kubernetes mediante plantillas dinámicas.
 - **Docker**: Será usado para crear imágenes de los distintos módulos del backend.
 
-### Data
+## Data
 
 - **PostgreSQL:** Almacenamiento relacional de datos estructurados, ideal para usuarios y clientes.
 - **DynamoDB:** Base de datos NoSQL para gestionar metadatos dinámicos y de alto rendimiento.
@@ -1948,7 +1946,7 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 - **AWS SageMaker:** Plataforma integral para crear, entrenar y desplegar modelos de machine learning de forma segura y escalable.
 - **AWS KMS (Key Management Service):** Servicio de administración de claves criptográficas para cifrar y proteger datos sensibles en todos los servicios de AWS.
 
-### AI
+## AI
 
 - **Hugging Face Transformers:** Uso de modelos preentrenados (ej. all-mpnet-base-v2) para generar embeddings semánticos de texto.
 - **LangChain:** Orquestación de agentes inteligentes y manejo de flujos de lenguaje natural.
@@ -1956,43 +1954,43 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 - **Amazon SageMaker**: Entrenamiento, ajuste fino y despliegue de modelos personalizados de machine learning.
 - **Hugging face**: para modelos ya entrenados que nos puedan servir (all-mpnet-base-v2 genera embeddings que podría servir para entrenar IA)
 
-### Sistemas de Terceros
+## Sistemas de Terceros
 
 - **SumSub:** Sistema para poder realizar las comprobaciones KYC, AML y sdk para realizar pruebas de vida.
 - **AWS:** Será nuestro cloud provider, y usaremos distintos servicios como S3, Glue, Cognito, etc.
 - **Stripe:** Sistema que permite manejar los pagos dentro de nuestro sitio web.
 - **Hugging Face:** Fuente para usar módelos de IA ya entrenados.
 
-### Cloud
+## Cloud
 
-#### **Proveedor Principal**
+### **Proveedor Principal**
 
 - **Amazon Web Services (AWS)**: Plataforma de computación en la nube para toda la infraestructura de Data Pura Vida.
 
-#### Servicios de Computación
+### Servicios de Computación
 
 - **Amazon EKS:** Kubernetes gestionado para contenedores del backend
 - **AWS Lambda:** Funciones serverless para procesos específicos
 
-#### **Servicios de Red**
+### **Servicios de Red**
 
 - **AWS Application Load Balancer:** Balanceador de carga
 - **Amazon CloudFront:** CDN para contenido estático
 - **AWS VPC:** Red privada virtual para aislar recursos
 
-#### **Servicios de Gestión**
+### **Servicios de Gestión**
 
 - **AWS IAM:** Gestión de identidades y permisos
 - **AWS CloudWatch:** Monitoreo y métricas (ya definido en DevOps)
 - **AWS CloudTrail:** Auditoría de acciones
 
-#### **Servicios Adiocionales**
+### **Servicios Adiocionales**
 
 - **Amazon SES:** Una opción gestionada por AWS para poder hacer envío de correos electrónico.
 
-### DevOps y Testing
+## DevOps y Testing
 
-#### Infraestructura como Código (IaC)
+### Infraestructura como Código (IaC)
 
 - **AWS CloudFormation:** plantilla oficial de AWS para definir infraestructura como código.
 
@@ -2000,7 +1998,7 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 
 - **Helm:** gestor de paquetes para Kubernetes que permite definir despliegues mediante chart templates reutilizables, simplificando el despliegue de servicios backend.
 
-#### Integración y Despliegue Continuo (CI/CD)
+### Integración y Despliegue Continuo (CI/CD)
 
 - **Github:** Para guardar codigo y control de versiones.
 
@@ -2008,13 +2006,13 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 
 - **GitHub Actions:** seguirá siendo utilizado como integrador externo, especialmente para validar PRs, ejecutar linters, y disparar eventos hacia CodePipeline mediante webhooks.
 
-#### Observabilidad y Monitoreo
+### Observabilidad y Monitoreo
 
 - **AWS CloudWatch:** permite monitorear y supervisar toda la infraestructura desplegada en AWS, como RDS, DynamoDB y S3. Dado que todo el alojamiento en la nube se realizará en AWS, no es necesario utilizar otras herramientas externas como DataDog o Prometheus.
 
 - **Grafana + CloudWatch + Prometheus:** para dashboards visuales personalizados directamente desde CloudWatch Metrics para los servicios de AWS, y Prometheus para los microservicios en EKS.
 
-#### Pruebas Automatizadas
+### Pruebas Automatizadas
 
 - **Pytest:** framework de pruebas para Python usado en pruebas unitarias para el backend.
 
@@ -2024,7 +2022,7 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 
 - **Postman + Newman:** se usarán para pruebas manuales y automáticas de la API REST. Newman permite integrar las colecciones en el CI.
 
-#### Validación de Código y Estilo
+### Validación de Código y Estilo
 
 - **ESLint:** verificación automática de estilo y seguridad en el frontend, con reglas personalizadas ancladas en el repositorio (.eslintrc.js).
 
@@ -2032,13 +2030,13 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 
 - **SonarQube:** se usará para realizar análisis estático del código backend y frontend, identificando automáticamente bugs, vulnerabilidades y malas prácticas. Estará integrado al pipeline de CI/CD para bloquear pull requests con problemas críticos y generar reportes de calidad y seguridad.
 
-#### Seguridad
+### Seguridad
 
 - **AWS Secrets Manager:** gestión segura de claves API, credenciales y tokens con rotación automática y control de acceso granular.
 
 - **Dependabot:** para monitoreo de paquetes vulnerables desde GitHub. Se integra con CodePipeline para ejecutar pruebas de validación al actualizar dependencias.
 
-## 4. Diseño de los componentes
+# 4. Diseño de los componentes
 
 En esta sección se detallará el diseño de los componentes previamente definidos en la sección de planeamiento. A cada uno se le aplicará un análisis de frontend, backend y datos, según corresponda. Además, existe la posibilidad de incluir prototipos en forma de pruebas de concepto. También se especificará cómo se llevará a cabo el proceso de pruebas e integración, despliegue y mantenimiento.
 
@@ -2048,7 +2046,7 @@ Antes de comenzar cabe por dejar en claro algunas especificaciones generales que
 
 - Se tendrá un API general para todo el backend, para poder acceder a las funcionalidades de todos los microservicios se debde consultar a dicha API (será RESTful). Además, estará construida en FastAPI, para favorecernos de sus características asincrónicas que la hacen sumamente rápida y apta para manejar carga pesada. Estará desplegada en el cluster de EKS, como un deployment con N replicas (Antes de pasar a producción se le realizarán pruebas de carga con Gatling, para poder determinar exactamente cuantas replicas ocupará).
 
-### 4.1. Bioregistro
+# 4.1. Bioregistro
 
 Este componente es el punto de entrada al sistema, tiene como propósito registrar distintos tipos de usuarios y adaptarse dinámicamente a sus requerimientos de autenticación.
 
@@ -2064,7 +2062,7 @@ Los tipos de usuarios que se podrán registrar en la plataforma son los siguient
 
 Asimismo, se adjunta una descripción de que es cada uno de los colectivos listados junto con que aporte pueden dar a Data Pura Vida,que información se les va a solicitar para poder garantizar que son empresas verdaderas y solicitadas por sus representantes reales (Cabe aclarar que todo documento PDF debe venir con firma digital):
 
-#### **Empresas privadas**
+### **Empresas privadas**
 
 Organizaciones con fines de lucro que operan en sectores diversos. Se dividen principalmente en:
 
@@ -2099,7 +2097,7 @@ Empresas grandes con estructura formal, juntas directivas y accionistas. Comunes
   - Certificado de Existencia: Documento legal que certifica la existencia de la empresa.
   - Departamento a Registrar: Se debe registrar a que departamento de la empresa pertenece el registro.
 
-#### **Empresas públicas y entes estatales**
+### **Empresas públicas y entes estatales**
 
 Entidades que operan con fondos públicos y ofrecen servicios esenciales.
 
@@ -2147,7 +2145,7 @@ Entidades creadas por municipalidades para servicios locales, un ejemplo es la E
   - Correo Institucional: correo electrónico del encargado de la institución.
   - Acuerdo Municipal: Un acta firmada que describa la resolución dada internamente en el ente municipal.
 
-#### **Órganos del Poder Ejecutivo**
+### **Órganos del Poder Ejecutivo**
 
 Ejemplos: MEP, MINAE, MOPT
 
@@ -2159,7 +2157,7 @@ Ejemplos: MEP, MINAE, MOPT
   - Correo Institucional: correo electrónico del encargado de la institución.
   - Nombre y Apellido del representante del órgano.
 
-#### **Cámaras y gremios**
+### **Cámaras y gremios**
 
 Organizaciones que agrupan empresas o profesionales.
 
@@ -2189,7 +2187,7 @@ Ejemplos: colegios de médicos, ingenieros, abogados.
   - Nombre y Apellido del representante.
   - Correo Institucional: correo electrónico del encargado de la institución.
 
-#### **Universidades y centros académicos**
+### **Universidades y centros académicos**
 
 Instituciones de educación superior, tanto públicas como privadas, dedicadas a la formación profesional, la investigación científica y la extensión social. Dentro de estas operan subdivisiones como facultades, escuelas y centros de investigación (CI).
 
@@ -2207,15 +2205,15 @@ Instituciones de educación superior, tanto públicas como privadas, dedicadas a
   - Nombre y Apellido del representante.
   - Correo Institucional: correo electrónico del encargado de la institución.
 
-#### Llaves Tripartita
+### Llaves Tripartita
 
 Una parte fundamental del sistema es la gestión tripartita de llaves. Se adoptó un esquema de tres claves: una asignada al representante designado por la empresa para su registro, otra para cada usuario secundario de la empresa, y una tercera bajo control de Data Pura Vida.
 El mecanismo se basa en la comparación de una Data Encryption Key (DEK), la cual es cifrada con una Key Encryption Key (KEK) específica para cada parte involucrada.
 Los detalles sobre cuándo, dónde y cómo se utiliza este esquema se ampliarán en la sección de definición del backend, pero por ahora esta descripción representa la visión de alto nivel.
 
-#### Diseño del Frontend
+## Diseño del Frontend
 
-##### Plataforma de Autenticación
+### Plataforma de Autenticación
 
 Primero se describirá cómo se realizará en el frontend el proceso de registro e inicio de sesión para personas físicas, ya que los conjuntos no tienen un inicio de sesión propio, sino que solo cuentan con creación de cuenta, la cual es manejada posteriormente por personas físicas que la agregan a su cuenta personal.
 
@@ -2255,7 +2253,7 @@ Por lo tanto, la validación de empresas también será implementada con SumSub.
 
 Por otro lado, cabe aclarar que para poder llevar a cabo las validaciones con SumSub es necesario dirigirse a la página de SumSub y ahí generar flows. Los desarrolladores tendrán que crear estos flows con base en las especificaciones dadas sobre que información se le debe solicitar a cada tipo de usuario (los distintos tipos de jurídico y el físico) que fue especificada previamente en este subcapítulo.
 
-##### Arquitectura de Cliente
+### Arquitectura del Cliente
 
 Nuestra arquitectura de cliente consistirá en Client Side Rendering con rendering estático, con una única capa dedicada a la web. Esta decisión se toma porque los bundles de React generados en el build de cada proyecto serán almacenados en un bucket de S3, el cual será servido a los clientes mediante el CDN provisto por CloudFront.
 
@@ -2263,7 +2261,7 @@ Por otro lado, uno de los requerimientos de este módulo es que solo puede ser a
 
 Además, para acceder al backend se utilizará una única API, desarrollada en FastAPI. Se entrará en más detalles de dicha API más adelante.
 
-##### Patrones de Diseño de Objetos
+### Patrones de Diseño de Objetos
 
 A Continuación el diagrama de clases del frontend del Bioregistro:
 
@@ -2273,7 +2271,7 @@ A Continuación el diagrama de clases del frontend del Bioregistro:
 - **Cajas Celeste**: Las cajas celestes representan el strategy pattern, ya que por medio de herencia se aisla los distintos tipos de forms para colectivos, y de colectivos.
 - **Caja Roja**: Esta caja roja cumple dos funciones, de Singleton y de Facade. De singleton porque de esta manera solo existe una instancia que se conecta al API en todo momento. Además funciona como Facade ya que aisla toda la lógica de conexión con el API del backend en una sola clase.
 
-##### Componentes Visuales
+### Componentes Visuales
 
 **Patrones y Principios**
 
@@ -2304,7 +2302,7 @@ A Continuación el diagrama de clases del frontend del Bioregistro:
 - **React Router**: Herramienta que permite manejar un app de react por medio de rutas.
 - **ESlint**: Se usará para mantener un estándar de código y evitar errores comunes.
 
-##### Estructura de Carpetas
+### Estructura de Carpetas
 
 ```bash
 frontend/
@@ -2354,7 +2352,7 @@ frontend/
     └── integration/
 ```
 
-##### Diagrama del Front
+### Diagrama del Front
 
 A continuación se presenta el diagrama del frontend de Bioregistro. En él se muestra cómo el contenido estático generado por React se almacena en un bucket de S3, donde residen todos los componentes visuales, su ViewModel a través de funciones y custom hooks, y las clases modelo como Person y Collective.
 
@@ -2364,9 +2362,9 @@ Finalmente, se incluye una Lambda@Edge function que, antes de que CloudFront ent
 
 ![image](img/DiagramaFrontRegistro.png)
 
-#### Diseño del backend
+## Diseño del backend
 
-##### Microservicios
+### Microservicios
 
 A continuación se dará una explicación de todos los microservicios correspondientes al Bioregistro.
 
@@ -3191,7 +3189,7 @@ En cuanto al manejo de notificaciones dentro de la aplicación web, el flujo en 
 
 - En caso de encontrar notificaciones, las recupera, las envía al usuario y luego las elimina de DynamoDB. Si no hay notificaciones, no se realiza ninguna acción adicional.
 
-##### Diagramas de Clases
+### Diagramas de Clases
 
 En esta sección se presentarán los distintos diagramas de clase correspondientes a cada microservicio descrito en la sección anterior. Para cada uno se explicará además cuales patrones de diseño fueron implementados. Además, cabe aclarar que en algunos microservicios aparecerán clases que ya se habían utilizado en otros. A nivel del diagrama, estas clases se muestran duplicadas para mayor claridad, pero en el código serán reutilizadas.
 
@@ -3316,7 +3314,7 @@ Finalmente, existe una capa de repositorios gestionada mediante el patrón Facto
 
 ![identity clases](img/ClasesBioregistro5.png)
 
-##### Servicios en AWS
+### Servicios en AWS
 
 A continuación se presentan todos los servicios AWS con los que se operará en los microservicios del Bioregistro, además se listarán las configuraciones de hardware para cada uno
 
@@ -3371,7 +3369,7 @@ Se usará para albergar el servicio de redis. Se entrará en más detalle en el 
   - **Multi-AZ:** Activado para alta disponibilidad (opcional).
   - **Seguridad:** VPC privada, grupos de seguridad restrictivos y cifrado en tránsito y en reposo activados.
 
-##### Sistema de Monitoreo
+### Sistema de Monitoreo
 
 El monitoreo del componente Bioregistro se implementará siguiendo una estrategia de observabilidad integral que permita supervisar en tiempo real el comportamiento, rendimiento y seguridad del microservicio. Esta estrategia se alinea con las tecnologías definidas en el stack tecnológico del proyecto.
 
@@ -3446,7 +3444,7 @@ El sistema de monitoreo no solo detectará problemas, sino que proporcionará in
 - Reportes de capacidad: Proyecciones basadas en datos históricos para planificar el crecimiento de la infraestructura.
 - Optimización de costos: Análisis del uso de recursos para identificar oportunidades de optimización sin comprometer el rendimiento.
 
-##### Modelo de seguridad detallado
+### Modelo de seguridad detallado
 
 El módulo de Bioregistro maneja información altamente sensible relacionada con personas naturales y jurídicas (incluyendo representantes legales, personas con poder legal, etc.). Su backend será asegurado mediante un conjunto de mecanismos orientados a prevenir accesos no autorizados, garantizar integridad, confidencialidad, trazabilidad y disponibilidad continua de los datos.
 
@@ -3581,7 +3579,7 @@ Se hará con el objetivo de monitorear en tiempo real y registrar de forma persi
 
 **Implementación Técnica**
 
-###### Middleware de FastAPI
+#### Middleware de FastAPI
 
 Se desarrollará un middleware de auditoría personalizado que capture metadatos clave en cada interacción:
 
@@ -3608,8 +3606,7 @@ Ejemplo:
   "role": "PersonalAutorizado"
 }
 ```
-
-###### AWS CloudWatch
+#### AWS CloudWatch
 
 Se tiene una visualización en tiempo real de los logs generados por el backend. Se realiza la creación de alarmas automatizadas para eventos sospechosos o violaciones de políticas como las siguientes:
 
@@ -3617,7 +3614,7 @@ Se tiene una visualización en tiempo real de los logs generados por el backend.
 - Acceso masivo a datos de residentes por un mismo usuario.
 - Actividades fuera del horario laboral.
 
-###### Integración con AWS CloudTrail
+#### Integración con AWS CloudTrail
 
 Para capturar eventos directamente desde el entorno AWS, se utilizará AWS CloudTrail como complemento de auditoría. Este registra todas las llamadas a la API de AWS, incluyendo:
 
@@ -3725,7 +3722,7 @@ Ejemplo de politicas de secretos con AWS IAM
 4. Notificación y verificación de consistencia posterior al recovery.
 5. Registro de incidente en CloudWatch Logs.
 
-##### Elementos de alta disponibilidad
+### Elementos de alta disponibilidad
 
 **1. Replicación y Multi-AZ en Bases de Datos**
 
@@ -3767,7 +3764,7 @@ Todo el backend se envuelve en políticas de seguridad implementadas con AWS KMS
 
 En caso de incidentes que afecten la disponibilidad del sistema, la recuperación se realiza automáticamente con el uso de snapshots y versionado en RDS, S3 y DynamoDB. Se activan inmediatamente tras la detección de fallas, que seran alertadas por CloudWatch. Esto permite devolverse al estado original usando los backups de otras regiones.
 
-##### Diagrama del backend
+### Diagrama del backend
 
 A continuación se presenta el diagrama del backend del Bioregistro. En él se evidencia cómo todo el ecosistema de AWS interactúa con los distintos microservicios desplegados en el clúster de Kubernetes provisto por EKS. También se describen los microservicios internos junto a sus distintas clases, los patrones de diseño utilizados, y cómo interactúan entre sí.
 
@@ -3775,9 +3772,9 @@ Se muestra cómo la contenerización de cada microservicio se realizará utiliza
 
 ![image](img/DiagramaBackendBioregistro.svg)
 
-#### Diseño de los Datos
+## Diseño de los Datos
 
-##### Topología de Datos
+### Topología de Datos
 
 - **Tipo:** Base de Datos Replicada tipo OLTP, Almacenamiento de Objetos, Base de datos documental
   - Vamos a utilizar RDS con PostgreSQL como almacenamiento OLTP de los usuarios y sus distintos tipos. Se usará un módelo master-slave con 2 read replicas en us-east-1 . Además se activará el Multi-AZ failover para permitir pasar el rol de master a una de replica lista para failover, esto nos dará alta disponibilidad. Estos respaldos se harán todos los días a las 2 de la mañana de costa rica y se guaradarán en un S3 bucket de respaldos.
@@ -3805,7 +3802,7 @@ Se muestra cómo la contenerización de cada microservicio se realizará utiliza
   - DynamoDB es de las opciones de BD documental más veloces, además está completamente integrada con el ecosistema de aws, por lo que hacer respaldos o sacarle métricas es muy sencillo.
   - DynamoDB está respaldado por AWS, por lo que ofrece un SLA del 99.999% y es 100% compatible con el resto de nuestros servicios en AWS.
 
-##### Tenency, Seguridad y Privacidad
+### Tenency, Seguridad y Privacidad
 
 - **Modelo**: Singe-Access-Point
 
@@ -3842,7 +3839,7 @@ Se muestra cómo la contenerización de cada microservicio se realizará utiliza
   - En caso de que alguién tenga acceso a la base de datos no podrá hacer nada ya que todo está encriptado.
   - Cognito permite manejar de formar eficiente y agil el registro de personas físicas.
 
-##### Conexión a Base de datos
+### Conexión a Base de datos
 
 - **Modelo**: Transaccional vía Statements / Store Procedures y ORM
 
@@ -3872,7 +3869,7 @@ Usaremos SQLAlchemy como ORM para interactuar con PostgreSQL dentro de la aplica
   - **Beneficios**:
     - Aprovechamos lo mejor de cada entorno: para PostgreSQL un driver nativo rápido, y para DynamoDB/S3 un driver interpretado más portátil y flexible.
 
-##### Diagrama de Base de Datos
+### Diagrama de Base de Datos
 
 A continuación se presenta el diagrama de base de datos correspondiente al módulo de bioregistro. En él se muestra cómo se gestionan tanto las personas físicas como los colectivos, incluyendo una relación muchos a muchos que permite registrar qué personas representan a cada colectivo. Para clasificar los tipos de colectivo, se utiliza una tabla catálogo.
 
@@ -3884,7 +3881,7 @@ Por su parte, la empresa almacena su propia KEK directamente en su tabla corresp
 
 ![image](img/DiagramaBDBioregistro.png)
 
-### 4.2 La Bóveda
+# 4.2 La Bóveda
 
 El componente de La Bóveda constituye el núcleo de la plataforma, ya que es el responsable del almacenamiento y gestión de todos los datasets. Este módulo permite alojar datasets con distintos niveles de acceso y monetización, incluyendo opciones de descarga gratuita, pago único, suscripciones por cuotas, y configuraciones de visibilidad pública o privada.
 
@@ -3900,7 +3897,7 @@ En cuanto a como se planean guardar los datasets a continuacióń se muestra un 
 
 En la imagen se puede ver cómo se debe tener un almacenamiento central, el cual debe estar dividido lógicamente para los colectivos. Ya después cada colectivo tendrá sus datasets guardados junto con sus tablas, que en ocasiones pueden ser usadas en datasets distintos. Más adelante se verá cómo es que este enfoque será logrado.
 
-#### Diseño del Backend
+## Diseño del Backend
 
 El backend de este componente es más simple, ya que la mayor parte del peso cae en la estructura de la base de datos y su modelo de seguridad. En esta sección solo se comentarán dos funcionalidades: la funcionalidad de trazabilidad y cómo el API interactúa con Redshift.
 
@@ -4018,7 +4015,7 @@ Más adelante se verá cómo se implementa el RBAC en el sistema, pero el API ta
 
 - Ya luego, si se pasó todo el proceso de autorización, se le asigna el rol de IAM correspondiente al dataset por medio de un STS que sirva solo para esa consulta.
 
-##### Servicios en AWS
+### Servicios en AWS
 
 Se mencionarán solo los servicios de AWS que aún no han sido descritos en algún punto de la arquitectura. En caso de querer ver todos los servicios de AWS que se usarán y como se desplegarán por medio de terraform ir a dicha sección después de la explicación de los microservicios.
 
@@ -4057,9 +4054,9 @@ Para el sistema de logs para posterior entrenamiento de Agentes de IA.
 - **Retención**:
   - Borrado automático de índices después de 30 días
 
-#### Diseño de los Datos
+## Diseño de los Datos
 
-##### Topología de Datos
+### Topología de Datos
 
 - **Tipo:** OLAP + OLTP
 
@@ -4106,11 +4103,11 @@ Para el sistema de logs para posterior entrenamiento de Agentes de IA.
       FORMAT AS PARQUET;
     ```
 
-##### RLS
+### RLS
 
 No se usará RLS ya que el acceso a datasets se hace por tablas, entonces una vez un usuario tenga acceso a un dataset, podrá ver todo el contenido que este tenga; no habrán filas a las que esté restringido. Nuestro diseño es seguro porque en una misma tabla solo se guarda información correspondiente a un solo colectivo. Puede ser que esa tabla se comparta entre datasets del colectivo, pero igual no pasa nada, dado que el acceso sigue siendo por tabla. En la siguiente sección se dirá cómo se gestiona el acceso por tabla.
 
-##### Tenency, Seguridad y Privacidad
+### Tenency, Seguridad y Privacidad
 
 - **Modelo**: Singe-Access-Point, RBAC, Multi-Tenant
 
@@ -4216,7 +4213,7 @@ No se usará RLS ya que el acceso a datasets se hace por tablas, entonces una ve
   - Ya que para poder acceder a una tabla se ocupa tener el rol efímero de IAM que a su vez tenga los tags necesarios de LakeFormation, inclusive los administradores de la base de datos no van a poder ver que contenido tienen las tablas. Solo aquellos con los permisos podrán.
   - Gracias a que Redshfit internamente es una base de datos columnar las consultas pueden ser realizadas de manera más eficiente ya que solo trae a memoria la información necesario y no todos los datos de un registro.
 
-##### Conexión a Base de datos
+### Conexión a Base de datos
 
 - **Modelo**: Transaccional vía Statements / Store Procedures y ORM
 
@@ -4246,7 +4243,7 @@ Usaremos SQLAlchemy como ORM para interactuar con PostgreSQL y Redshift dentro d
   - **Beneficios**:
     - Para PostgreSQL un driver nativo rápido, se aprovecha lo mejor.
 
-##### Diseño para IA
+### Diseño para IA
 
 **Implementaciones comunes a todas las tablas**
 
@@ -4266,17 +4263,17 @@ La orientación de **La Bóveda** hacia un diseño habilitado a agentes de AI re
 - Mantener un registro de las consultas en una base de datos de time series permitirá proporcionar contexto actualizado y frecuente a los agentes de IA para futuras operaciones sobre los datasets.
 - Al utilizar una base de datos time series, se garantiza que la información registrada sea siempre reciente y relevante, facilitando análisis y respuestas más precisas por parte de los agentes.
 
-##### Diagrama de Base de Datos
+### Diagrama de Base de Datos
 
 A continuación se presenta el diagrama de base de datos correspondiente al módulo de La Bóveda. En él se muestra cómo se utiliza la misma base de datos de RDS que en el bioregistro, ya que su rol es meramente administrativo.
 
-Se puede ver cómo existe una tabla que almacena la información principal de los datasets, y que se asocia con PersonaFisica para poder revisar quiénes tienen acceso a dichos datasets. Además, para mantener el diseño normalizado, se tiene una tabla extra que guarda los datasets de pago y dice si son por cuota o pago único, además de su costo. Y finalmente, la tabla de Cuotas que guarda cuántas consultas le restan a un usuario con respecto a un dataset.
+Se puede ver cómo existe una tabla que almacena la información principal de los datasets, y que se asocia con PersonaFisica para poder revisar quiénes tienen acceso a dichos datasets. Además, para mantener el diseño normalizado, se tiene una tabla extra que guarda los datasets de pago y dice si son por cuota o pago único, además de su costo. La tabla de Cuotas que guarda cuántas consultas le restan a un usuario con respecto a un dataset, y finalmente una tabla llamada tablas, ya que almacena a que tablas pertenece un dataset.
 
 Con respecto a la estructura de Redshift, esta es imprescindible, por ello no se muestra en el diagrama; dependerá completamente de lo que suban los usuarios. Eso sí, definitivamente estará separada por schema para cada colectivo.
 
 ![image](img/DiagramaBDBoveda.png)
 
-### 4.3 Centro de Carga
+# 4.3 Centro de Carga
 
 Este componente representa la primera etapa en el proceso de carga de datasets hacia La Bóveda. Su función principal es extraer datos desde múltiples fuentes, incluyendo:
 
@@ -4291,23 +4288,23 @@ Este componente representa la primera etapa en el proceso de carga de datasets h
 
 Todos los datos obtenidos se almacenan en estado crudo dentro de un bucket S3, sirviendo como punto de entrada para que el Motor de Transformación los procese e inserte posteriormente en Redshift, el núcleo analítico de La Bóveda.
 
-#### Diseño del Frontend
+## Diseño del Frontend
 
-#### ARQUITECTURA DEL CLIENTE
+### Arquitectura del Cliente
 
-#### Client-Side Rendering con Renderizado Estático
+**Client-Side Rendering con Renderizado Estático**
 
 La arquitectura implementa **CSR** con contenido estático servido desde **S3** y **CloudFront** como CDN. Los bundles de React generados durante el build se almacenan en buckets S3 y se distribuyen globalmente através de CloudFront para optimizar latencia y disponibilidad.
 
 **API única** desarrollada en **FastAPI** para toda la comunicación backend, centralizando autenticación, validación y procesamiento de datos.
 
-### Gestión de Estado Durante Uploads Largos
+**Gestión de Estado Durante Uploads Largos**
 
 - **Persistencia automática** en `localStorage` para mantener progreso de uploads pausables/resumibles entre sesiones del navegador
 - **Recovery automático** tras desconexiones de red mediante detección de sesiones interrumpidas y restauración del estado exacto
 - **Optimización de memoria** para archivos grandes procesando muestras de 10KB usando FileReader API
 
-### PATRONES DE DISEÑO IMPLEMENTADOS
+### Patrones de Diseño de Objetos
 
 #### Chain of Responsibility - Procesamiento de Fuentes de Datos
 
@@ -4353,8 +4350,7 @@ El progreso de upload debe actualizarse simultáneamente en múltiples component
 - **UIProgressObserver**: Actualiza componentes específicos mediante referencias React
 - **NotificationObserver**: Envía alertas al sistema de messaging del usuario
 
-### DIAGRAMA DE DISEÑO
-
+#### Diagrama de Clases 
 El diagrama muestra la integración de todos los patrones de diseño implementados en el frontend. La arquitectura se organiza en **5 capas** claramente diferenciadas:
 
 ![alt text](image-1.png)
@@ -4369,7 +4365,7 @@ El diagrama muestra la integración de todos los patrones de diseño implementad
 
 5. **Capa Observer**: ProgressTracker notifica a múltiples observers para actualizar la interfaz de usuario en tiempo real
 
-### COMPONENTES VISUALES
+### Componentes Visuales
 
 #### Flujo de Interacción del Usuario
 
@@ -4395,7 +4391,7 @@ Cabe aclarar que el flujo de procesamiento ETDL se realiza de forma asíncrona, 
 - **Preview inteligente**: Integración con endpoint `/ai/suggest-metadata` para sugerencias automáticas de IA
 - **Smart defaults**: Sugerencias automáticas basadas en tipo de archivo y políticas de seguridad
 
-### ESTRUCTURA DE CARPETAS
+### Estructura de carpetas
 
 ```
 centro-carga-frontend/
@@ -4445,7 +4441,7 @@ centro-carga-frontend/
 │       └── constants.js      # Constantes del módulo
 ```
 
-### TECNOLOGÍAS INTEGRADAS
+### Tecnologías Integradas
 
 #### Stack Principal
 
@@ -4458,17 +4454,15 @@ centro-carga-frontend/
 #### Servicios AWS
 
 - **S3**: Almacenamiento de bundles estáticos
-- **CloudFront**: CDN global para optimización
-- **Lambda@Edge**: Restricción geográfica por IP
-- **Cognito**: Autenticación con tokens JWT
+- **CloudFront**: CDN global para servir el web app
 
-#### Diagrama del Frontend
+### Diagrama del Frontend
 
 ![alt text](image.png)
 
-#### Diseño del Backend
+## Diseño del Backend
 
-##### Microservicios en los Componentes
+### Microservicios del Componente
 
 **1. dataset-upload-service**
 
@@ -4506,8 +4500,22 @@ El flujo principal para cargar un dataset desde un archivo es el siguiente:
 - Antes de continuar cabe aclarar como es que se extraerán los datos:
   - Archivos CSV, JSON, Excel se pasaran a base64 para poder ser enviados por https y luego se almacenarán en el S3.
   - Para el caso de APIs es muy similar, porque es equivalente a pasar archivos en formato JSON.
-  - Para MongoDB se usará el comando "mongodump", que crea un snapshot de la base de datos en formato bson, el cual se dejará en el S3 Posteriormente.
-  - Tanto MariaDB, MySQL, PostgreSQL y SQL Server tienen la misma funcionalidad del Dump, la diferencia es que da archivos de tipos .sql. Pero de igual modo serán guardados en el S3.
+
+- Para Mongo y las bases de Datos SQL es un tanto distinta la situación, ya que se ocupan distintos parámetros que con los otros archivos, que son más sencillos.
+
+- Primero que todo el JSON del POST debe verse algo así:
+
+  ```json
+  {
+    "userId": "uuid-del-usuario",
+    "datasetName": "Nombre del dataset",
+    "fileType": "TipoDeSQl|Mongo",
+    "connString": "https://host:puerto@usuario:contrasena",
+    "Datasets": ["Tabla1", "Tabla2", "tabla3"]
+    }
+  ```
+  - Hace falta especificar cual es la fuente, cual es su Connection String, y cuales son las tablas/colleciones que deben ser traidas.
+
 
 2. Recepción y almacenamiento temporal:
 
@@ -4541,6 +4549,11 @@ class TemporaryStorageHandler:
 ```
 
 - El resultado se guarda en una tabla en DynamoDB llamada `DatasetUploadTemp` con estado "uploaded".
+
+- Cabe aclarar que ese ejemplo tan solo será para los archivos de tipo CSV, JSON, y excel, para los de SQL y Mongo se hará lo siguiente:
+  - **SQL/Mongo**: Se enviará un archivo de pyspark que mapeee las tablas/ seleccionadas al S3 de data-temp-storage con formato parquet.
+
+
 
 3. Validación inicial:
 
@@ -4877,7 +4890,7 @@ Respuesta esperada:
 }
 ```
 
-##### Diagramas de Clases
+### Diagramas de Clases
 
 **1. dataset-upload-service**
 
@@ -4976,7 +4989,7 @@ Finalmente, existe una capa de repositorios gestionada mediante el patrón Facto
 
 ![identity clases](img/ClasesCentroCarga4.png)
 
-##### Servicios de AWS
+### Servicios de AWS
 
 **Amazon S3**
 El servicio de **AWS S3** será el almacén principal para la carga de datos en crudo de los datasets este será utilizado por **TemporaryStorageHandler** en **dataset-upload-service**. También es importante mencionar que este servicio servirá para el acceso a los datasets por **validation-service** para el análisis de los datos.
@@ -4994,53 +5007,13 @@ Se utilizará para proteger los datasets almacenados temporalmente en **S3** por
 - **Origen del material de claves:** KMS
 - **Regionalidad:** Clave de una sola región
 
-**AWS RDS**
-Servirá como la base de datos relacional primaria para metadatos estructurados.
-Se utilizará para almacenar la metadata de los datasets en el microservicio de DatasetMetadata.
-
-**Configuración de Hardware:**
-
-- **Método de creación**
-  - Creación estándar
-- **Motor de base de datos**
-  - Aurora PostgreSQL
-  - Versión: Compatible con PostgreSQL 16.6
-  - Soporte extendido de RDS: No
-- **Plantilla**
-  - Desarrollo y pruebas
-- **Identificador del clúster**
-  - database-1
-- **Credenciales**
-  - Usuario maestro: postgres
-  - Contraseña: Autoadministrada
-  - Administración de credenciales: Autoadministrado
-  - Clave de cifrado: aws/secretsmanager (por defecto)
-- **Almacenamiento**
-  - Tipo: Aurora optimizado para operaciones de E/S
-- **Instancia**
-  - Clase de instancia: db.r6g.2xlarge (8 vCPUs, 64 GiB RAM)
-  - Multi-AZ: No (sin réplica de Aurora)
-- **Conectividad**
-  - EC2 conectado: No
-  - Tipo de red: IPv4
-  - VPC: Default VPC (vpc-0d710bc7833e39b85)
-  - Grupo de subredes: predeterminado
-  - Acceso público: Sí
-  - Grupo de seguridad de VPC: default
-
-**Amazon DynamoDB**
-Se consideraría como un complemento a RDS para metadatos de alta concurrencia o naturaleza dinámica como las sesiones de usuario, y los contadores de consumo de datasets en tiempo real.
-Esta será utilizada por DatasetUploadTemp en el dataset-upload-service, dada su necesidad de escritura y lectura rápidas al gestionar el estado temporal de los archivos.
-
-**Configuración de Hardware:** Servicio completamente gestionado y serverless. La configuración se basa en las unidades de capacidad de lectura/escritura.
-
 **AWS SES**
 Será el servicio para el envío de correos electrónicos transaccionales a los usuarios finales (ej., notificación de carga exitosa, fallo de validación), gestionado por el **EmailNotificationHandler** dentro del **notification-service**.
 
 **Configuración de Hardware:**
 Para configurar un SES simplemente necesitamos dirigirnos a crear una identidad. En tipo de identidad utilizaremos **Dirección de correo electrónico**, luego en **Dirección de correo electrónico** colocamos el correo electrónico que utilizaremos (ej. notificacionesDatos@gmail), luego nos llega una notificación al correo donde tendremos que verificar la dirección de correo electrónico.
 
-##### Sistema de Monitoreo
+### Sistema de Monitoreo
 
 El monitoreo del Componente del Centro de Carga de Datos se implementará siguiendo una estrategia de observabilidad integral que permita supervisar en tiempo real el comportamiento, rendimiento y seguridad de todo el proceso de ingesta inicial de datasets.
 
@@ -5130,7 +5103,7 @@ El sistema de monitoreo no solo detectará problemas, sino que proporcionará in
 - **Reportes de Capacidad:** Proyecciones basadas en datos históricos de volumen de carga y uso de recursos para planificar el crecimiento de la infraestructura de almacenamiento (S3) y cómputo (EKS).
 - **Optimización de Costos:** Análisis del uso de recursos de S3, EKS y DBs para identificar oportunidades de optimización de costos sin comprometer el rendimiento.
 
-##### Modelo de seguridad detallado
+### Modelo de seguridad detallado
 
 El backend del componente Centro de Carga gestiona información crítica relacionada con datasets, incluyendo la carga, validación y categorización. Dado su rol esencial, se implementará un modelo de seguridad robusto y granular orientado a prevenir accesos no autorizados, asegurar integridad, confidencialidad, trazabilidad y disponibilidad continua de los datos.
 
@@ -5145,15 +5118,21 @@ El backend del componente Centro de Carga gestiona información crítica relacio
 
 Ejemplo de flujo de autorización en RDS (PostgreSQL):
 
+- **AccesoADataset**: registra qué personas tienen acceso a cada dataset.
+- **DatasetDePago y TipoDePago**: gestionan la configuración de pagos asociados a datasets, incluyendo su categorización.
+- **DatasetCrons**: define el modo de carga que tendrán los datasets recurrentes (Delta, Complete), y el tipo de fuente del que pueden venir (Base de datos o API). Esta tabla será consultada por Airflow para aplicar los DAGs correspondientes de forma automatizada.
+- **Tablas**: Esta tabla almacena a que Dataset pertenecen las distintas tablas de Redshift .
 1. Un usuario autenticado realiza una solicitud para modificar una configuración de carga.
 
 2. El backend identifica que el usuario tiene rol `Carga:editor` y autentica su token internamente.
 
 3. Se ejecuta una función almacenada en PostgreSQL:
 
+
 ```SQL
 SELECT actualizar_configuracion_carga(:id_config, :nueva_metadata, :usuario);
 ```
+
 
 4. Dentro de la función `actualizar_configuracion_carga`, se valida que el usuario tenga permisos equivalentes al rol editor en la tabla `roles_usuario`:
 
@@ -5167,11 +5146,11 @@ END IF;
 
 **2. Cifrado de Información**
 
-###### Cifrado en tránsito
+#### Cifrado en tránsito
 
 Todas las comunicaciones entre el frontend del centro de carga, los microservicios y los servicios de almacenamiento (Amazon S3 y RDS), se ejecutan mediante HTTPS con TLS 1.3. Igualmente, EKS fuerza el uso de TLS con certificados actualizados gestionados mediante AWS Certificate Manager.
 
-###### Cifrado en reposo
+#### Cifrado en reposo
 
 Cada tipo de dato gestionado por el Centro de Carga está protegido mediante mecanismos nativos de cifrado proporcionados por los servicios utilizados:
 
@@ -5189,7 +5168,7 @@ Cada tipo de dato gestionado por el Centro de Carga está protegido mediante mec
 
 **3. Auditoría y Trazabilidad**
 
-###### Elementos auditados
+#### Elementos auditados
 
 - Solicitudes de creación, modificación y eliminación de configuraciones de carga.
 - Procesos de validación estructural y semántica.
@@ -5197,7 +5176,7 @@ Cada tipo de dato gestionado por el Centro de Carga está protegido mediante mec
 - Errores detectados en archivos cargados.
 - Consultas sobre configuraciones y ejecuciones pasadas.
 
-###### Origen y estructura del registro
+#### Origen y estructura del registro
 
 1. Identificador de usuario y rol.
 2. Timestamp exacto de la operación.
@@ -5205,25 +5184,25 @@ Cada tipo de dato gestionado por el Centro de Carga está protegido mediante mec
 4. IP de origen o microservicio emisor.
 5. Resultado de la acción (éxito, error, rechazo por validación).
 
-###### Tecnologías utilizadas
+#### Tecnologías utilizadas
 
 - **Amazon CloudWatch Logs:** Registro estructurado de eventos en tiempo real.
 
 - **Amazon DynamoDB Streams:** Replicación de eventos sensibles a una tabla de auditoría histórica.
 
-###### Acceso y resguardo
+#### Acceso y resguardo
 
 El acceso a los registros está restringido a roles con privilegios de auditoría mediante políticas IAM. Se implementan estrategias de rotación, almacenamiento cifrado y retención mínima de 12 meses.
 
 **4. Monitoreo y Gestión de Incidentes**
 
-###### 4.1 Monitoreo en Tiempo Real
+#### 4.1 Monitoreo en Tiempo Real
 
 - **Prometheus:** Se utiliza para recolectar métricas personalizadas relacionadas con la carga de datasets, como el tiempo promedio de validación de un archivo o la tasa de éxito en las cargas de datos.
 
 - **AWS CloudWatch:** Monitorea los logs generados por los microservicios del Centro de Carga, enviando alertas cuando se detectan patrones anómalos, como fallos recurrentes o tiempos de espera demasiado largos en el procesamiento de datos.
 
-###### 4.2 Gestión de Incidentes
+#### 4.2 Gestión de Incidentes
 
 Esta sección está diseñada para identificar y responder rápidamente ante cualquier tipo de evento que pueda comprometer la integridad del sistema o la seguridad de los datos.
 
@@ -5318,7 +5297,7 @@ def send_notification(subject, message):
 
 4. **Notificación de Incidentes:** Cuando un incidente es clasificado como crítico AWS SNS envía notificaciones a los administradores y responsables de la seguridad.
 
-##### Elementos de Alta Disponibilidad
+### Elementos de Alta Disponibilidad
 
 **1. Almacenamiento Distribuido**
 
@@ -5341,32 +5320,32 @@ Se utiliza AWS CloudWatch para obtener métricas de disponibilidad de los recurs
 
 **3. Balanceo de carga**
 
-###### 3.1 Distribución de Solicitudes a Microservicios
+#### 3.1 Distribución de Solicitudes a Microservicios
 
 Las solicitudes entrantes, como las que requieren la carga de datos o la consulta de estado, son dirigidas al Application Load Balancer de AWS. Este ALB distribuye las solicitudes entre las diferentes instancias de los microservicios encargados de procesar los datos.
 
 - Si el Centro de Carga recibe varias solicitudes simultáneas para cargar grandes volúmenes de datos desde Amazon S3, el ALB distribuye estas solicitudes entre las instancias disponibles que gestionan el procesamiento de estos archivos.
 
-###### 3.2 Auto Scaling para Manejo de Picos de Tráfico
+#### 3.2 Auto Scaling para Manejo de Picos de Tráfico
 
 El Centro de Carga está configurado con Auto Scaling Groups (ASG) para ajustarse automáticamente a los picos de tráfico. Cuando el volumen de solicitudes sube, el Auto Scaling agrega nuevas instancias para manejar la mayor carga.
 
 - Si se detecta un aumento en el tráfico durante un periodo de alta demanda, el Auto Scaling aumenta automáticamente el número de instancias disponibles para manejar las nuevas solicitudes de carga sin que se experimenten fallos en el sistema.
 
-##### 3.3 Integración con Kubernetes
+#### 3.3 Integración con Kubernetes
 
 El Centro de Carga también se beneficia del uso de Amazon EKS para gestionar microservicios. El ALB trabaja en dirigir el trafico a contenedores específicos dentro del clúster de Kubernetes, mejorando la distribución de solicitudes.
 
 - En un escenario donde se requiere escalar dinámicamente los microservicios, el Ingress Controller en combinación con el ALB asegura que el tráfico se distribuya equitativamente entre los contenedores de Kubernetes.
 
-##### Diagrama del Backend
+### Diagrama del Backend
 
-#### Diseño de los Datos
+## Diseño de los Datos
 
 La influencia de este componente sobre la base de datos es mínima, ya que reutiliza la misma instancia de RDS compartida con La Bóveda y el Bioregistro, cuyas especificaciones ya fueron detalladas previamente. Del mismo modo, las configuraciones para DynamoDB y S3 se mantienen idénticas a las de esos componentes.
-El único aporte nuevo se encuentra reflejado en el diagrama de base de datos que se presenta a continuación, el cual será explicado en detalle.
+El único aporte nuevo se encuentra reflejado en el diagrama de base de datos que se presenta a continuación.
 
-##### Diagrama de Base de Datos
+### Diagrama de Base de Datos
 
 A continuación se presenta el diagrama de base de datos correspondiente al módulo del Centro de Carga. Este diagrama incluye las tablas clave que componen el componente, entre ellas:
 
@@ -5377,39 +5356,885 @@ A continuación se presenta el diagrama de base de datos correspondiente al mód
 ![image](img/DiagramaBDCentroCarga.png)
 
 
+# 4.4 Motor De Transformación
 
-### 4.5 MarketPlace
+Este componente del sistema representa el punto de conexión entre los datasets inteligentes cargados en un sistema altamente eficiente y la data cruda e ineficiente.
 
-#### Diseño del Frontend
-#### Patrones de Diseño de Objetos - Frontend del Marketplace
+**Procesos involucrados**
+Los procesos que ejecuta este componente se dividen en dos partes:
+
+- El primero ocurre justo después de que el Centro de carga notifica que la carga de un dataset en data-temp-storage ha sido finalizada y está lista para transformarse.
+- El segundo es responsable de ejecutar las transformaciones necesarias para insertar nueva información en los casos en que haya carga recurrente.
+
+Ambos procesos están fuertemente relacionados, ya que deben mantenerse sincronizados por dataset. La transformación que se generó inicialmente debe ser replicable durante futuras cargas. Para lograrlo, se llevará un registro trazable de cada paso de la primera transformación (esto se detalla más adelante).
+
+Las transformaciones a aplicar no tienen parámetros fijos en la mayoría de los casos. Van a depender completamente de la naturaleza del dataset recibido y de su distribución de registros. Por eso se adopta un enfoque basado en Agentes de IA.
+
+A continuación se muestra un diagrama de clases que presenta una visión general de este enfoque:
+![image](img/AgentesAltoNivel.png)
+
+En el diagrama se puede ver cómo un orquestador define una cadena de operaciones que serán ejecutadas por distintos agentes. Estos agentes se encargan de analizar los datasets para aplicarles transformaciones como:
+- Eliminación de registros duplicados
+- Renombramiento de columnas o tablas
+- Merging con datasets internos
+- Generación de SortKeys y DistKeys para Redshift
+
+Este diagrama no representa la implementación final, ya que nuestro enfoque está basado en tres pilares fundamentales:
+
+- **El coordinador**: El coordinador no será una clase, sino que estará implementado directamente usando Airflow.
+- **El ejecutor**:En lugar de tener clases de Python ejecutando cambios directamente, contaremos con un cluster de Spark autogestionado al que se le enviarán los jobs con las instrucciones de transformación.
+- **Los analistas**: Aquí sí hablamos de microservicios concretos, cada uno con la responsabilidad de analizar un dataset y sugerir transformaciones. Usaremos LangChain para orquestar el flujo interno. El resultado de cada analista será un archivo o bien de PySpark o SQLAlchemy,los cuales contendrán todas las instrucciones necesarias para llevar a cabo la transformación, y los procedimientos para copiar los datos en Redshift respectivamente. Dichos analistas seguirán un collaborative pattern orienta a IA agents ya que unen fuerzas para lograr transformar un Dataset y subirlo en limpio a Redshift.
+
+A continuación se presenta un grafo que resume este flujo:
+
+![image](img/DiagramaMotor1.png)
+
+Además, se puede evidenciar que en el proceso de Transformación de Datos (TD) dentro de nuestro flujo ETDL, optamos por un enfoque de medallones, donde organizamos los datos en tres categorías:
+- **Bronce**: Datos en crudo, sin ninguna transformación. Pueden estar en distintos formatos, desde CSV hasta Parquet.
+- **Plata**: : Datos parcialmente transformados y estandarizados, todos en un mismo formato (en nuestro caso, Parquet).
+- **Oro**: Datos completamente limpios, modelados y cargados en Redshift, listos para ser consultados con BI.
+
+
+Por otro lado el segundo proceso, encargado de replicar transformaciones sobre datasets recurrentes, es más sencillo. Usaremos la funcionalidad de Airflow con Crons para coordinar la ejecución periódica.
+
+El job aplicará directamente los mismos archivos de PySpark que fueron generados en la creación inicial del dataset.
+
+A continuación se presenta un diagrama que representa este flujo:
+
+  ![image](img/DiagramaMotor2.png)
+
+
+
+## Diseño del Backend
+A continuación, se presentará la sección de Diseño del Backend. En esta se detallan los microservicios correspondientes a cada uno de los cinco Analistas, junto con la configuración de Airflow (incluyendo los DAGs definidos), la integración con Spark y todos los componentes que intervienen en el proceso de llevar los datos limpios hasta Redshift.
+
+
+### Microservicios del Componente
+
+Un detalle importante a aclarar es que este proceso de transformación irá dejando los resultados de cada etapa en un bucket S3 bajo la ruta /silver-data/nombre-del-dataset. Esto permite mantener trazabilidad sobre cada paso del flujo, posibilita realizar rollbacks si fuera necesario, y garantiza la persistencia tanto del schema esperado como de los archivos de transformación de Spark y de Inserción con SQLAlchemy. De esta manera, si en el futuro se desea volver a actualizar el dataset, las transformaciones ya estarán disponibles están listas para reutilizarse, funcionando como una especie de "caché lógica".
+
+**1. schema-extractor**
+
+Este microservicio se encarga de, según el tipo de archivo fuente, extraer su esquema y los top N registros por cada tabla o agrupación. Para ello utiliza pandas y genera como resultado un archivo JSON con la estructura inferida.
+
+Se invoca muchas veces a lo largo del proceso de transformación, ya que antes de llamar a cualquier analista, es necesario entender la estructura del dataset. Fue aislado en un servicio independiente para desacoplar completamente esta lógica del procesamiento específico de cada analista.
+
+ - **SchemaExtractorController**: Expone el endpoint RESTful del microservicio.
+  - `/extract-schema/`: Al llamarlo, se genera un JSON con la estructura del dataset solicitado.
+- **SchemaExtractor**: Se encarga de extraer el esquema desde los datos crudos. Utiliza distintos strategies según el formato de entrada (CSV, JSON, Parquet, etc.).
+
+El flujo principal sería el siguiente:
+
+1. La consulta llega al SchemaExtractorController:
+- El nodo de airflow correspondiente llama a `POST /extract-schema`
+```json
+{
+  "s3path": "Path del s3 donde está el dataset",
+  "step": "dice a que paso del proceso de transformación pertence",
+  "datasetName": "Nombre del dataset",
+  "fileType": "CSV|JSON|Parquet|Excel",
+  "NRegisters": "Declara cuantos registros por tabla hay que extraer"
+}
+```
+- Dicha información se enruta al SchemaExtractor para que por medio de Pandas extraiga la información del schema de los archivos del dataset. Además se obtienen los top N elementos sobre el mismo.
+
+- Se generará un json con la información mencionada, llamado schema-json. Dicho archivo será súbido al S3 bajo el nombre de "schema-[Numero de step].json".
+
+**2. spark-builder**
+
+Este microservicio también es transversal a todo el motor de transformación. Se encarga de generar un archivo de spark con las instrucciones para realizar transformaciones, con base en la estructura generada en el schema-extractor y las recomendaciones de los analistas.
+
+Funcionará gracias a un agent de IA con base en el modelo de hugging face: Qwen/Qwen2.5-Coder-32B-Instruct.
+
+ - **SparkBuilderController**: Expone el endpoint RESTful del microservicio.
+  - `/gen-spark/`: Punto de entrada que provee la información con la que crear el archivo de pyspark.
+- **SparkBuilder**: Se encarga de coordinar el enrequicimiento de contexte con el Agente, para que genere un archivo de spark funcional.
+
+El flujo principal sería el siguiente:
+
+1. La consulta llega al SparkBuilderController:
+- El nodo de airflow correspondiente llama a `POST /gen-spark`
+```json
+{
+  "s3path": "Path del s3 donde está el schema.json",
+  "step": "dice a que paso del proceso de transformación pertence",
+  "datasetName": "Nombre del dataset",
+  "recomendations": "recomendations.json",
+  "fileType": "CSV|JSON|Excel|Parquet"
+}
+```
+- Dicha información es enrutada al SparkBuilder, el cuál podrá dar el contexto de cual es la fuente de los datos, que recomendaciones tiene, que transformaciones debe realizar el archivo de pyspark y donde debe guardarlo.
+
+- Para asegurar que todos los scripts generados en Spark sigan una estructura consistente, se utilizará un archivo .txt que contiene el prompt base. Este prompt especificará las prácticas que deben seguirse durante las transformaciones, como evitar el uso de funciones UDF, para borrar duplicados siempre usar la función de DropDuplicates() de pyspark, etc. Además incluirá el espacio para agregar las recomendaciones de cada caso.
+
+- Cabe aclarar que las transformaciones independientemente del formato de origen serán pasadas a formato parquet.
+
+- Se obtendra el archivo de pyspark con las transformaciones necesarias. Dicho archivo será súbido al S3 bajo el nombre de "transformation-[Numero de step].py".
+
+
+**3. sql-builder**
+
+Este microservicio también es transversal a todo el motor de transformación. Se encarga de generar un archivo de python con SQLAlchemy, según un input de recomendaciones. Su desarrollo está orientado a la integración con Redshfit, ya que sus resultados serán aplicados en dicho OLAP.
+
+Funcionará gracias a un agent de IA con base en el modelo de hugging face: defog/sqlcoder-7b-2
+
+ - **SqlBuilderController**: Expone el endpoint RESTful del microservicio.
+  - `/gen-pysql/`: Punto de entrada que provee la información con la que crear el archivo de python con SQLAlchemy.
+- **SqlBuilder**: Se encarga de coordinar el enrequicimiento de contexto con el Agente, para que genere un archivo de python SQLAlchemy.
+
+El flujo principal sería el siguiente:
+
+1. La consulta llega al SqlBuilderController:
+- El nodo de airflow correspondiente llama a `POST /gen-pysql`
+```json
+{
+  "s3path": "Path del s3 donde está el schema.json",
+  "step": "dice a que paso del proceso de transformación pertence",
+  "datasetName": "Nombre del dataset",
+  "recomendations": "recomendations.json"
+}
+```
+- Dicha información es enrutada al SqlBuilder, el cuál podrá saber el contexto de cual es el schema de la fuente, que recomendaciones tiene y donde debe guardarlo.
+
+- Para asegurar que todos los scripts generados en SQLAlchemy sigan una estructura consistente, se utilizará un archivo .txt que contiene el prompt base. Este prompt especificará las prácticas que deben seguirse durante el diseño de las consultas, como que cuando tenga que insertar un dataser completo use el comando COPY.
+
+- El producto final del archivo generado por defog/sqlcoder-7b-2 es un script de python SQLAlchemy apto para Redshift.
+
+- Se obtendra el archivo de python y será súbido al S3 bajo el nombre de "SQLAlchemy-[Numero de step].py".
+
+
+**4. schema-architect**
+
+Este microservicio representa el analista encargado de leer las tablas, columnas y nombres (extraidas por el schema-extractor), aplicar normalización básica y sugerir mejoras estructurales. El resultado final será un json con todas las recomendaciones para que el spark-builder tenga en cuenta.
+
+Funcionará gracias a un agent de IA con base en el modelo de hugging face: Phind/Phind-CodeLlama-34B-v2
+
+Los componentes internos son los siguientes:
+
+- **SchemaArchitectController**: Expone el endpoint RESTful del microservicio.
+  - `/suggest-transformations/`: Al llamarlo, se espera obtener las recomendaciones.
+
+- **SchemaConsultor**: Consulta al agente LLM con el esquema extraído para obtener sugerencias de mejoras, normalización o reestructuración.
+
+
+El flujo principal sería el siguiente:
+
+1. La consulta llega al SchemaArchitectController:
+- El nodo de airflow correspondiente llama a `POST /suggest-transformations`
+```json
+{
+  "s3path": "Path del s3 donde está el schema.json",
+  "datasetName": "Nombre del dataset",
+  "fileType": "CSV|JSON|Excel|Parquet"
+}
+```
+- Dicha información se enruta al SchemaConsultor para que sepa de donde sacar el schema y cual es el archivo de origen.
+
+
+2. Proceso de consulta:
+- Una vez recibido el schema.json mediante Langchain, se realiza una cadena de consultas a Phind/Phind-CodeLlama-34B-v2 de Hugging Face sobre:
+  - Diagnóstico del schema: Que tablas/Columnas duplicadas hay, Columnas "mergeables", Relaciones mal establecidas, Mejoras de diseño de base de datos.
+  - Normalizado: Se le pregunta que recomienda normalizar llegando hasta 4NF.
+ -  Renombrador: Se le pregunta que tablas/columnas pueden tener nombres más explicitos.
+
+- Para cada prompt se tendrá un .txt base al cual simplemente se le añadirá el contexto obtenido por medio del SchemaExtractor para realizar consultas completas:
+``` txt
+{Contexto sobre que consideramos sobre buen diseño de base de datos, junto con ejemplos}
+
+Dado el siguiente esquema de un archivo {tipo de archivo origen}:
+
+{input del schemaExtractor}
+
+Identifica cualquier problema de modelado evidente:
+- Que tablas/Columnas duplicadas hay
+- Que columnas y tablas se pueden unir o separar
+- Que relaciones están mal establecidas
+- Consejos sobre diseño de base de datos con base en el contexto que se le dió
+
+Devuelve un JSON con una lista de observaciones técnicas con este formato:
+{
+  "mejoras": [
+    {"tipo": "renombrar_columna", "tabla": "clientes", "de": "nombre", "a": "nombre_completo"},
+    {"tipo": "normalizar_tabla", "tabla": "ordenes", "sugerencia": "mover dirección a tabla direcciones"}
+  ]
+}
+```
+
+- El flujo orquestrado para los prompts es hecho por LangChain de una forma similar a la siguiente:
+``` python
+from langchain.llms import HuggingFaceHub
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
+from langchain.schema.runnable import RunnableMap
+import os
+
+# Setup del modelo HuggingFace
+llm = HuggingFaceHub(
+    repo_id="Phind/Phind-CodeLlama-34B-v2",
+    model_kwargs={
+        "temperature": 0.2,
+        "max_new_tokens": 800
+    },
+    huggingfacehub_api_token=os.environ["HUGGINGFACEHUB_API_TOKEN"]
+)
+
+# Cargar prompts base desde archivos de texto
+def load_prompt(file):
+    with open(f"prompts/{file}", "r") as f:
+        return f.read()
+
+diagnose_prompt = PromptTemplate.from_template(load_prompt("diagnose_prompt.txt"))
+normalize_prompt = PromptTemplate.from_template(load_prompt("normalize_prompt.txt"))
+rename_prompt    = PromptTemplate.from_template(load_prompt("rename_prompt.txt"))
+
+# Cada paso como cadena
+diagnose_chain = LLMChain(llm=llm, prompt=diagnose_prompt)
+normalize_chain = LLMChain(llm=llm, prompt=normalize_prompt)
+rename_chain = LLMChain(llm=llm, prompt=rename_prompt)
+
+# Ejecutar todo en paralelo y devolver los 3 JSONs
+schema_consultor = RunnableMap({
+    "diagnóstico": diagnose_chain,
+    "normalización": normalize_chain,
+    "renombramiento": rename_chain
+})
+```
+
+3. Se obtendrá un reccomendations.json que será devuelto al nodo de airflow que hizo el POST.
+
+**5. cleaner**
+
+Este microservicio actúa como un analista que revisa las tablas del dataset para decidir en cuáles tiene sentido eliminar duplicados. Por ejemplo, si en la tabla usuarios un mismo registro aparece tres veces por un error en el centro de carga, ahí conviene limpiarlos.
+
+En cambio, en una tabla como visitas_web, donde un mismo usuario puede tener múltiples visitas idénticas en apariencia, eliminar duplicados sería incorrecto porque cada fila representa un evento válido.
+
+Funcionará gracias a un agent de IA con base en el modelo de hugging face: Phind/Phind-CodeLlama-34B-v2
+
+Los componentes internos son los siguientes:
+
+- **CleanerController**: Expone el endpoint RESTful del microservicio.
+  - `/clean-dataset/`: Al llamarlo, se espera obtener las recomendaciones.
+- **CleanerConsultor**: Consulta al agente LLM con el esquema extraído para obtener sugerencias sobre en que tablas hay que eliminar duplicados.
+
+El flujo principal sería el siguiente:
+
+1. La consulta llega al CleanertController:
+- El nodo de airflow correspondiente llama a `POST /clean-dataset`
+```json
+{
+  "s3path": "Path del s3 donde está el schema.json",
+  "datasetName": "Nombre del dataset",
+  "fileType": "CSV|JSON|Excel|Parquet"
+}
+```
+- Dicha información se enruta al CleanerConsultor para que sepa de donde sacar el schema y tenga contexto sobre que hay en cada tabla.
+
+2. Proceso de consulta:
+- Una vez recibido el schema.json, mediante Langchain se le consultará al módelo de hugging face, para que analice en que tablas es recomendado eliminar data.
+- Se le dará un prompt con la suficiente información para que genere inferencias con sentido.
+
+3. Se obtendrá un reccomendations.json que será devuelto al nodo de airflow que hizo el POST.
+
+**6. formatter**
+
+Este microservicio actúa como un analista que revisa los tipos de datos para dinero, fechas, decimales, y en general aspectos de formato de un dataset. Gracias a él, posteriormente en la base de datos en Redshift se mantendrá un formato unificado para los tipos de dato.
+
+Funcionará gracias a un agent de IA con base en el modelo de hugging face: Phind/Phind-CodeLlama-34B-v2.
+
+Los componentes internos son los siguientes:
+
+- **FormatterController**: Expone el endpoint RESTful del microservicio.
+  - `/format-dataset/`: Al llamarlo, se espera obtener las recomendaciones.
+- **FormatterConsultor**: Consulta al agente LLM con el esquema extraído para obtener sugerencias sobre que tipos de datos hay que cambiar.
+
+El flujo principal sería el siguiente:
+
+1. La consulta llega al FormatterController:
+- El nodo de airflow correspondiente llama a `POST /clean-dataset`
+```json
+{
+  "s3path": "Path del s3 donde está el schema.json",
+  "datasetName": "Nombre del dataset",
+  "fileType": "CSV|JSON|Excel|Parquet"
+}
+```
+- Dicha información se enruta al FormatterConsultor para que sepa de donde sacar el schema y tenga contexto sobre que hay en cada tabla.
+
+2. Proceso de consulta:
+- Una vez recibido el schema.json,  mediante Langchain se le consultará al módelo de hugging face, para que analice en que tablas es modificar tipos de datos.
+- Se le dará un prompt con la suficiente información para que genere inferencias con sentido.
+- En el prompt se le dirá la lista completa de tipos de datos de uso interno en Redshift, por ejemplo:
+  - INTEGER: para enteros.
+  - REAL: Para números punto flotante.
+  - DATE: Con DD-MM-YYYY, para las fechas.
+  - TEXT: Para los campos de strings/texto.
+  - ...
+
+3. Se obtendrá un reccomendations.json que será devuelto al nodo de airflow que hizo el POST.
+
+**7. ai-stager**
+
+Este microservicio es el analista más importante desde el punto de vista de posterior anális RAG dentro de Redshift. Se encargará de decir que contenido debe ser agregado a las columnas de CategoriaSemantica y Descripcion sobre todas las tablas del dataset.
+
+Funcionará gracias a un agent de IA con base en el modelo de hugging face: Phind/Phind-CodeLlama-34B-v2. Sin embargo también se usará como ayuda la biblioteca de NLP de spaCy.
+
+Los componentes internos son los siguientes:
+
+- **AIStagerController**: Expone el endpoint RESTful del microservicio.
+  - `/enrich-dataset/`: Al llamarlo, se espera obtener las recomendaciones.
+- **AIStagerConsultor**: Consulta al agente LLM con el esquema extraído para obtener sugerencias sobre que metadata ponerle a los registros, además de usar spaCy para enriquecer el contexto.
+
+El flujo principal sería el siguiente:
+
+1. La consulta llega al AIStagerController:
+- El nodo de airflow correspondiente llama a `POST /enrich-dataset`
+```json
+{
+  "s3path": "Path del s3 donde está el schema.json",
+  "datasetName": "Nombre del dataset",
+  "fileType": "CSV|JSON|Excel|Parquet"
+}
+```
+- Dicha información se enruta al AIStagerConsultor para que sepa de donde sacar el schema y tenga contexto sobre que hay en cada tabla.
+
+2. Enriquecimiento de consulta:
+  - Antes de enviar la información al agente para generar las descripciones y categorías semánticas, se utilizará spaCy para analizar los nombres de tablas, columnas, tipos de datos y los primeros N registros. Este análisis extraerá entidades que enriquecerán el contexto disponible. Aunque spaCy por sí sola podría proporcionar la función de categorización semántica, se empleará solo como una etapa previa al análisis del agente para obtener mejores resultados.
+
+3. Proceso de consulta:
+- Una vez recibido el schema.json y el enriquecimiento de Spacy, mediante Langchain se realiza una cadena de consultas a Phind/Phind-CodeLlama-34B-v2 de Hugging Face sobre:
+  - Descripción: Con base en los primeros N registros, nombres de tablas, columnas y tipos de datos, el sistema debe identificar patrones y generar descripciones específicas para cada patrón detectado.
+  - Categorización Semántica: Utilizando la misma información de la descripción más las entidades extraídas por spaCy, el sistema generará categorías semánticas para todos los registros basándose en los patrones identificados.
+
+- Para cada prompt se tendrá un .txt base al cual simplemente se le añadirá el contexto obtenido por medio del Schema.json y las entidades de spaCy para realizar consultas completas.
+
+3. Se obtendrá un recomendations.json que será devuelto al nodo de airflow que hizo el POST.
+
+**8. merger**
+
+Este microservicio se encarga de obtener información general sobre los datasets que el colectivo ya tiene almacenados, para posteriormente enviar esta información al agente de IA. El agente evaluará si es conveniente remover alguna tabla del proceso de transformación actual y fusionarla con alguna tabla existente en Redshift. A diferencia de los analistas previos, este lo que busca es encontrar sugerencias sobre como debe ser el proceso de inserción a Redshift, no es tanto sobre transformación de datos, es más orientado al diseño.
+
+Funcionará gracias a un agent de IA con base en el modelo de hugging face: Phind/Phind-CodeLlama-34B-v2.
+
+Los componentes internos son los siguientes:
+
+- **MergerController**: Expone el endpoint RESTful del microservicio.
+  - `/merge-dataset/`: Al llamarlo, se espera obtener las recomendaciones.
+- **RedshiftExtractor**: Extrae información sobre las tablas y sus respectivas columnas, de los datasets del colectivo
+- **MergeConsultor**: Consulta al agente LLM con el esquema extraído y la información de Redshift si vale la pena fusionar alguno de los datasets
+
+El flujo principal sería el siguiente:
+
+1. Recepción de Consulta:
+- El nodo de airflow correspondiente llama a `POST /enrich-dataset`
+```json
+{
+  "s3path": "Path del s3 donde está el schema.json",
+  "datasetName": "Nombre del dataset",
+  "fileType": "CSV|JSON|Excel|Parquet"
+}
+```
+- Dicha información se enruta al MergeConsultor para que sepa de donde sacar el schema y tenga contexto sobre que hay en cada tabla.
+
+2. Obtención de contenido de Redshift:
+  - El RedshiftExtractor se encargará de traer todos los nombres de Columnas y Tablas de los datasets que tenga el Colectivo en la plataforma:
+    - Revisará en RDS la tabla que marca que Datasets pertencen al colectivo, y además la tabla que detalla que tablas de Redshift pertenecen a cada Dataset.
+    - Mediante un Script de SQLAlchemy obtendrá todos los resultados.
+    - Se genera un archivo json con los schemas obtenidos.
+    - Si el colectivo nunca ha subido un dataset, entonces este paso se omite.
+
+3. Proceso de consulta:
+- Una vez recibido el schema.json y el schema-redshift.json de los datasets ya subidos, mediante Langchain se le realizara consulta a Phind/Phind-CodeLlama-34B-v2 de Hugging Face sobre:
+  - Merge: Se le dará un prompt con un contexto sobre que consideramos un Merge en nuestro sistema, junto con ambos Json con schemas, para que infiera que tablas pueden ser unidas, cuales deben insertarse directamente, cuales deben ser actualizadad.
+
+3. Se obtendrá un recomendations.json que será devuelto al nodo de airflow que hizo el POST.
+
+
+**9. optimizer**
+
+Este microservicio es el agente final del proceso de Transformación y Diseño. Tendrá que inferir con base en el Schema.json de la última transformación, si vale la pena definir SortKeys y DistKeys a la hora de insertar en Redshift. Al igual que el merger, este analista lo que busca es encontrar sugerencias sobre como debe ser el proceso de inserción a Redshift, no es tanto sobre transformación de datos, es más orientado al diseño.
+
+Funcionará gracias a un agent de IA con base en el modelo de hugging face: Phind/Phind-CodeLlama-34B-v2.
+
+Los componentes internos son los siguientes:
+
+- **OptimizerController**: Expone el endpoint RESTful del microservicio.
+  - `/optimize-dataset/`: Al llamarlo, se espera obtener las recomendaciones.
+- **OptimizerConsultor**: Consulta al agente LLM con el esquema extraído si vale la penas definir DistKeys, SortKeys, y en caso de que sí, en donde.
+
+El flujo principal sería el siguiente:
+
+1. Recepción de Consulta:
+- El nodo de airflow correspondiente llama a `POST /optimize-dataset`
+```json
+{
+  "s3path": "Path del s3 donde está el schema.json",
+  "datasetName": "Nombre del dataset",
+  "fileType": "CSV|JSON|Excel|Parquet"
+}
+```
+- Dicha información se enruta al OptimizerConsultor para que sepa de donde sacar el schema y tenga contexto sobre que hay en cada tabla.
+
+2. Proceso de consulta:
+- Una vez recibido el schema.json, mediante Langchain se le consultará al módelo de hugging face, para que analice en que tablas es crear optimizaciones de búsqueda.
+- Se le dará un prompt con la suficiente información para que genere inferencias con sentido.
+- Además se le proveeran que criterios de aceptación debe cumplir una columna para poder ser apta para SortKeys y DistKeys.
+
+3. Se obtendrá un recomendations.json que será devuelto al nodo de airflow que hizo el POST.
+
+
+**10. uploader**
+
+Este microservicio representa el agente final del flujo de Airflow. Su función es desarrollar una estrategia de inserción del dataset a Redshift, utilizando como base el último archivo parquet generado por los procesos de transformación y los archivos de SQLAlchemy creados por el optimizer y merger.
+
+Funcionará gracias a un agent de IA con base en el modelo de hugging face: Phind/Phind-CodeLlama-34B-v2.
+
+Los componentes internos son los siguientes:
+
+- **UploaderController**: Expone el endpoint RESTful del microservicio.
+  - `/optimize-dataset/`: Al llamarlo, se espera obtener las recomendaciones.
+- **UploaderConsultor**: Consulta al agente LLM con el schema final y los archivos de SQLAlchemy para que sugiera como debe ser el archivo de inserción definitivo.
+
+El flujo principal sería el siguiente:
+
+1. Recepción de Consulta:
+- El nodo de airflow correspondiente llama a `POST /optimize-dataset`
+```json
+{
+  "s3path": "Path del s3 donde está el schema.json",
+  "datasetName": "Nombre del dataset",
+  "fileType": "CSV|JSON|Excel|Parquet"
+}
+```
+- Dicha información se enruta al UploaderConsultor para que sepa de donde sacar el schema y los archivos de SQLAlchemy y tenga contexto sobre que hay en cada tabla.
+
+2. Proceso de consulta:
+- Una vez recibido el schema.json y los archivos de SQLAlchemy. mediante Langchain se realiza una cadena de consultas a Phind/Phind-CodeLlama-34B-v2 de Hugging Face sobre:
+- Inserción: Define cuales son las tablas que pueden ser insertadas directamente con el comando de COPY.
+- Update: Ubica cuales son las tablas que se deben mergear y sugiere como hacerle update a la existente en Redshift. Debe tomar en cuenta técnicas como aprovechar Ids Incrementales para saber solo cuales insertar, y timestamps para saber a cuales registros hacer update.
+- Optimizador: Verifica que los SortKeys y DistKeys solo se estén aplicando a tablas nuevas.
+
+3. Se obtendrá un recomendations.json que será devuelto al nodo de airflow que hizo el POST.
+
+**11. schema-enforcer**
+
+Este microservicio es exclusivo a los procesos de carga recurrente, ya que se encarga de revisar que la data traida de la fuente tenga el mismo schema que se uso durante le proceso de transformación. En caso de no coincidir, da las recomendaciones para que más adelante se pueda crear la transformación para que el dataset quedé con el formato necesitado.
+
+Funcionará gracias a un agent de IA con base en el modelo de hugging face: Phind/Phind-CodeLlama-34B-v2.
+
+Los componentes internos son los siguientes:
+
+- **SchemaEnforcerController**: Expone el endpoint RESTful del microservicio.
+  - `/enforce-schema/`: Al llamarlo, se espera obtener las recomendaciones.
+- **SchemaEnforcerConsultor**: Revisa con base en el schema del schema-extractor viejo y el nuevo, que diferencias hay, y da recomendaciones de como unificar los formatos
+
+El flujo principal sería el siguiente:
+
+1. Recepción de Consulta:
+- El nodo de airflow correspondiente llama a `POST /optimize-dataset`
+```json
+{
+  "s3path": "Path del s3 donde está el schema.json",
+  "datasetName": "Nombre del dataset",
+  "fileType": "CSV|JSON|Excel|Parquet"
+}
+```
+- Dicha información se enruta al SchemaEnforcerConsultor para que sepa de donde sacar el schema viejo y el nuevo.
+
+2. Proceso de consulta:
+- Una vez recibido los schema.json mediante Langchain se realizan consultas a Phind/Phind-CodeLlama-34B-v2 de Hugging Face sobre que diferencias nota en ambos Schemas, y en caso de que las haya resaltar cuales son y donde.
+
+3. Se obtendrá un recomendations.json que será devuelto al nodo de airflow que hizo el POST.
+
+
+### Diagramas de Clases
+
+A continuación se presenta la estructura de clases utilizada por cada uno de los microservicios. Es importante aclarar que, aunque algunas clases se repiten entre diagramas, en realidad son las mismas. Sin embargo, dado que cada microservicio funciona como una unidad aislada, se ha generado un diagrama independiente para cada uno.
+
+Otro punto a destacar es que, aunque en la capa de "consultores" dichas clases realizan una función similar con distintas lógicas (lo que podría interpretarse como un Strategy pattern), esta relación no se refleja explícitamente. Esto se debe a que, dentro de cada microservicio, solo existe un único consultor activo, por lo que no es necesario mostrar dicho diseño.
+
+
+**1. schema-extractor**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Verde: Representa un strategy.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el SchemaExtractorController, que actúa como facade para que el Airflow se comunique con este microservicio. Este controlador delega las llamadas directamente a un SchemaExtractor dependiendo del tipo de archivo que sea el dataset, se usa strategy para que dentro de esa clase Pandas pueda adaptarse.
+
+Luego para poder acceder a los datasets se usa el DatasetHandler que se encarga de traer los archivos en S3.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesMT1.png)
+
+
+**2. spark-builder**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el SparkBuilderController, que actúa como facade para que el Airflow se comunique con este microservicio. Este controlador delega las llamadas directamente al SparkBuilder que se encarga de orquestrar la adquisión del schema.json, para poder mediante el Contexter usandoló y las reccomendations crear el prompt para el QwenCoder que hará el script final de PySpark.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesMT2.png)
+
+
+**3. sql-builder**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el SqlBuilderController, que actúa como facade para que el Airflow se comunique con este microservicio. Este controlador delega las llamadas directamente al SqlBuilder que se encarga de orquestrar la adquisión del schema.json y el reccomendations para con el contexter crear el prompt para el SqlCoder que hará el script final de SQLAlchemy.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesMT3.png)
+
+
+**4. schema-architect**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el SchemaArchitectController, que actúa como facade para que el Airflow se comunique con este microservicio. Este controlador delega las llamadas directamente al SchemaConsultor que se encarga de orquestrar la adquisión del schema.json para con el contexter crear el prompt para el SchemaAnalyst logre realizar las recomendaciones sobre el dataset sobre modelado, normalización, y nombres significativos.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesMT4.png)
+
+**5. cleaner**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el CleanerController, que actúa como facade para que el Airflow se comunique con este microservicio. Este controlador delega las llamadas directamente al CleanerConsultor que se encarga de orquestrar la adquisión del schema.json para con el contexter crear el prompt para el GarbageAnalyst logre realizar las recomendaciones sobre el dataset con respecto a que en que tablas eliminar registros.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesMT5.png)
+
+**6. formatter**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el FormatterController, que actúa como facade para que el Airflow se comunique con este microservicio. Este controlador delega las llamadas directamente al FormatterConsultor que se encarga de orquestrar la adquisión del schema.json para con el contexter crear el prompt para el FormatAnalyst logre realizar las recomendaciones sobre el dataset con respecto a que tipos de datos o formatos no coinciden con los de Redshift internamente.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesMT6.png)
+
+**7. ai-stager**
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el AIStagerController, que actúa como facade para que el Airflow se comunique con este microservicio. Este controlador delega las llamadas directamente al AIStagerConsultor que se encarga de orquestrar la adquisión del schema.json para con el contexter, obtener del SpacyEntityExtractor contexto adicional sobre los registros del sistema. Posteriormente, crear el prompt para el AIStagerAnalyst logre realizar las recomendaciones sobre el dataset con respecto a que campos de Descriptions y CategoríasSemanticas se le puede asignar a los registros del dataset.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesMT7.png)
+
+
+**8. merger**
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el MergerController, que actúa como facade para que el Airflow se comunique con este microservicio. Este controlador delega las llamadas directamente al MergeConsultor que se encarga de orquestrar la adquisión del schema.json para con el contexter, y obtener los Schemas de los datasets del Colectivo. Posteriormente, crear el prompt para que el MergeAnalyst logre realizar las recomendaciones sobre que tablas pueden ser mergeables entre las del dataset y las de Redshift
+
+Finalmente, existe una capa de repositorios gestionado mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesMT8.png)
+
+**9. optimizer**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el OptimizerController, que actúa como facade para que el Airflow se comunique con este microservicio. Este controlador delega las llamadas directamente al OptimizerConsultor que se encarga de orquestrar la adquisión del schema.json para con el contexter crear el prompt para que el OptimizerAnalyst logre realizar las recomendaciones sobre que DistKeys y SortKeys usar en redshift.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesMT9.png)
+
+**10. uploader**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el UploaderController, que actúa como facade para que el Airflow se comunique con este microservicio. Este controlador delega las llamadas directamente al UploaderConsultor que se encarga de orquestrar la adquisión del schema.json y los archivos de SQLAlchemy generados por el optimizer y merger, para con el contexter crear el prompt para que el UploaderAnalyst logre desarrollar la estrategia de subida del dataset a Redshift.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesMT10.png)
+
+**11. schema-enforcer**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el SchemaEnforcerController, que actúa como facade para que el Airflow se comunique con este microservicio. Este controlador delega las llamadas directamente al SchemaEnforcerConsultor que se encarga de orquestrar la adquisión de los schema.json, para con el contexter crear el prompt para que el SchemaAnalyst logre ubicar cuales son las diferencias entre ambos.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesMT11.png)
+
+### Arquitectura de Airflow
+
+Apache Airflow será el coordinador de este componente, por lo que tendrá dos responsabilidades principales:
+- Disparar el DAG de transformación inicial.
+- Programar los Crons asociados a los datasets con carga recurrente.
+
+Para iniciar el proceso de transformación, habrá un DAG en Airflow que se ejecuta cada 30 segundos y escucha a RabbitMQ en busca de mensajes del centro de carga. Estos mensajes indican cuándo hay un nuevo dataset listo para procesar e incluyen la ruta en S3, el nombre del dataset y su tipo.
+
+Con esta información, se activa el DAG principal de transformación, que está diseñado con parámetros dinámicos para adaptarse a cualquier dataset. El grafo de este DAG sigue la siguiente estructura:
+
+``` txt
+(schema-extractor -> schema-architect -> spark-builder) -> execute-spark -> (schema-extractor -> cleaner -> spark-builder) -> execute-spark -> (schema-extractor -> formatter -> spark-builder) -> execute-spark -> (schema-extractor -> ai-stager -> spark-builder) ->  execute-spark -> (merger -> sql-builder) -> (optimizer -> sql-builder) -> (uploader -> sql-builder) -> execute-sql.
+```
+
+En la representación del DAG se pueden identificar cuatro etapas de transformación seguidas por tres etapas de cálculo e inserción en Redshift. Cada una de estas fases se ejecuta de forma secuencial, asegurando un flujo ordenado y trazable de los datos.
+
+Por otro lado, el sistema de carga recurrente se apoya en el Scheduler de Airflow. Se implementarán 24 DAGs programados (uno por cada hora del día), además de tres DAG adicionales que corren cada 12, 6 y 3 horas. Todos estos DAGs reutilizan una misma plantilla dinámica, que realiza lo siguiente:
+
+- Consulta la tabla DatasetCrons en RDS.
+- Filtra los datasets cuya expresión CRON coincida con la hora de ejecución actual.
+- Itera sobre los resultados y lanza, para cada uno, una ejecución específica del DAG de transformación parametrizado.
+
+``` python
+TriggerDagRunOperator(
+    task_id="trigger_etl",
+    trigger_dag_id="etl_pipeline_dag",
+    conf=dataset_pipeline("covid_datos", "s3://bronze_data/covid_datos"),
+)
+```
+
+Este DAG se encargará de aplicar el siguiente Grafo:
+``` txt
+(schema-extractor -> schema-enforcer -> spark-builder) -> execute-spark -> execute-spark -> execute-spark ->  execute-spark -> execute-sql.
+```
+Este DAG tiene una estructura más simple, ya que introduce únicamente una fase adicional al inicio: la verificación del esquema del dataset. En esta etapa se compara el dataset de origen con el schema.json previamente almacenado. Si se detectan cambios, el esquema se ajusta.
+
+Una vez validado o actualizado el esquema, el proceso continúa aplicando los scripts de PySpark generados previamente por el motor de transformación, los cuales se encuentran guardados en su ruta correspondiente en S3. Finalmente, se realiza la inserción o actualización de los datos en Redshift con base en lo que se definió también en el uploader.
+
+Un punto adicional a aclarar es que la base de datos interna de Airflow será una pequñeña instancia de Postgres.
+
+Además, para la comunicación de errores en los procesos de un DAG Airflow permite conectar con AWS SES, por lo que en caso de que un paso falle se le enviará un correo a los administradores de la plataforma para que resuelvan manualmente el error.
+
+Finalmente, ya que se usará Airflow autogestionado se optará por la opción de CeleryExecutor, el cual coordina una cola de rabbitMQ entre los nodos workers, para que estos puedan seleccionar DAGs a ejecutar según su disponibilidad. Esta opción permite escalar los workers horizontalmente en caso de ser necesario.
+
+
+
+### Arquitectura de Spark
+
+Para utilizar Spark, se adoptará un enfoque autogestionado desplegando el Helm Chart oficial de Bitnami sobre Kubernetes. Inicialmente, se configurarán 9 nodos worker, aunque antes del despliegue definitivo se realizarán pruebas de carga para validar si esta cantidad resulta suficiente o si es necesario escalar horizontalmente.
+
+La ejecución de scripts PySpark se realizará mediante el comando spark-submit, el cual será lanzado desde los nodos de Airflow llamados execute-spark. Estos nodos enviarán las tareas al nodo master de Spark, que se encargará de coordinar la ejecución distribuida, dividiendo automáticamente la carga de trabajo entre los workers del clúster.
+
+
+
+### Servicios de AWS
+
+**Amazon EKS (Elastic Kubernetes Service)**
+
+El cluster de Kubernetes opera como el núcleo computacional donde residen todos los microservicios del Motor de Transformación, activándose automáticamente cuando el Centro de Carga notifica la disponibilidad de nuevos datasets para procesar.
+
+**Configuración de Hardware:**
+
+- **Versión de Kubernetes**: 1.29 (alineada con el resto del ecosistema)
+- **Tipo de nodos**: Amazon EC2 t3.large (2 vCPU, 8 GB RAM)
+- **Escalado**: 3-15 nodos que se expanden durante picos de carga nocturna cuando los datasets programados se procesan en batch
+- **Almacenamiento**: EBS gp3 con 100 GB por nodo para checkpoints temporales de Spark
+- **Red**: VPC privada que facilita comunicación segura con RDS y Redshift durante las transformaciones
+
+
+**AWS SES**
+Servicio para envío de correos electrónicos confiables y escalables.
+
+- **Configuración:**
+  - **Región:** us-east-1.
+  - **Identidad verificada:** Dominios y correos electrónicos verificados.
+  - **Políticas de envío:** Limitaciones y tasas configuradas para evitar bloqueos.
+  - **Autenticación:** SPF, DKIM y DMARC configurados para mejorar entregabilidad.
+
+
+### Monitoreo
+
+**Prometheus en EKS - Recolección Contextual**
+
+Prometheus opera continuamente dentro del cluster, pero intensifica la recolección de métricas durante ventanas de procesamiento activo, adaptando la frecuencia de scraping según la carga operacional.
+
+**Momentos de alta frecuencia:**
+Durante ejecución de jobs Spark masivos, el scrape interval se reduce a 15 segundos para capturar métricas granulares de memory spill, shuffle operations y task failures. Fuera de estas ventanas, vuelve a 60 segundos para optimizar recursos.
+
+**ServiceMonitors adaptativos:**
+
+- **etl-orchestrator**: Intensifica monitoreo cuando coordina múltiples jobs concurrentes, especialmente durante cargas batch nocturnas
+- **airflow-scheduler**: Monitoreo continuo con alertas que se activan cuando la cola de tareas supera umbrales definidos dinámicamente según patrones históricos
+- **spark-jobs**: Métricas se recolectan solo durante ejecución activa, eliminando overhead cuando no hay procesamiento
+
+**AWS CloudWatch - Monitoreo de Servicios Subyacentes**
+
+CloudWatch captura automáticamente métricas de la infraestructura AWS que soporta las transformaciones, correlacionando performance de aplicación con salud de servicios subyacentes.
+
+
+**EKS Cluster Health:**
+
+- **Node utilization**: CPU y memoria de nodos correlacionada con número de executors Spark activos
+- **Pod startup latency**: Tiempo que toman pods en alcanzar estado Ready durante scaling events
+- **API server response time**: Latencia de Kubernetes API durante operaciones de scaling masivo
+
+**AWS X-Ray - Tracing Distribuido**
+
+X-Ray proporciona visibilidad completa del flujo de requests entre microservicios durante transformaciones, identificando bottlenecks específicos en el pipeline ETL.
+
+**Traces instrumentados:**
+
+- **End-to-end ETL flow**: Desde notificación de RabbitMQ hasta confirmación de carga en Redshift, mostrando latencia de cada paso
+- **Cross-service calls**: Llamadas entre etl-orchestrator y data-quality-service visualizadas con latencia detallada
+- **AWS service interactions**: Latencia de llamadas a Secrets Manager, S3, y KMS durante operaciones críticas
+- **Database query performance**: Tiempo específico de queries a RDS correlacionado con carga concurrente
+
+Los traces permiten identificar rápidamente si lentitud proviene de network latency, database contention, o processing logic.
+
+**AWS Config - Compliance Monitoring**
+
+Config monitorea continuamente configuraciones de seguridad y compliance, alertando sobre desviaciones que podrían violar requisitos de la Ley 8968.
+
+**Rules configuradas:**
+
+- **EKS security groups**: Valida que solo puertos necesarios estén abiertos y que tráfico sea restringido a subnets autorizadas
+- **S3 bucket encryption**: Asegura que todos los buckets del Motor mantengan cifrado habilitado con keys apropiadas
+- **RDS security configurations**: Monitorea que cifrado en tránsito y en reposo permanezca habilitado
+
+Las violaciones activan automáticamente remediation workflows que revierten cambios no autorizados.
+
+**AWS CloudTrail - Auditoría Completa**
+
+CloudTrail registra todas las API calls realizadas por microservicios del Motor, proporcionando trazabilidad completa para auditorías de compliance e investigación de incidentes.
+
+**Eventos auditados:**
+
+- **S3 data access**: Cada lectura/escritura de datos durante transformaciones, incluyendo IP source y timestamp exacto
+- **RDS connections**: Establecimiento de conexiones desde pods EKS hacia RDS con identificación precisa de workload
+
+Los logs se integran con sistemas de SIEM gubernamentales cuando se procesan datasets de entidades públicas.
+
+**Grafana - Visualización Contextual del Pipeline**
+
+**Dashboard "ETL Pipeline Flow":**
+Combina métricas de Prometheus, CloudWatch y trazas de X-Ray en visualización unificada que muestra datasets fluyendo desde Centro de Carga hasta La Bóveda, con drill-down capability hacia traces específicos cuando hay problemas.
+
+**Dashboard "Security & Compliance":**
+Integra datos de Config, CloudTrail y CloudWatch para mostrar postura de seguridad en tiempo real, incluyendo encryption status, access patterns y compliance violations con alertas visuales inmediatas.
+
+**Dashboard "Cost Optimization":**
+Correlaciona métricas de utilización de recursos con costos generados, mostrando cost-per-transformation y sugiriendo optimizaciones automáticas basadas en patterns históricos.
+
+### Diagrama del backend
+
+A continuación se presenta el diagrama del backend del Motor de transforamción. En él se evidencia cómo todo el ecosistema de AWS interactúa con los distintos microservicios desplegados en el clúster de Kubernetes provisto por EKS. También se describen los microservicios internos junto a sus distintas clases, los patrones de diseño utilizados, y cómo interactúan con Airflow, para que posteriormente este se encarga de delegar los jobs a spark.
+
+Se muestra cómo la contenerización de cada microservicio se realizará utilizando Docker, y cómo el monitoreo interno será gestionado por Prometheus. Además, se destaca que en la capa externa a AWS donde se encuentra como Hugging Face funciona como fachada para interactuar con los 3 Módelos de inteligencia artificial principales.
+
+![image](img/DiagramaBackendMT.svg)
+
+
+
+# 4.5 MarketPlace
+
+## Diseño del Frontend
+
+### Arquitectura del Cliente 
+
+Nuestra arquitectura de cliente consistirá en Client Side Rendering con rendering estático, con una única capa dedicada a la web. Esta decisión se toma porque los bundles de React generados en el build de cada proyecto serán almacenados en un bucket de S3, el cual será servido a los clientes mediante el CDN provisto por CloudFront.
+
+Además, para acceder al backend se utilizará una única API, desarrollada en FastAPI alojada en EKS.
+
+### Patrones de Diseño de Objetos 
 
 El diseño del frontend del componente Marketplace de Data Pura Vida sigue principios de diseño orientado a objetos que buscan flexibilidad, mantenibilidad y escalabilidad. Los principales patrones aplicados son los siguientes:
 
-##### 1 **Patrón de Strategy**
+#### 1 **Patrón de Strategy**
 
 - Ubicación: En los filtros de búsqueda de datasets.
 - Descripción: El frontend permite al usuario aplicar distintos tipos de filtros (por precio, categoría, tipo de dataset, popularidad, etc). Cada filtro implementa una estrategia diferente de ordenamiento o filtrado, pero todos heredan de una interfaz común, lo que permite agregar nuevos filtros en el futuro sin modificar el flujo principal.
 - Beneficio: Permite extender fácilmente nuevos criterios de búsqueda sin alterar el resto del sistema.
 
-##### 2️ **Patrón de Singleton**
+#### 2️ **Patrón de Singleton**
 
 - Ubicación: Cliente HTTP centralizado (por ejemplo ApiConnector o MarketplaceApiClient).
 - Descripción: Todo el frontend utiliza una única instancia para gestionar las conexiones al backend (requests HTTP a la API REST de Marketplace).
 - Beneficio: Garantiza un único punto de configuración de headers, manejo de tokens, interceptores de error, y manejo centralizado de respuestas.
 
-##### 3️ **Patrón de Observer (Pub-Sub)**
+#### 3️ **Patrón de Observer (Pub-Sub)**
 
 - Ubicación: Sistema de notificaciones y actualización de componentes de UI.
 - Descripción: Algunos componentes de la interfaz están suscritos a eventos globales como la finalización de una compra, actualización de un dataset o expiración de accesos.
 - Beneficio: Desacopla los componentes visuales del flujo de negocio, permitiendo que reaccionen a eventos sin depender directamente unos de otros.
 
-##### 4️ **Patrón de Facade**
+#### 4️ **Patrón de Facade**
 
 - Ubicación: Módulo de servicios de pago.
 - Descripción: Las operaciones de compra, validación de pagos, visualización de precios y confirmación de compra son orquestadas desde un único módulo de servicios, el cual encapsula la comunicación con Stripe y la lógica de negocio asociada.
 - Beneficio: Simplifica el uso de APIs externas, ocultando la complejidad de validaciones, formatos de respuesta y errores.
 
-##### 5️ Patrón MVVM (Model-View-ViewModel)
+#### 5️ Patrón MVVM (Model-View-ViewModel)
 
 - Ubicación: Arquitectura general del frontend.
 - Descripción:
@@ -5418,7 +6243,7 @@ El diseño del frontend del componente Marketplace de Data Pura Vida sigue princ
   - View: Los componentes visuales de React, organizados bajo Atomic Design.
 - Beneficio: Separa de forma clara la lógica de presentación, la lógica de negocio y el manejo de estado de UI.
 
-#### Estructura de Carpetas del Sistema - Frontend del Marketplace
+### Estructura de Carpetas del Sistema 
 
 El frontend del componente Marketplace sigue una estructura modular basada en el patrón de diseño Atomic Design, el patrón MVVM y principios de escalabilidad y mantenibilidad. La organización permite extender fácilmente nuevos módulos de negocio dentro del Marketplace.
 
@@ -5472,54 +6297,24 @@ frontend/
     └── integration/
 ```
 
-#### Arquitectura del Cliente - Frontend del Marketplace
 
-El frontend del componente Marketplace sigue una arquitectura moderna basada en principios de MVVM (Model-View-ViewModel), Atomic Design y desacoplamiento de responsabilidades. Este diseño permite mantener la lógica de negocio separada de las vistas, simplificando su mantenimiento y escalabilidad.
-
-#### Arquitectura General
-
-```plaintext
-[ Usuario ]
-   ↓
-[ View (components/pages) ]
-   ↓
-[ ViewModel (hooks) ]
-   ↓
-[ Model (models) ]
-   ↓
-[ API Layer (apiConnector) ]
-```
-
-#### Seguridad en el cliente
-
-- El acceso al Marketplace requiere autenticación mediante AWS Cognito, gestionando usuarios institucionales y ciudadanos.
-- Los tokens JWT son gestionados desde el cliente y renovados automáticamente.
-- Los permisos de visualización y compra de datasets se validan tanto en el cliente (UI) como en el backend (control real de acceso).
-
-#### Tecnologías utilizadas en el cliente
+### Tecnologías utilizadas en el cliente
 
 | Tecnología    | Descripción                                |
 | ------------- | ------------------------------------------ |
 | React         | Framework principal para UI                |
 | Tailwind CSS  | Framework de estilos responsivos           |
 | Axios         | Cliente HTTP centralizado                  |
-| AWS Amplify   | Integración con Cognito y servicios AWS    |
 | Stripe        | Gestión de pagos y facturación             |
 | React Context | Manejo de estado global (usuario, carrito) |
 | React Router  | Control de rutas y navegación              |
 
-#### Beneficios de esta arquitectura
 
-- Separación clara de responsabilidades.
-- Alta reutilización de componentes.
-- Lógica de negocio desacoplada de las vistas.
-- Facilidad para agregar nuevos tipos de datasets, métodos de pago o reglas de negocio sin romper el flujo principal.
-
-### Componentes Visuales - Marketplace
+### Componentes Visuales
 
 #### Patrones y Principios:
 
-- **Diseño Responsivo:** Aplicado desde el desarrollo inicial, permitiendo que el Marketplace sea visualizado correctamente en desktop, tablets y móviles. Se utiliza Tailwind para web y Nativewind para mobile. Las clases CSS usan unidades relativas (rem, %, vw) y los breakpoints de Tailwind manejan la adaptación automática.
+- **Diseño Responsivo:** Aplicado desde el desarrollo inicial, permitiendo que el Marketplace sea visualizado correctamente en desktop, tablets y móviles. Se utiliza Tailwind para web. Las clases CSS usan unidades relativas (rem, %, vw) y los breakpoints de Tailwind manejan la adaptación automática.
 
 - **SOLID:**
   - Single Responsibility: Cada componente de React cumple una única función. Los componentes visuales están completamente separados de los hooks de lógica.
@@ -5546,13 +6341,11 @@ El frontend del componente Marketplace sigue una arquitectura moderna basada en 
 
 #### Herramientas y estándares:
 
-- Material Design 3: Aplicado en el diseño visual del Marketplace.
-- Tailwind/Nativewind: Framework principal de estilos responsivos.
-- Amplify: Maneja la integración continua, despliegue en AWS y conexión con Cognito.
+- Tailwind: Framework principal de estilos responsivos.
 
-#### Diseño del Backend
+## Diseño del Backend
 
-#### Microservicios por Componente
+### Microservicios 
 
 ### marketplace-catalog-service
 
@@ -5564,11 +6357,381 @@ Gestión del catálogo de datasets con capacidades avanzadas de búsqueda, index
 - **catalog-search-engine-service**: Gestiona indexación en OpenSearch con soporte multilenguaje
 - **catalog-quality-aggregator-service**: Agrega métricas de calidad del Motor de Transformación
 
+<<<<<<< HEAD
 **Tecnologías Utilizadas**
 - FastAPI para endpoints REST
 - OpenSearch para búsqueda y analytics
 - Redis para cache de queries frecuentes
 - PostgreSQL para metadatos de datasets
+=======
+**catalog-metadata-sync-service**
+
+- **Función**: Sincroniza metadatos entre La Bóveda y marketplace cada 15 minutos, detectando nuevos datasets y cambios de estado
+- **Herramientas**: Apache Airflow para scheduling de jobs, PostgreSQL para tracking de cambios incrementales, gRPC client para comunicación con La Bóveda
+- **Operación**: Ejecuta continuamente con intensificación durante ventanas de ETL del Motor (2-6 AM) cuando más datasets se procesan
+- **Event-driven**: Consume eventos `dataset.processed` del Motor de Transformación para updates inmediatos, `dataset.quality_updated` para refresh de métricas
+
+**catalog-search-engine-service**
+
+- **Función**: Gestiona indexación y búsqueda avanzada en OpenSearch con soporte multilenguaje y faceted search
+- **Herramientas**: OpenSearch para búsqueda y analytics, Redis para cache de queries frecuentes, Apache Spark para batch indexing
+- **Operación**: Reindexación incremental cada hora, reindexación completa los domingos durante ventana de mantenimiento
+- **Event-driven**: Procesa eventos `search.performed` para analytics, `dataset.metadata_changed` para reindexación selectiva
+
+**catalog-quality-aggregator-service**
+
+- **Función**: Agrega métricas de calidad del Motor de Transformación con ratings de usuarios para scoring híbrido
+- **Herramientas**: Apache Spark para agregaciones complejas, PostgreSQL para almacenamiento de scores, ML models para weighting
+- **Operación**: Jobs diarios durante madrugada para recalcular scores de todos los datasets activos
+- **Event-driven**: Consume `user.rating_submitted` para updates inmediatos de scores
+
+**Endpoints expuestos al API Gateway:**
+
+- `GET /api/v1/catalog/search` - Búsqueda avanzada con filtros y faceting
+- `GET /api/v1/catalog/datasets/{id}` - Detalles completos de dataset individual
+- `GET /api/v1/catalog/categories` - Listado de categorías con conteos
+- `GET /api/v1/catalog/trending` - Datasets trending basados en analytics
+- `GET /api/v1/catalog/recommendations/{user_id}` - Recomendaciones personalizadas
+
+#### **marketplace-user-service**
+
+Se mantiene activo 24/7 para gestión de sesiones globales, con mayor carga durante horarios laborales de Costa Rica (6 AM - 6 PM UTC-6) cuando usuarios buscan y compran datasets. Distribuido en pods que escalan automáticamente durante eventos de alto tráfico como lanzamientos de datasets gubernamentales. Integra con Bioregistro en tiempo real para validación de tokens mientras mantiene información comercial independiente en PostgreSQL local, sincronizando cambios de permisos vía eventos para actualizar acceso a contenido premium.
+
+##### **Microservicios internos:**
+
+**user-profile-manager-service**
+
+- **Función**: Gestiona perfiles comerciales complementando autenticación del Bioregistro
+- **Herramientas**: PostgreSQL con row-level security, Redis para cache de perfiles, gRPC client para Bioregistro
+- **Operación**: Sincronización con Bioregistro cada vez que usuario inicia sesión, cache de perfiles por 4 horas
+- **Event-driven**: Consume `user.authenticated` del Bioregistro, `subscription.updated` del payment service
+
+**user-behavior-tracker-service**
+
+- **Función**: Rastrea comportamiento de navegación, búsquedas, y interacciones para ML de recomendaciones
+- **Herramientas**: RabbitMQ para streaming de eventos, DynamoDB para storage de comportamiento, OpenSearch para analytics time-series, Apache Spark para feature engineering
+- **Operación**: Ingesta eventos en tiempo real, batch processing nocturno para agregaciones
+- **Event-driven**: Produce eventos `user.page_viewed`, `user.search_performed`, `user.dataset_clicked`
+
+**user-preference-engine-service**
+
+- **Función**: Motor de preferencias que aprende de comportamiento y permite configuración manual
+- **Herramientas**: Apache Spark MLlib para clustering de usuarios, Redis para cache de preferencias, PostgreSQL para storage
+- **Operación**: Recalcular preferencias semanalmente basado en actividad acumulada
+- **Event-driven**: Consume todos los eventos de behavior-tracker para updates de preferencias
+
+**user-session-manager-service**
+
+- **Función**: Gestión de sesiones distribuidas con sincronización cross-device
+- **Herramientas**: Redis Cluster para sesiones distribuidas, JWT para tokens, WebSocket para real-time sync
+- **Operación**: Mantiene sesiones activas por 8 horas, extensión automática durante actividad
+- **Event-driven**: Produce `user.session_started`, `user.session_expired` para analytics
+
+**Endpoints expuestos al API Gateway:**
+
+- `POST /api/v1/users/register` - Registro de nuevo usuario en marketplace
+- `GET /api/v1/users/me` - Perfil completo del usuario actual
+- `PUT /api/v1/users/me/preferences` - Actualización de preferencias
+- `POST /api/v1/users/behavior` - Tracking de eventos de comportamiento
+- `GET /api/v1/users/me/recommendations` - Recomendaciones personalizadas
+
+#### **marketplace-payment-service**
+
+Opera con alta disponibilidad 24/7 para procesar pagos globales, manejando picos de tráfico durante horarios de oficina en diferentes zonas horarias. Distribuido en pods con affinity a nodos dedicados para cumplir PCI DSS compliance. Se activa intensivamente durante finales de mes cuando empresas renuevan suscripciones y durante launches de datasets premium. Integra con múltiples payment providers según ubicación geográfica del usuario, enruta pagos automáticamente y maneja webhooks asincrónicos para confirmaciones.
+
+##### **Microservicios internos:**
+
+**payment-processor-service**
+
+- **Función**: Procesamiento de pagos únicos con validación, fraud detection, y routing de providers
+- **Herramientas**: Stripe SDK para pagos internacionales, BAC Credomatic API para Costa Rica, Redis para idempotencia
+- **Operación**: Procesamiento inmediato con timeout de 30 segundos, retry automático en caso de fallos temporales
+- **Event-driven**: Produce `payment.initiated`, `payment.completed`, `payment.failed` para workflow orchestration
+
+**subscription-billing-service**
+
+- **Función**: Gestión de suscripciones recurrentes, billing cycles, y renovaciones automáticas
+- **Herramientas**: PostgreSQL para subscription state, DynamoDB para billing events, Apache Airflow para scheduling de billing, Stripe para recurring payments
+- **Operación**: Procesa renovaciones diariamente a las 3 AM UTC, retry logic para pagos fallidos
+- **Event-driven**: Consume `subscription.created`, produce `subscription.renewed`, `subscription.cancelled`
+
+**invoice-generator-service**
+
+- **Función**: Generación automática de facturas con PDF, cálculo de impuestos, y envío por email
+- **Herramientas**: Python para PDF generation, Amazon SES para email delivery, PostgreSQL para invoice storage
+- **Operación**: Generación inmediata post-pago, batch generation para suscripciones el día 1 de cada mes
+- **Event-driven**: Consume `payment.completed` para trigger de generación inmediata
+
+**fraud-detection-service**
+
+- **Función**: Risk scoring en tiempo real basado en patrones de comportamiento y machine learning
+- **Herramientas**: Apache Spark MLlib para models, Amazon SageMaker para model deployment, Redis para feature store, DynamoDB para historical data
+- **Operación**: Scoring en <200ms durante checkout, reentrenamiento de models semanalmente usando SageMaker
+- **Event-driven**: Consume todos los payment events para continuous learning
+
+**webhook-handler-service**
+
+- **Función**: Manejo seguro de webhooks de payment providers con signature validation
+- **Herramientas**: FastAPI con async processing, RabbitMQ para reliable delivery, Redis para deduplication
+- **Operación**: Procesamiento inmediato de webhooks, retry con exponential backoff para failures
+- **Event-driven**: Produce payment state updates basados en confirmaciones de providers
+
+**Endpoints expuestos al API Gateway:**
+
+- `POST /api/v1/payments/initiate` - Inicio de proceso de pago
+- `GET /api/v1/payments/{id}/status` - Estado de transacción específica
+- `POST /api/v1/subscriptions` - Creación de nueva suscripción
+- `PUT /api/v1/subscriptions/{id}/cancel` - Cancelación de suscripción
+- `GET /api/v1/invoices` - Listado de facturas del usuario
+- `POST /api/v1/payments/webhooks/{provider}` - Webhooks de payment providers
+
+#### **marketplace-access-service**
+
+Ejecuta continuamente para gestionar acceso a datasets, con activación intensa post-compra cuando debe provisionar permisos inmediatamente. Opera distribuido para manejar múltiples usuarios accediendo datasets simultáneamente durante horarios peak. Se integra en tiempo real con La Bóveda para activar acceso y con Bioregistro para validar permisos. Monitorea uso continuo para aplicar rate limiting y generar billing por uso de APIs.
+
+##### **Microservicios internos:**
+
+**access-provisioning-service**
+
+- **Función**: Activación automática de acceso a datasets post-compra con integración a La Bóveda
+- **Herramientas**: gRPC clients para La Bóveda y Bioregistro, PostgreSQL para access records, RabbitMQ para event coordination
+- **Operación**: Provisioning inmediato (< 30 segundos) después de payment confirmation
+- **Event-driven**: Consume `payment.completed`, `subscription.activated`, produce `access.granted`
+
+**token-management-service**
+
+- **Función**: Generación y gestión de JWT tokens para acceso programático a datasets
+- **Herramientas**: JWT libraries con RS256 signing, Redis para token blacklisting, PostgreSQL para token metadata
+- **Operación**: Tokens con TTL de 24 horas, refresh automático para usuarios activos
+- **Event-driven**: Produce `token.generated`, `token.revoked` para audit logging
+
+**usage-tracking-service**
+
+- **Función**: Monitoreo de uso de datasets para billing, rate limiting, y analytics
+- **Herramientas**: RabbitMQ para real-time streaming, OpenSearch para time-series storage, Redis para rate limiting counters
+- **Operación**: Tracking en tiempo real de cada API call, batch aggregation horaria para billing
+- **Event-driven**: Consume `dataset.accessed`, produce `usage.threshold_exceeded`
+
+**permission-validator-service**
+
+- **Función**: Validación granular de permisos por dataset, usuario, y tipo de operación
+- **Herramientas**: Redis para cache de permissions, PostgreSQL para permission rules, gRPC para Bioregistro integration
+- **Operación**: Validación en <50ms para cada request, cache de permissions por 15 minutos
+- **Event-driven**: Consume `permission.updated` del Bioregistro, `access.revoked` events
+
+**audit-logger-service**
+
+- **Función**: Logging completo de accesos para compliance y auditoría
+- **Herramientas**: OpenSearch para log storage y analytics, PostgreSQL para audit summaries
+- **Operación**: Logging inmediato de cada acceso, retention de 7 años para compliance
+- **Event-driven**: Consume todos los access events para comprehensive audit trail
+
+**Endpoints expuestos al API Gateway:**
+
+- `POST /api/v1/access/provision` - Provisioning de acceso (sistema interno)
+- `GET /api/v1/access/my-datasets` - Datasets accesibles por usuario
+- `POST /api/v1/access/tokens/generate` - Generación de access token
+- `DELETE /api/v1/access/tokens/{id}` - Revocación de token
+- `GET /api/v1/access/usage` - Estadísticas de uso del usuario
+
+#### **marketplace-recommendation-service**
+
+Ejecuta batch processing nocturno (1-5 AM) para entrenar modelos ML con datos del día anterior, mientras sirve recomendaciones en tiempo real durante horas de navegación activa. Distribuido en pods optimizados para ML inference con GPU support para modelos complejos. Reutiliza infraestructura Spark del Motor de Transformación para feature engineering. Se activa especialmente durante onboarding de nuevos usuarios para cold-start recommendations.
+
+##### **Microservicios internos:**
+
+**behavioral-ml-service**
+
+- **Función**: Análisis de comportamiento de usuarios con machine learning para recommendations personalizadas
+- **Herramientas**: Apache Spark MLlib para collaborative filtering, Amazon SageMaker para model training y deployment, Hugging Face Transformers para embeddings
+- **Operación**: Entrenamiento nocturno con datos agregados, inference en tiempo real <100ms usando SageMaker endpoints
+- **Event-driven**: Consume `user.behavior_updated`, produce `recommendations.updated`
+
+**content-similarity-service**
+
+- **Función**: Cálculo de similaridad entre datasets basado en metadatos y contenido
+- **Herramientas**: Apache Spark para feature extraction, OpenSearch para similarity search, Hugging Face Transformers (all-mpnet-base-v2) para embeddings semánticos
+- **Operación**: Recálculo semanal de similarity matrix, updates incrementales cuando nuevos datasets se agregan
+- **Event-driven**: Consume `dataset.metadata_updated`, `dataset.added` para similarity recalculation
+
+**recommendation-engine-service**
+
+- **Función**: Motor principal que combina behavioral, content-based, y collaborative filtering
+- **Herramientas**: Redis para cache de recommendations, PostgreSQL para model weights, Apache Spark para ensemble methods
+- **Operación**: Pre-cálculo de recommendations para usuarios activos, real-time computation para cold users
+- **Event-driven**: Produce `recommendation.served` para effectiveness tracking
+
+**ab-testing-framework-service**
+
+- **Función**: Framework para testing de diferentes algoritmos de recomendación
+- **Herramientas**: PostgreSQL para experiment configuration, Redis for traffic splitting, Apache Spark para statistical analysis
+- **Operación**: Experimentos con duración de 2 semanas, análisis automático de significance
+- **Event-driven**: Consume `recommendation.clicked`, `recommendation.converted` para effectiveness measurement
+
+**Endpoints expuestos al API Gateway:**
+
+- `GET /api/v1/recommendations/personalized` - Recomendaciones personalizadas
+- `GET /api/v1/recommendations/similar/{dataset_id}` - Datasets similares
+- `GET /api/v1/recommendations/trending` - Trending recommendations
+- `POST /api/v1/recommendations/feedback` - Feedback de calidad de recomendaciones
+
+#### **marketplace-notification-service**
+
+Opera continuamente para delivery de notificaciones multi-canal, con picos durante confirmaciones de pago y eventos de datasets. Distribuido geográficamente para optimal delivery según timezone del usuario. Se activa especialmente durante campaigns de marketing y launches de nuevos datasets premium. Consume eventos de todos los microservicios del marketplace para trigger automático de comunicaciones contextuales.
+
+##### **Microservicios internos:**
+
+**notification-dispatcher-service**
+
+- **Función**: Router central que determina canal óptimo y timing para cada notificación
+- **Herramientas**: RabbitMQ para message queuing, Redis for user preferences, machine learning para optimal timing
+- **Operación**: Dispatch inmediato para transactional, scheduling inteligente para marketing
+- **Event-driven**: Consume events de todos los marketplace services, produce `notification.dispatched`
+
+**email-delivery-service**
+
+- **Función**: Gestión completa de email campaigns con templates y personalization
+- **Herramientas**: Amazon SES para delivery, Python Jinja2 para templating, PostgreSQL para tracking, Redis para rate limiting
+- **Operación**: Delivery inmediato para transactional, batch delivery para newsletters
+- **Event-driven**: Consume `notification.email_requested`, produce `email.delivered`, `email.bounced`
+
+**push-notification-service**
+
+- **Función**: Push notifications para browsers y mobile apps con targeting avanzado
+- **Herramientas**: Firebase Cloud Messaging, WebSocket para real-time, Redis para device tokens
+- **Operación**: Delivery inmediato con retry logic, cleanup de inactive tokens semanalmente
+- **Event-driven**: Consume `notification.push_requested`, produce `push.delivered`
+
+**sms-service**
+
+- **Función**: SMS delivery para notificaciones críticas integrado con sistema de autenticación
+- **Herramientas**: Amazon SNS para SMS delivery, PostgreSQL para message tracking, Redis for rate limiting
+- **Operación**: Delivery para emergencies únicamente, strict rate limiting por usuario
+- **Event-driven**: Consume `notification.sms_required` para casos críticos únicamente
+
+**template-management-service**
+
+- **Función**: Gestión de templates con multi-lenguaje y A/B testing
+- **Herramientas**: PostgreSQL para template storage, Redis for template cache, Jinja2 para rendering
+- **Operación**: Cache de templates populares, invalidation automática en updates
+- **Event-driven**: Produce `template.updated` cuando hay cambios en messaging
+
+**Endpoints expuestos al API Gateway:**
+
+- `GET /api/v1/notifications/preferences` - Preferencias de notificación del usuario
+- `PUT /api/v1/notifications/preferences` - Actualización de preferencias
+- `GET /api/v1/notifications/history` - Historial de notificaciones
+- `POST /api/v1/notifications/mark-read` - Marcar notificaciones como leídas
+
+#### **marketplace-analytics-service**
+
+Ejecuta continuamente con dos modes: real-time para dashboards operacionales y batch processing nocturno para métricas complejas de negocio. Distribuido con pods dedicados para stream processing durante business hours. Reutiliza infraestructura Spark del Motor de Transformación para analytics pesados. Se intensifica durante fin de mes para reportes financieros y análisis de performance.
+
+##### **Microservicios internos:**
+
+**event-ingestion-service**
+
+- **Función**: Ingesta masiva de eventos de todos los microservicios del marketplace
+- **Herramientas**: RabbitMQ para streaming, Apache Spark Streaming para processing, OpenSearch para time-series storage, DynamoDB para event metadata
+- **Operación**: Ingesta 24/7 con processing en tiempo real, batch aggregation cada hora
+- **Event-driven**: Consume todos los marketplace events, produce `analytics.event_processed`
+
+**business-metrics-calculator-service**
+
+- **Función**: Cálculo de KPIs de negocio como revenue, conversion rates, churn
+- **Herramientas**: Apache Spark para complex aggregations, PostgreSQL para metrics storage, Redis para real-time counters
+- **Operación**: Cálculos en tiempo real para dashboards, recalculations completos nocturnos
+- **Event-driven**: Consume payment, subscription, user events para metric updates
+
+**user-analytics-service**
+
+- **Función**: Análisis de comportamiento de usuarios, journey mapping, segmentación
+- **Herramientas**: Apache Spark MLlib para clustering, OpenSearch para user timelines, DynamoDB para user segments
+- **Operación**: Segmentación diaria de usuarios, cohort analysis semanal
+- **Event-driven**: Consume user behavior events, produce `user.segment_updated`
+
+**dataset-performance-analyzer-service**
+
+- **Función**: Análisis de performance de datasets, popularidad, revenue attribution
+- **Herramientas**: Apache Spark para analytics, OpenSearch para search analytics, DynamoDB para rankings
+- **Operación**: Rankings diarios de datasets, trend analysis semanal
+- **Event-driven**: Consume dataset access events, produce `dataset.trending_updated`
+
+**reporting-service**
+
+- **Función**: Generación de reportes automáticos para stakeholders y dataset owners
+- **Herramientas**: Apache Spark para data processing, Python para PDF generation, Amazon SES para delivery
+- **Operación**: Reportes diarios para operations, reportes mensuales para business
+- **Event-driven**: Scheduled generation basado en calendar events
+
+**Endpoints expuestos al API Gateway:**
+
+- `GET /api/v1/analytics/dashboard` - Métricas para dashboard principal
+- `GET /api/v1/analytics/revenue` - Métricas de revenue y financial KPIs
+- `GET /api/v1/analytics/users` - Analytics de comportamiento de usuarios
+- `GET /api/v1/analytics/datasets` - Performance analytics de datasets
+- `POST /api/v1/analytics/reports/generate` - Generación de reportes custom
+
+### Event-Driven Architecture Patterns
+
+#### **Event Flow Principal**
+
+**User Journey Events:**
+
+1. `user.registered` → Triggers welcome email, initial recommendations calculation
+2. `user.search_performed` → Updates behavior tracking, feeds recommendation engine
+3. `user.dataset_viewed` → Records interest, updates popularity metrics
+4. `payment.completed` → Triggers access provisioning, invoice generation, confirmation email
+5. `access.granted` → Enables dataset usage, starts usage tracking
+6. `dataset.accessed` → Records usage for billing, updates analytics
+
+**Marketplace Operation Events:**
+
+1. `dataset.processed` (from Motor) → Triggers metadata sync, search reindexing
+2. `dataset.quality_updated` (from Motor) → Updates catalog rankings, triggers notifications to interested users
+3. `subscription.expiring` → Triggers renewal reminders, offers relevant upgrades
+4. `usage.threshold_exceeded` → Triggers upgrade suggestions, usage notifications
+
+#### **Event Processing Patterns**
+
+**Immediate Processing (< 1 second):**
+
+- Payment confirmations → Access provisioning
+- User authentication → Session creation
+- API access requests → Permission validation
+
+**Near Real-time (< 5 seconds):**
+
+- Search queries → Analytics updates
+- Dataset views → Popularity scoring
+- User behavior → Recommendation refresh
+
+**Batch Processing (hourly/daily):**
+
+- ML model training → Recommendation engine updates
+- Usage aggregation → Billing calculations
+- Analytics rollups → Business intelligence reports
+
+#### **Event Reliability Patterns**
+
+**Dead Letter Queues:** Para eventos críticos como payment processing que requieren manual intervention si fallan
+**Event Replay:** Capability para replay events durante disaster recovery o data corrections
+**Idempotency:** Todos los event handlers implementan idempotency keys para safe replay
+**Circuit Breakers:** Protection contra event storms que podrían overwhelm downstream services
+
+### Integración con API
+
+#### **API Gateway Routing Configuration**
+
+**Authentication & Authorization Layer:**
+
+- Validación de JWT tokens del Bioregistro
+- Rate limiting por usuario y endpoint
+- Request/response transformation
+- API key management para acceso programático
+
+**Service Routing:**
+>>>>>>> 04ac9380ea682ca41cd916a95868d97a1230affb
 
 **APIs Expuestas**
 ```
@@ -5583,6 +6746,10 @@ GET /api/v1/catalog/recommendations/{user_id} - Recomendaciones personalizadas
 Activo constantemente con picos durante búsquedas matutinas (8-10 AM) y sincronizaciones nocturnas (2-4 AM). Opera en EKS con pods distribuidos en availability zones para alta disponibilidad.
 
 
+<<<<<<< HEAD
+=======
+#### **Rate Limiting Strategy**
+>>>>>>> 04ac9380ea682ca41cd916a95868d97a1230affb
 
 ### marketplace-payment-service
 
@@ -5714,7 +6881,7 @@ Batch processing nocturno para entrenar modelos, inference en tiempo real <100ms
 
 
 
-###### Diagrama de clases
+### Diagrama de clases
 
 **marketplace-catalog-service**
 Este microservicio se encarga de la gestión del catálogo de datasets, incluyendo la metadata, calidad, y la sincronización con el Datalake.
@@ -5798,6 +6965,7 @@ Finalmente, existe una capa de repositorios para la persistencia de datos (Postg
 
 ![image](img/ClasesMarketplace3.png)
 
+<<<<<<< HEAD
 # Servicios AWS 
 
 ## Amazon EKS (Elastic Kubernetes Service)
@@ -5934,6 +7102,284 @@ Finalmente, existe una capa de repositorios para la persistencia de datos (Postg
 - Rotación automática anual
 - Políticas de acceso por servicio
 ###### Sistema de Monitoreo
+=======
+### Servicios de AWS
+
+#### Amazon EKS (Elastic Kubernetes Service)
+
+El cluster de Kubernetes funciona como la plataforma central de orquestación para todos los microservicios del marketplace, proporcionando escalabilidad automática y alta disponibilidad. Durante horarios de alta actividad comercial (8-10 AM) y finales de mes cuando ocurren renovaciones masivas, el cluster escala dinámicamente desde 2 nodos base hasta 12 nodos distribuidos estratégicamente en múltiples zonas de disponibilidad.
+
+Los pods especializados operan según la naturaleza de cada microservicio: marketplace-recommendation-service ejecuta en nodos t3.xlarge optimizados para inferencia de machine learning, mientras que servicios transaccionales como marketplace-payment-service utilizan nodos t3.large para alta concurrencia. El service mesh implementa circuit breakers y health checks que detectan degradaciones de performance automáticamente, manteniendo la experiencia de usuario fluida durante picos de tráfico.
+
+**Configuración de Hardware:**
+
+- **Versión de Kubernetes:** 1.29 (alineada con ecosistema Data Pura Vida)
+- **Tipo de nodos base:** t3.large (2 vCPU, 8 GB RAM)
+- **Nodos especializados ML:** t3.xlarge (4 vCPU, 16 GB RAM)
+- **Auto Scaling:** 2-12 nodos con métricas CPU/memoria >70% por 5 minutos
+- **Almacenamiento:** EBS gp3 50GB por nodo para cache local y logs
+- **Red:** VPC privada compartida con networking optimizado para ML
+
+#### Amazon RDS PostgreSQL
+
+Utiliza la misma instancia compartida establecida por Bioregistro y La Bóveda, extendiendo el esquema de base de datos con tablas específicas para operaciones comerciales del marketplace. Las transacciones de pago se procesan con integridad ACID completa, mientras que las suscripciones se sincronizan continuamente con Stripe para mantener consistencia entre sistemas.
+
+La configuración Multi-AZ garantiza failover automático en menos de 60 segundos durante operaciones críticas como confirmaciones de pago y activación de accesos a datasets. El motor procesa concurrentemente consultas intensivas de catálogo durante búsquedas de usuarios y escrituras de alta frecuencia generadas por tracking de comportamiento.
+
+**Tablas específicas del Marketplace:**
+
+- **MarketplaceOrder:** Órdenes de compra con estados y timestamps
+- **Subscription:** Suscripciones activas con calendarios de renovación
+- **PaymentTransaction:** Historial completo de transacciones
+- **DatasetPricing:** Configuraciones de precios por dataset
+- **UserPurchaseHistory:** Historial de compras por usuario
+
+#### Amazon DynamoDB
+
+Maneja datos de alta velocidad que requieren latencia ultra-baja, especialmente durante interacciones en tiempo real como navegación de catálogo, seguimiento de comportamiento y cache de recomendaciones. El modo On-Demand se adapta automáticamente a picos impredecibles de tráfico durante launches de datasets premium o campañas de marketing.
+
+Las tablas utilizan TTL automático para optimizar costos y performance, eliminando datos temporales como sesiones expiradas y cache obsoleto. DynamoDB Streams replica automáticamente cambios a pipelines de analytics y ML para mantener modelos de recomendación actualizados.
+
+**Configuración de Tablas:**
+
+- **UserBehavior:** Tracking de clics, búsquedas y tiempo en página
+  - Partition Key: user_id, Sort Key: timestamp
+  - TTL: 90 días para analytics históricos
+- **SessionData:** Sesiones distribuidas cross-device
+  - Partition Key: session_id, TTL: 8 horas
+- **RecommendationCache:** Cache personalizado de recomendaciones
+  - Partition Key: user_id, TTL: 4 horas
+- **NotificationQueue:** Cola de notificaciones pendientes
+  - Partition Key: user_id, Sort Key: notification_id
+
+#### Amazon OpenSearch
+
+Motor de búsqueda especializado que indexa metadatos de todos los datasets del marketplace, proporcionando capacidades avanzadas de búsqueda full-text, filtrado facetado y análisis semántico. Los analyzers personalizados para español optimizan resultados para usuarios costarricenses, mientras que la funcionalidad de auto-complete mejora la experiencia de búsqueda.
+
+El cluster procesa consultas complejas con agregaciones en tiempo real para generar facets dinámicos (por categoría, precio, popularidad) y analytics de búsqueda que alimentan el motor de recomendaciones. Los índices se actualizan automáticamente cuando La Bóveda notifica cambios en datasets.
+
+**Configuración del Dominio:**
+
+- **Versión:** OpenSearch 2.3
+- **Cluster:** 3 nodos t3.medium.search para alta disponibilidad
+- **Almacenamiento:** 100GB EBS gp3 por nodo con auto-scaling habilitado
+- **Índices principales:**
+  - `datasets-catalog`: Metadatos completos con embeddings semánticos
+  - `user-searches`: Historial de búsquedas para analytics y recomendaciones
+  - `marketplace-analytics`: Métricas de tiempo real del marketplace
+- **Seguridad:** VPC privada, HTTPS obligatorio, fine-grained access control
+
+#### Amazon S3
+
+Proporciona almacenamiento escalable para diferentes tipos de contenido del marketplace, desde assets visuales hasta documentación generada automáticamente. Las políticas de lifecycle management optimizan costos moviendo automáticamente contenido antiguo a clases de almacenamiento más económicas según patrones de acceso.
+
+**Buckets especializados:**
+
+- **`dpv-marketplace-assets`:**
+  - Thumbnails y previews de datasets generados automáticamente
+  - Configuración: Versionado habilitado, CDN optimizado
+- **`dpv-marketplace-reports`:**
+  - Facturas PDF, reportes de analytics, documentos legales
+  - Configuración: Cifrado SSE-KMS, retención 7 años
+- **`dpv-marketplace-backups`:**
+  - Respaldos de configuraciones críticas y datos de recovery
+  - Configuración: Cross-region replication a us-west-1
+- **`dpv-marketplace-logs`:**
+  - Logs de auditoría extendida para compliance
+  - Configuración: Lifecycle a Glacier después de 90 días
+
+#### AWS KMS (Key Management Service)
+
+Gestiona claves de cifrado específicas para diferentes tipos de datos del marketplace, proporcionando separación de responsabilidades y cumplimiento de normativas de seguridad. La rotación automática anual mantiene la postura de seguridad actualizada sin interrumpir operaciones.
+
+**Claves especializadas:**
+
+- **`dpv-marketplace-payments`:**
+  - Cifrado de datos de transacciones, tokens de pago y información financiera
+  - Política: Acceso restringido solo a payment-service
+- **`dpv-marketplace-analytics`:**
+  - Protección de datos de comportamiento y preferencias de usuarios
+  - Política: Acceso para analytics y recommendation services
+- **`dpv-marketplace-reports`:**
+  - Cifrado de facturas, reportes financieros y documentos sensibles
+  - Política: Acceso para generación automática y backoffice
+- **`dpv-marketplace-recommendations`:**
+  - Protección de algoritmos ML y datos de entrenamiento
+  - Política: Acceso exclusivo para SageMaker endpoints
+
+#### AWS Secrets Manager
+
+Centraliza el manejo seguro de credenciales y API keys utilizadas por microservicios del marketplace, implementando rotación automática donde sea posible y alertas para credenciales próximas a expirar. La integración con IAM garantiza que cada microservicio acceda únicamente a los secrets necesarios para su función.
+
+**Secrets del Marketplace:**
+
+- **`dpv/marketplace/stripe-keys`:**
+  - API keys públicas y privadas de Stripe
+  - Rotación: Manual coordinada con Stripe
+- **`dpv/marketplace/local-payment-providers`:**
+  - Credenciales para BAC Credomatic y otros procesadores locales
+  - Configuración: Cifrado adicional para compliance local
+- **`dpv/marketplace/recommendation-ml-tokens`:**
+  - Tokens de acceso para endpoints de SageMaker
+  - Rotación: Automática cada 30 días
+- **`dpv/marketplace/analytics-db-credentials`:**
+  - Credenciales específicas para acceso de solo lectura a analytics
+  - Configuración: Least privilege access
+
+#### Amazon SageMaker
+
+Plataforma de machine learning que potencia el motor de recomendaciones del marketplace mediante modelos especializados que analizan comportamiento de usuarios, similitud de datasets y patrones de compra. Los endpoints en tiempo real proporcionan recomendaciones personalizadas con latencia <100ms, mientras que jobs de entrenamiento nocturnos mantienen modelos actualizados con datos del día anterior.
+
+El sistema implementa A/B testing automático para evaluar efectividad de diferentes algoritmos de recomendación, optimizando continuamente para métricas de negocio como click-through rate y conversion rate.
+
+**Configuración para Recomendaciones:**
+
+- **Endpoints en tiempo real:**
+  - 2 instancias ml.t3.medium con auto-scaling hasta 6 instancias
+  - Latencia objetivo: <100ms para inference
+- **Modelos desplegados:**
+  - Collaborative filtering: Usuarios con preferencias similares
+  - Content-based filtering: Similitud de metadatos de datasets
+  - Hybrid ensemble: Combinación weighted de ambos enfoques
+- **Training Jobs:**
+  - Frecuencia: Semanal con datos agregados de comportamiento
+  - Instancias: ml.m5.xlarge para processing distribuido
+  - Feature engineering: Apache Spark integration para ETL de features
+
+#### Amazon RabbitMQ (Amazon MQ)
+
+Message broker que coordina comunicación asíncrona entre microservicios del marketplace, garantizando delivery confiable de eventos críticos como confirmaciones de pago, actualizaciones de suscripciones y triggers de notificaciones. La configuración active/standby en múltiples AZ elimina single points of failure en el sistema de messaging.
+
+Los dead letter queues capturan mensajes que fallan el procesamiento inicial, permitiendo retry logic sofisticado y análisis de fallos para mejorar la robustez del sistema.
+
+**Configuración:**
+
+- **Tipo:** RabbitMQ 3.11.x para compatibilidad con ecosystem existente
+- **Instancias:** mq.m5.large en producción, mq.t3.micro para desarrollo
+- **Alta disponibilidad:** Configuración active/standby en múltiples AZ
+- **Durabilidad:** Queues persistentes para eventos críticos de pago
+
+**Exchanges y Queues principales:**
+
+- **`marketplace.events`:** Exchange principal para routing de eventos
+- **`payment.processing`:** Cola específica para procesamiento de pagos
+- **`notification.delivery`:** Delivery de notificaciones con retry logic
+- **`recommendation.updates`:** Actualización de cache de recomendaciones
+- **`analytics.tracking`:** Streaming de eventos para analytics en tiempo real
+
+#### Amazon SES (Simple Email Service)
+
+Gestiona el envío confiable de notificaciones transaccionales del marketplace, desde confirmaciones de compra hasta alertas de límites de uso. Los templates personalizables mantienen consistencia de marca mientras que el tracking de engagement proporciona insights sobre efectividad de comunicaciones.
+
+La configuración de bounce y complaint handling protege la reputación del dominio, mientras que la integración con SNS permite procesamiento automatizado de eventos de email.
+
+**Configuración:**
+
+- **Región:** us-east-1 para consistencia con otros servicios
+- **Dominio verificado:** marketplace.datapuravida.cr con DKIM/SPF
+- **Templates de email:**
+  - Confirmación de compra con detalles de dataset adquirido
+  - Facturas y recibos con PDF adjunto
+  - Notificaciones de renovación de suscripción
+  - Alertas de límites de uso próximos a agotarse
+- **Bounce handling:** Automático con SNS integration
+- **Sending limits:** Configurados según volumen proyectado de usuarios
+
+#### AWS Lambda
+
+Funciones serverless que manejan procesamiento específico y respuesta a eventos sin mantener infraestructura dedicada. Las funciones se activan automáticamente en respuesta a webhooks de payment providers, schedules de renovación, y eventos de fraude detection, proporcionando respuesta rápida y costos optimizados.
+
+**Funciones principales:**
+
+- **`marketplace-webhook-processor`:**
+  - Procesa webhooks de Stripe y otros payment providers
+  - Timeout: 30 segundos, Memory: 512MB
+  - Integración: SQS para reliable processing
+- **`marketplace-invoice-generator`:**
+  - Genera PDFs de facturas automáticamente post-pago
+  - Timeout: 5 minutos, Memory: 1024MB
+  - Storage: S3 para archivos generados
+- **`marketplace-subscription-renewal`:**
+  - Procesa renovaciones automáticas y notificaciones
+  - Trigger: EventBridge schedule
+  - Integration: RDS para subscription state management
+- **`marketplace-fraud-detector`:**
+  - Análisis en tiempo real de patrones sospechosos
+  - Timeout: 15 segundos, Memory: 512MB
+  - ML Integration: SageMaker endpoint para scoring
+
+#### Amazon CloudFront
+
+Red de distribución de contenido que acelera la entrega de assets del marketplace a usuarios globales, aunque se enfoca principalmente en usuarios de Costa Rica. El cache inteligente diferencia entre contenido estático (thumbnails, assets) y dinámico (APIs, datos en tiempo real) para optimizar performance y reducir latencia.
+
+**Configuración de distribución:**
+
+- **Orígenes múltiples:**
+  - S3 bucket para assets estáticos del marketplace
+  - Application Load Balancer del EKS para contenido dinámico
+- **Behaviors de cache:**
+  - Assets estáticos: TTL 24 horas con compression habilitada
+  - APIs del marketplace: Sin cache, pass-through al backend
+  - Thumbnails de datasets: TTL 4 horas con invalidation automática
+- **Seguridad:** WAF integrado para protección contra ataques DDoS y bot traffic
+
+#### AWS Systems Manager Parameter Store
+
+Almacena configuraciones operacionales y feature flags que se ajustan dinámicamente sin requerir redespliegue de aplicaciones. Los parámetros se organizan jerárquicamente para facilitar management y se versionan para permitir rollback rápido de cambios problemáticos.
+
+**Parámetros organizados por categoría:**
+
+- **`/dpv/marketplace/pricing/`:**
+  - Configuraciones de precios dinámicos por región
+  - Descuentos automáticos basados en volumen
+- **`/dpv/marketplace/features/`:**
+  - Feature flags para rollout gradual de funcionalidades
+  - A/B testing configuration para UI experiments
+- **`/dpv/marketplace/limits/`:**
+  - Rate limiting específico por tipo de usuario
+  - Quotas de API calls y bandwidth por tier
+- **`/dpv/marketplace/ml/`:**
+  - Hyperparámetros para modelos de recomendación
+  - Thresholds para triggers de reentrenamiento
+
+#### Amazon EventBridge
+
+Servicio de eventos que orquesta integraciones complejas entre microservicios del marketplace y sistemas externos, permitiendo arquitectura event-driven que escala automáticamente. Las reglas configurables enrutan eventos específicos a targets apropiados, mientras que el retry automático garantiza delivery confiable.
+
+**Reglas principales:**
+
+- **Payment events:** Routing de confirmaciones de pago a múltiples servicios
+- **Subscription renewals:** Trigger automático de procesos de renovación
+- **Dataset updates:** Coordinación con La Bóveda para actualizar catálogo
+- **Analytics aggregation:** Scheduling de jobs de agregación de métricas
+
+**Targets integrados:**
+
+- Lambda functions para procesamiento inmediato de eventos críticos
+- SQS queues para procesamiento diferido y batching
+- SNS topics para notificaciones de sistema y alertas
+
+#### VPC Endpoints
+
+Configuración de endpoints privados que mantiene todo el tráfico sensible del marketplace dentro de la red privada de AWS, eliminando exposición a internet público y optimizando seguridad. Los endpoints se configuran específicamente para servicios utilizados frecuentemente por microservicios del marketplace.
+
+**Endpoints configurados:**
+
+- **S3 Gateway Endpoint:**
+  - Acceso directo a buckets de assets sin tráfico internet
+  - Optimización de latencia para operaciones de upload/download
+- **SES Interface Endpoint:**
+  - Envío de emails transaccionales desde VPC privada
+  - Compliance con políticas de seguridad gubernamentales
+- **SageMaker Interface Endpoint:**
+  - ML inference sin exposición de datos a internet público
+  - Protección de modelos propietarios y datos de entrenamiento
+- **Secrets Manager Interface Endpoint:**
+  - Acceso seguro a credenciales desde pods en EKS
+  - Eliminación de dependencies en internet para operaciones críticas
+
+### Sistema de Monitoreo
+>>>>>>> 04ac9380ea682ca41cd916a95868d97a1230affb
 El monitoreo del componente Marketplace de Datos de Data Pura Vida será utilizado para lograr que todo funcione bien, sea seguro y esté siempre disponible.
 
 **Métricas y Rendimiento**
@@ -6019,18 +7465,18 @@ El sistema de monitoreo no solo detectará problemas, sino que también proporci
 -	**Evaluación de Modelos de ML:** Monitorear el rendimiento de los modelos de recomendación (behavioral-ml-service, content-similarity-service, recommendation-engine-service) y detección de fraude (fraud-detection-service) y la efectividad de las recomendaciones servidas.
 
 
-###### Diagrama del Backend 
+### Diagrama del Backend 
 
 A continuación, se presenta el diagrama del backend del Marketplace de Datos de Data Pura Vida. En él se evidencia cómo todo el ecosistema de AWS interactúa con los distintos microservicios desplegados en el clúster de Kubernetes provisto por EKS. Se muestra la contenerización de cada microservicio utilizando Docker y cómo el monitoreo interno es gestionado por Prometheus. También se destacan las interacciones con sistemas de terceros como SumSub y Stripe.
 
 ![image](img/DiagramaBackendMarketplace.svg)
 
 
-#### Diseño de los datos
+## Diseño de los datos
 
-##### Topología de Datos
+### Topología de Datos
 
-- **Tipo:** OLTP + OLAP + NoSQL + Event-Driven + Motor de búsqueda
+- **Tipo:** OLTP + OLAP + NoSQL + Motor de búsqueda
 
 - Para el componente Marketplace se va a utilizar un arquitectura híbrida para la separación de responsabilidades entre transacciones, analítica y búsqueda. Las operaciones de compra, gestiones de permisos y accesos se maneja con una base de datos `OLTP` en RDS con PostgreSQl. Las consultas de usuario y logs se maneja en `OLAP` para realizar análisis. Para explorar el catálogo de datasets se usa un motor de búsqueda especializado. 
 
@@ -6130,11 +7576,11 @@ IAM_ROLE 'arn:aws:iam::123456789012:role/marketplace-etl'
 FORMAT AS PARQUET;
 ```
 
-##### RLS
+### RLS
 
 No se hace uso de RLS al igual que en la bóveda, por las mismas razones.
 
-##### Tenency, Seguridad y Privacidad
+### Tenency, Seguridad y Privacidad
 
 - **Modelo**: Single-Access-Point, RBAC, Multi-Tenant 
 
@@ -6233,7 +7679,7 @@ No se hace uso de RLS al igual que en la bóveda, por las mismas razones.
 
   - Se pueden diferenciar los datasets públicos, privados y pagos, y aplicar diferentes niveles de acceso y visibilidad sin necesidad de duplicar datos usando tags como `dataset=public-free`.
 
-##### Conexión a Base de datos
+### Conexión a Base de datos
 
 - **Modelo**: Transaccional vía Statements / ORM / Funciones asincronicas
 
@@ -6297,7 +7743,7 @@ Factory: Se aplica el patrón Factory para crear instancias de conexión y repos
       - dataset.access.revoked
       - search.query.malicious
 
-##### Diseño para IA
+### Diseño para IA
 
 **Implementaciones comunes a todas las tablas**
 
@@ -6331,7 +7777,7 @@ Con el objetivo de habilitar al componente Marketplace para interoperar con agen
 
 - Cuando un dataset se actualiza o cambia su estructura, los agentes de IA utilizan las columnas semánticas y los históricos de búsqueda para adaptar automáticamente visualizaciones, reportes y modelos entrenados.
 
-##### Diagrama de Base de Datos
+### Diagrama de Base de Datos
 
 El componente Marketplace reutiliza varias tablas del diagrama de La Bóveda, ya que ambos trabajan con usuarios, colectivos y datasets. Esto evita duplicar estructuras y mantiene consistencia entre módulos.
 
@@ -6347,218 +7793,11 @@ Las tablas que se usan directamente en el Marketplace son:
 
 ![alt text](img/DiagramaBDBoveda.png)
 
----
+# 4.6 Centro de Visualización y Consumo 
 
-### 4.4 Motor de transformacion
+## Diseño del Frontend 
 
-### Diseño del backend
-
-#### Servicios de AWS
-
-**Amazon EKS (Elastic Kubernetes Service)**
-
-El cluster de Kubernetes opera como el núcleo computacional donde residen todos los microservicios del Motor de Transformación, activándose automáticamente cuando el Centro de Carga notifica la disponibilidad de nuevos datasets para procesar.
-
-**Configuración de Hardware:**
-
-- **Versión de Kubernetes**: 1.29 (alineada con el resto del ecosistema)
-- **Tipo de nodos**: Amazon EC2 t3.large (2 vCPU, 8 GB RAM)
-- **Escalado**: 3-15 nodos que se expanden durante picos de carga nocturna cuando los datasets programados se procesan en batch
-- **Almacenamiento**: EBS gp3 con 100 GB por nodo para checkpoints temporales de Spark
-- **Red**: VPC privada que facilita comunicación segura con RDS y Redshift durante las transformaciones
-
-### Amazon RDS PostgreSQL
-
-La misma instancia compartida con Bioregistro y La Bóveda almacena metadatos críticos que guían cada transformación, consultándose antes de iniciar cualquier job ETL para determinar esquemas objetivo y validaciones requeridas.
-
-**Uso durante transformaciones:**
-Las tablas de control se actualizan en tiempo real conforme avanzan los jobs, registrando progreso para permitir recuperación automática en caso de fallos. Los microservicios consultan estas tablas para coordinar dependencias entre datasets relacionados, asegurando que las transformaciones ocurran en el orden correcto cuando un dataset referencia a otro.
-
-**Amazon S3**
-
-Los buckets funcionan como staging areas temporales donde los datos transitan por diferentes estados de transformación, desde su forma cruda hasta su versión final lista para Redshift.
-
-**Configuración por etapas:**
-
-- **`dpv-raw-staging`**: Recibe datos inmediatamente desde el Centro de Carga, manteniéndolos cifrados durante las primeras validaciones
-- **`dpv-transformation-work`**: Almacena resultados intermedios mientras Spark aplica limpieza, deduplicación y enriquecimiento con IA
-- **`dpv-redshift-ready`**: Contiene datos finales en formato Parquet optimizado, listos para carga bulk en La Bóveda
-- **`dpv-spark-checkpoints`**: Preserva estado de jobs largos para recuperación automática durante procesamiento de datasets masivos
-
-Los lifecycle policies mueven automáticamente datos antiguos entre clases de almacenamiento basándose en patrones de acceso, optimizando costos mientras mantienen disponibilidad para auditorías.
-
-**AWS KMS (Key Management Service)**
-
-Las claves se utilizan dinámicamente durante todo el pipeline de transformación, integrándose con el sistema tripartito del Bioregistro para mantener cifrado de datos sensibles incluso durante procesamiento.
-
-**Momentos de uso:**
-Cada vez que Spark lee datos del staging, las claves descifran automáticamente el contenido. Durante las transformaciones con IA, los datos permanecen cifrados en memoria, y al escribir resultados finales, se re-cifran antes del almacenamiento. Esta orchestración asegura que los datos nunca existan en texto plano en ningún punto del pipeline.
-
-**AWS Secrets Manager**
-
-Centraliza el manejo seguro de credenciales utilizadas durante transformaciones, rotándolas automáticamente para mantener seguridad sin interrumpir operaciones ETL.
-
-**Secrets almacenados:**
-
-- **`dpv/motor/redshift-credentials`**: Credenciales de conexión a Redshift utilizadas por microservicios para cargar datos transformados
-- **`dpv/motor/sagemaker-tokens`**: API keys para endpoints de SageMaker que ejecutan modelos de IA durante enriquecimiento de datos
-- **`dpv/motor/rabbitmq-auth`**: Credenciales para publicar/consumir mensajes de coordinación entre componentes
-- **`dpv/motor/s3-access-keys`**: Keys específicas para buckets con diferentes niveles de acceso según sensibilidad de datos
-
-Los microservicios consultan estos secrets automáticamente durante inicialización y los refrescan cada 24 horas sin requerir reinicio de pods.
-
-**AWS Systems Manager Parameter Store**
-
-Almacena configuraciones operacionales que se ajustan dinámicamente según carga de trabajo y ambiente, permitiendo tuning fino sin redespliegues.
-
-**Parámetros por categoría:**
-
-- **`/dpv/motor/spark/memory-config`**: Configuraciones de memoria para executors según tamaño de dataset detectado
-- **`/dpv/motor/airflow/worker-scaling`**: Parámetros de auto-scaling de workers basados en métricas históricas
-- **`/dpv/motor/quality/ml-thresholds`**: Umbrales de confianza para modelos de ML que determinan si datasets requieren validación manual
-- **`/dpv/motor/alerts/sla-targets`**: SLAs específicos por tipo de usuario y dataset que configuran alertas dinámicamente
-
-Los microservicios consultan estos parámetros durante ejecución para adaptar comportamiento según contexto operacional actual.
-
-**VPC Endpoints**
-
-Configurados para eliminar tráfico internet durante transformaciones, manteniendo datos sensibles completamente dentro de la red privada de AWS.
-
-**Endpoints configurados:**
-
-- **S3 Gateway Endpoint**: Todo el tráfico entre Spark jobs y buckets S3 permanece interno, optimizando latencia durante transferencias masivas de datos
-- **KMS Interface Endpoint**: Operaciones de cifrado/descifrado ocurren sin atravesar internet público, cumpliendo requisitos de seguridad gubernamental
-- **Secrets Manager Interface Endpoint**: Consultas de credenciales desde pods EKS se mantienen privadas, reduciendo superficie de ataque
-- **Systems Manager Interface Endpoint**: Acceso a configuraciones dinámicas sin exposición externa
-
-Esta configuración asegura que transformaciones de datos gubernamentales o sensibles nunca transiten por internet público.
-
-#### Monitoreo
-
-**Prometheus en EKS - Recolección Contextual**
-
-Prometheus opera continuamente dentro del cluster, pero intensifica la recolección de métricas durante ventanas de procesamiento activo, adaptando la frecuencia de scraping según la carga operacional.
-
-**Momentos de alta frecuencia:**
-Durante ejecución de jobs Spark masivos, el scrape interval se reduce a 15 segundos para capturar métricas granulares de memory spill, shuffle operations y task failures. Fuera de estas ventanas, vuelve a 60 segundos para optimizar recursos.
-
-**ServiceMonitors adaptativos:**
-
-- **etl-orchestrator**: Intensifica monitoreo cuando coordina múltiples jobs concurrentes, especialmente durante cargas batch nocturnas
-- **airflow-scheduler**: Monitoreo continuo con alertas que se activan cuando la cola de tareas supera umbrales definidos dinámicamente según patrones históricos
-- **spark-jobs**: Métricas se recolectan solo durante ejecución activa, eliminando overhead cuando no hay procesamiento
-
-**AWS CloudWatch - Monitoreo de Servicios Subyacentes**
-
-CloudWatch captura automáticamente métricas de la infraestructura AWS que soporta las transformaciones, correlacionando performance de aplicación con salud de servicios subyacentes.
-
-**RDS durante ETL:**
-Las métricas de conexiones concurrentes y latencia de queries se correlacionan con el número de jobs Spark activos, permitiendo identificar cuando la base de datos se convierte en cuello de botella durante cargas masivas.
-
-**S3 durante Pipeline:**
-Las métricas de PUT/GET operations revelan patrones de uso que informan optimizaciones de lifecycle policies. Picos de escritura en `dpv-redshift-ready` indican completación exitosa de transformaciones.
-
-**EKS Cluster Health:**
-
-- **Node utilization**: CPU y memoria de nodos correlacionada con número de executors Spark activos
-- **Pod startup latency**: Tiempo que toman pods en alcanzar estado Ready durante scaling events
-- **API server response time**: Latencia de Kubernetes API durante operaciones de scaling masivo
-
-**AWS X-Ray - Tracing Distribuido**
-
-X-Ray proporciona visibilidad completa del flujo de requests entre microservicios durante transformaciones, identificando bottlenecks específicos en el pipeline ETL.
-
-**Traces instrumentados:**
-
-- **End-to-end ETL flow**: Desde notificación de RabbitMQ hasta confirmación de carga en Redshift, mostrando latencia de cada paso
-- **Cross-service calls**: Llamadas entre etl-orchestrator y data-quality-service visualizadas con latencia detallada
-- **AWS service interactions**: Latencia de llamadas a Secrets Manager, S3, y KMS durante operaciones críticas
-- **Database query performance**: Tiempo específico de queries a RDS correlacionado con carga concurrente
-
-Los traces permiten identificar rápidamente si lentitud proviene de network latency, database contention, o processing logic.
-
-**AWS Config - Compliance Monitoring**
-
-Config monitorea continuamente configuraciones de seguridad y compliance, alertando sobre desviaciones que podrían violar requisitos de la Ley 8968.
-
-**Rules configuradas:**
-
-- **EKS security groups**: Valida que solo puertos necesarios estén abiertos y que tráfico sea restringido a subnets autorizadas
-- **S3 bucket encryption**: Asegura que todos los buckets del Motor mantengan cifrado habilitado con keys apropiadas
-- **IAM role policies**: Detecta cambios no autorizados en permisos de roles utilizados por microservicios
-- **RDS security configurations**: Monitorea que cifrado en tránsito y en reposo permanezca habilitado
-
-Las violaciones activan automáticamente remediation workflows que revierten cambios no autorizados.
-
-**AWS CloudTrail - Auditoría Completa**
-
-CloudTrail registra todas las API calls realizadas por microservicios del Motor, proporcionando trazabilidad completa para auditorías de compliance e investigación de incidentes.
-
-**Eventos auditados:**
-
-- **S3 data access**: Cada lectura/escritura de datos durante transformaciones, incluyendo IP source y timestamp exacto
-- **KMS key usage**: Operaciones de cifrado/descifrado correlacionadas con datasets específicos para auditorías de acceso a datos sensibles
-- **Secrets access**: Consultas a Secrets Manager registradas con contexto de cuál microservicio accedió a qué credenciales
-- **RDS connections**: Establecimiento de conexiones desde pods EKS hacia RDS con identificación precisa de workload
-
-Los logs se integran con sistemas de SIEM gubernamentales cuando se procesan datasets de entidades públicas.
-
-**Grafana - Visualización Contextual del Pipeline**
-
-**Dashboard "ETL Pipeline Flow":**
-Combina métricas de Prometheus, CloudWatch y trazas de X-Ray en visualización unificada que muestra datasets fluyendo desde Centro de Carga hasta La Bóveda, con drill-down capability hacia traces específicos cuando hay problemas.
-
-**Dashboard "Security & Compliance":**
-Integra datos de Config, CloudTrail y CloudWatch para mostrar postura de seguridad en tiempo real, incluyendo encryption status, access patterns y compliance violations con alertas visuales inmediatas.
-
-**Dashboard "Cost Optimization":**
-Correlaciona métricas de utilización de recursos con costos generados, mostrando cost-per-transformation y sugiriendo optimizaciones automáticas basadas en patterns históricos.
-
-### AWS Cost Explorer + Billing Alerts
-
-Monitoreo proactivo de costos asegura que transformaciones se mantengan dentro de presupuestos definidos, con optimizaciones automáticas cuando se detectan overruns.
-
-**Cost allocation tags:**
-
-- **`Project:MotorTransformacion`**: Agrupa todos los costos relacionados para billing granular
-- **`Environment:production/staging`**: Separa costos por ambiente para optimización específica
-- **`Dataset-Type:government/private`**: Tracking diferenciado para cumplir con requirements de transparencia gubernamental
-- **`User-Tier:premium/standard`**: Cost tracking por tipo de usuario para pricing optimization
-
-**Billing alerts configuradas:**
-
-- **Daily spend > $500**: Alerta temprana para investigar jobs anómalos que consumen recursos excesivos
-- **Monthly projection > $10,000**: Trigger para activar optimizaciones automáticas como uso de Spot instances
-- **Cost per GB processed > $0.50**: Indicador de ineficiencia que activa análisis de performance
-
-**Auto-optimization triggers:**
-Cuando costos superan umbrales, el sistema automáticamente ajusta configuraciones como reducir retention de checkpoints, optimizar Spark configurations, o sugerir alternative processing paths más económicos.
-
-**Sistema de Alertas Integrado**
-
-### AlertManager (Prometheus) + CloudWatch Alarms + SNS
-
-Las alertas se correlacionan automáticamente entre fuentes, evitando alert fatigue mientras aseguran coverage completo de escenarios críticos.
-
-**Escalación inteligente:**
-
-- **Tier 1 (0-15 min)**: Alertas automáticas para on-call engineer con contexto específico del problema
-- **Tier 2 (15-30 min)**: Escalación a team lead con dashboard pre-configurado para troubleshooting
-- **Tier 3 (30+ min)**: Involucra arquitectos de sistema con análisis automatizado de root cause
-
-**Context-aware notifications:**
-Las alertas incluyen automáticamente links a dashboards relevantes, traces de X-Ray relacionados y logs específicos del período del incidente, acelerando resolution time.
-
-
-## 5. Validación de los requerimientos
-
-- Validar que el diseño cubre todos los requerimientos funcionales y no funcionales del sistema
-- Identificar ventajas y desventajas del diseño, proponiendo mitigaciones a los riesgos y limitaciones
-
-
-### Centro de Visualización y Consumo - Generador de Dashboards
-
-#### Construcción Arquitectónica
+### Construcción Arquitectónica
 
 El Generador de Dashboards es el subcomponente principal encargado de permitir la creación, visualización y personalización de gráficos de análisis sobre los datasets cargados y procesados previamente en el sistema.
 
@@ -6568,9 +7807,8 @@ Su arquitectura técnica sigue las siguientes capas:
 - **Backend:** Implementado sobre la API REST general del backend centralizada en FastAPI desplegada en EKS.
 - **Persistencia de datos:** Los dashboards generados se almacenan en PostgreSQL bajo el dominio de usuarios, configuraciones y plantillas personalizadas.
 
----
 
-#### Flujo Completo de Funcionamiento
+### Flujo Completo de Funcionamiento
 
 1. **Selección y configuración inicial:**
    - El usuario accede a la interfaz gráfica desde el portal web.
@@ -6596,9 +7834,9 @@ Su arquitectura técnica sigue las siguientes capas:
 7. **Control de consumo:**
    - Se aplica control de límites en tiempo real (volumen de datos consultados, frecuencia de uso, número de dashboards activos).
 
----
 
-#### Principios de Diseño Aplicados
+
+### Principios de Diseño Aplicados
 
 - **MVVM:**
   - `Model:` Las estructuras de dashboards, gráficos y datasets.
@@ -6626,9 +7864,9 @@ Su arquitectura técnica sigue las siguientes capas:
 - **Separation of Concerns:**
   - Clarísima división entre vistas (React Components), lógica de negocio (Hooks) y acceso a datos (API Connector).
 
----
 
-#### Herramientas y Librerías utilizadas
+
+### Herramientas y Librerías utilizadas
 
 | Capa       | Herramienta |
 |------------|-------------|
@@ -6639,18 +7877,16 @@ Su arquitectura técnica sigue las siguientes capas:
 | DevOps     | GitHub Actions, Terraform, Prometheus, Grafana, CloudWatch |
 | Testing    | Jest (Frontend), Pytest (Backend), Postman, Gatling |
 
----
 
-#### Consideraciones de Seguridad
+### Consideraciones de Seguridad
 
 - Todos los accesos a dashboards pasan por validación OAuth2 + JWT emitidos por Cognito.
 - El acceso a datasets sigue las reglas RBAC y RLS definidas en la bóveda.
 - Los dashboards nunca exportan datos en crudo, sólo visualización interna.
 - Se aplica protección contra abusos de consumo vía throttling, rate-limiting y monitoreo con CloudWatch.
 
----
 
-#### Observabilidad Específica
+### Observabilidad Específica
 
 - Dashboards de monitoreo propios en Grafana:
   - Volumen de dashboards generados por usuario
@@ -6659,9 +7895,8 @@ Su arquitectura técnica sigue las siguientes capas:
   - Consumo acumulado de datasets por dashboard
   - Tasa de uso de IA para generación automática
 
----
 
-#### Esquema Simplificado de Componentes Frontend
+### Esquema Simplificado de Componentes Frontend
 
 ```plaintext
 frontend/
@@ -6683,13 +7918,15 @@ frontend/
 │       └── DashboardBuilderPage.jsx
 ```
 
-### Backoffice Administrativo
+# 4.7 Backoffice Administrativo
 
-#### Arquitectura de Construcción del Backoffice Administrativo
+## Diseño del Frontend 
+
+### Arquitectura de Construcción del Backoffice Administrativo
 
 El módulo de Backoffice Administrativo permite a los operadores internos gestionar todos los aspectos críticos de la operación, seguridad, auditoría y configuración del ecosistema de Data Pura Vida. La arquitectura está diseñada bajo los mismos principios de escalabilidad, modularidad, seguridad avanzada y desacoplamiento que los demás módulos.
 
-#### Flujo funcional principal:
+### Flujo funcional principal:
 
 1. El usuario (operador administrativo) accede mediante login protegido por MFA en Cognito.
 2. El frontend permite administrar usuarios, llaves, flujos de trabajo y auditoría mediante distintos paneles desacoplados.
@@ -6698,9 +7935,8 @@ El módulo de Backoffice Administrativo permite a los operadores internos gestio
 5. Se registran logs completos de auditoría y trazabilidad para cada operación sensible.
 6. El frontend permite consultar en tiempo real el estado de las operaciones y extraer reportes auditables.
 
----
 
-#### Diseño de la arquitectura
+### Diseño de la arquitectura
 
 - **Frontend**  
   - Construido en React con Tailwind, siguiendo patrón MVVM.
@@ -6723,9 +7959,8 @@ El módulo de Backoffice Administrativo permite a los operadores internos gestio
   - Cada acción administrativa produce un evento de auditoría.
   - Toda interacción sensible es auditada y registrada en OpenSearch.
 
----
 
-#### Construcción de objetos de negocio
+### Construcción de objetos de negocio
 
 **Tablas principales gestionadas:**
 
@@ -6748,9 +7983,8 @@ El módulo de Backoffice Administrativo permite a los operadores internos gestio
 - `permission.assigned`
 - `external.integration.modified`
 
----
 
-#### Principios de diseño aplicados
+### Principios de diseño aplicados
 
 - **MVVM**  
   El frontend sigue estrictamente MVVM con separación en `models`, `hooks` (ViewModel), `components` (View).
@@ -6768,9 +8002,8 @@ El módulo de Backoffice Administrativo permite a los operadores internos gestio
 - **DRY:**  
   Formularios, validadores y modales reutilizados por cada panel de administración.
 
----
 
-#### Herramientas utilizadas
+### Herramientas utilizadas
 
 | Herramienta | Función |
 |--------------|---------|
@@ -6787,9 +8020,8 @@ El módulo de Backoffice Administrativo permite a los operadores internos gestio
 | AWS SES | Notificaciones administrativas |
 | AWS Secrets Manager | Manejo seguro de credenciales internas |
 
----
 
-#### Estructura de carpetas Frontend
+### Estructura de carpetas Frontend
 
 ```plaintext
 frontend/
@@ -6815,3 +8047,7 @@ frontend/
 │   ├── pages/
 │   │   └── AdminDashboardPage.tsx
 │   └── App.tsx
+```
+  
+
+## 5. Validación de los requerimientos

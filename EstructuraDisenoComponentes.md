@@ -13,7 +13,7 @@ Además cabe aclarar que cada sección no aplica necesariamente para todos los c
   - Componentes Visuales.
     - Patrones y Principios: Revisar Capítulo 4 del profe en github
     - Toolkits y Standards
-  - Estructura de carpetas del sistema
+  - Estructura de carpetas 
   - Diagrama de Frontend
 
 ----
