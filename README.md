@@ -6725,6 +6725,19 @@ Con el objetivo de habilitar al componente Marketplace para interoperar con agen
 
 ##### Diagrama de Base de Datos
 
+El componente Marketplace reutiliza varias tablas del diagrama de La Bóveda, ya que ambos trabajan con usuarios, colectivos y datasets. Esto evita duplicar estructuras y mantiene consistencia entre módulos.
+
+Las tablas que se usan directamente en el Marketplace son:
+
+- **PersonaFisica:** para los usuarios que compran y acceden a datasets.
+- **Dataset:** representa los datasets disponibles para consulta o compra.
+- **Colectivo y TipoDeColectivo:** identifican quién publica cada dataset.
+- **AccesoDataset:** registra qué usuario tiene permiso de acceso a cada dataset.
+- **DatasetDePago y TipoDePago:** definen si el acceso es por suscripción, cuota, etc.
+- **Cuotas:** controla cuántas consultas le quedan a un usuario.
+- Las tablas Representantes y BankAccount no se usan directamente en el Marketplace.
+
+![alt text](img/DiagramaBDBoveda.png)
 
 ---
 
