@@ -5554,412 +5554,164 @@ El frontend del componente Marketplace sigue una arquitectura moderna basada en 
 
 #### Microservicios por Componente
 
-#### **marketplace-catalog-service**
-
-Activo constantemente durante horarios de operación, con picos durante búsquedas matutinas (8-10 AM) cuando usuarios planifican análisis diarios, y durante sincronizaciones nocturnas (2-4 AM) cuando el Motor de Transformación completa procesamiento de nuevos datasets. Opera en EKS cluster dedicado del marketplace, con pods distribuidos en availability zones para alta disponibilidad durante búsquedas críticas de usuarios enterprise. Consume eventos de La Bóveda vía RabbitMQ cuando nuevos datasets están listos, actualiza índices de Elasticsearch en tiempo real, y sirve búsquedas através de cache Redis que se invalida automáticamente cuando metadatos cambian.
-
-##### **Microservicios internos:**
-
-**catalog-metadata-sync-service**
-
-- **Función**: Sincroniza metadatos entre La Bóveda y marketplace cada 15 minutos, detectando nuevos datasets y cambios de estado
-- **Herramientas**: Apache Airflow para scheduling de jobs, PostgreSQL para tracking de cambios incrementales, gRPC client para comunicación con La Bóveda
-- **Operación**: Ejecuta continuamente con intensificación durante ventanas de ETL del Motor (2-6 AM) cuando más datasets se procesan
-- **Event-driven**: Consume eventos `dataset.processed` del Motor de Transformación para updates inmediatos, `dataset.quality_updated` para refresh de métricas
-
-**catalog-search-engine-service**
-
-- **Función**: Gestiona indexación y búsqueda avanzada en OpenSearch con soporte multilenguaje y faceted search
-- **Herramientas**: OpenSearch para búsqueda y analytics, Redis para cache de queries frecuentes, Apache Spark para batch indexing
-- **Operación**: Reindexación incremental cada hora, reindexación completa los domingos durante ventana de mantenimiento
-- **Event-driven**: Procesa eventos `search.performed` para analytics, `dataset.metadata_changed` para reindexación selectiva
-
-**catalog-quality-aggregator-service**
-
-- **Función**: Agrega métricas de calidad del Motor de Transformación con ratings de usuarios para scoring híbrido
-- **Herramientas**: Apache Spark para agregaciones complejas, PostgreSQL para almacenamiento de scores, ML models para weighting
-- **Operación**: Jobs diarios durante madrugada para recalcular scores de todos los datasets activos
-- **Event-driven**: Consume `user.rating_submitted` para updates inmediatos de scores
-
-**Endpoints expuestos al API Gateway:**
-
-- `GET /api/v1/catalog/search` - Búsqueda avanzada con filtros y faceting
-- `GET /api/v1/catalog/datasets/{id}` - Detalles completos de dataset individual
-- `GET /api/v1/catalog/categories` - Listado de categorías con conteos
-- `GET /api/v1/catalog/trending` - Datasets trending basados en analytics
-- `GET /api/v1/catalog/recommendations/{user_id}` - Recomendaciones personalizadas
-
-#### **marketplace-user-service**
-
-Se mantiene activo 24/7 para gestión de sesiones globales, con mayor carga durante horarios laborales de Costa Rica (6 AM - 6 PM UTC-6) cuando usuarios buscan y compran datasets. Distribuido en pods que escalan automáticamente durante eventos de alto tráfico como lanzamientos de datasets gubernamentales. Integra con Bioregistro en tiempo real para validación de tokens mientras mantiene información comercial independiente en PostgreSQL local, sincronizando cambios de permisos vía eventos para actualizar acceso a contenido premium.
-
-##### **Microservicios internos:**
-
-**user-profile-manager-service**
-
-- **Función**: Gestiona perfiles comerciales complementando autenticación del Bioregistro
-- **Herramientas**: PostgreSQL con row-level security, Redis para cache de perfiles, gRPC client para Bioregistro
-- **Operación**: Sincronización con Bioregistro cada vez que usuario inicia sesión, cache de perfiles por 4 horas
-- **Event-driven**: Consume `user.authenticated` del Bioregistro, `subscription.updated` del payment service
-
-**user-behavior-tracker-service**
-
-- **Función**: Rastrea comportamiento de navegación, búsquedas, y interacciones para ML de recomendaciones
-- **Herramientas**: RabbitMQ para streaming de eventos, DynamoDB para storage de comportamiento, OpenSearch para analytics time-series, Apache Spark para feature engineering
-- **Operación**: Ingesta eventos en tiempo real, batch processing nocturno para agregaciones
-- **Event-driven**: Produce eventos `user.page_viewed`, `user.search_performed`, `user.dataset_clicked`
-
-**user-preference-engine-service**
-
-- **Función**: Motor de preferencias que aprende de comportamiento y permite configuración manual
-- **Herramientas**: Apache Spark MLlib para clustering de usuarios, Redis para cache de preferencias, PostgreSQL para storage
-- **Operación**: Recalcular preferencias semanalmente basado en actividad acumulada
-- **Event-driven**: Consume todos los eventos de behavior-tracker para updates de preferencias
-
-**user-session-manager-service**
-
-- **Función**: Gestión de sesiones distribuidas con sincronización cross-device
-- **Herramientas**: Redis Cluster para sesiones distribuidas, JWT para tokens, WebSocket para real-time sync
-- **Operación**: Mantiene sesiones activas por 8 horas, extensión automática durante actividad
-- **Event-driven**: Produce `user.session_started`, `user.session_expired` para analytics
-
-**Endpoints expuestos al API Gateway:**
-
-- `POST /api/v1/users/register` - Registro de nuevo usuario en marketplace
-- `GET /api/v1/users/me` - Perfil completo del usuario actual
-- `PUT /api/v1/users/me/preferences` - Actualización de preferencias
-- `POST /api/v1/users/behavior` - Tracking de eventos de comportamiento
-- `GET /api/v1/users/me/recommendations` - Recomendaciones personalizadas
-
-#### **marketplace-payment-service**
-
-Opera con alta disponibilidad 24/7 para procesar pagos globales, manejando picos de tráfico durante horarios de oficina en diferentes zonas horarias. Distribuido en pods con affinity a nodos dedicados para cumplir PCI DSS compliance. Se activa intensivamente durante finales de mes cuando empresas renuevan suscripciones y durante launches de datasets premium. Integra con múltiples payment providers según ubicación geográfica del usuario, enruta pagos automáticamente y maneja webhooks asincrónicos para confirmaciones.
-
-##### **Microservicios internos:**
-
-**payment-processor-service**
-
-- **Función**: Procesamiento de pagos únicos con validación, fraud detection, y routing de providers
-- **Herramientas**: Stripe SDK para pagos internacionales, BAC Credomatic API para Costa Rica, Redis para idempotencia
-- **Operación**: Procesamiento inmediato con timeout de 30 segundos, retry automático en caso de fallos temporales
-- **Event-driven**: Produce `payment.initiated`, `payment.completed`, `payment.failed` para workflow orchestration
-
-**subscription-billing-service**
-
-- **Función**: Gestión de suscripciones recurrentes, billing cycles, y renovaciones automáticas
-- **Herramientas**: PostgreSQL para subscription state, DynamoDB para billing events, Apache Airflow para scheduling de billing, Stripe para recurring payments
-- **Operación**: Procesa renovaciones diariamente a las 3 AM UTC, retry logic para pagos fallidos
-- **Event-driven**: Consume `subscription.created`, produce `subscription.renewed`, `subscription.cancelled`
-
-**invoice-generator-service**
-
-- **Función**: Generación automática de facturas con PDF, cálculo de impuestos, y envío por email
-- **Herramientas**: Python para PDF generation, Amazon SES para email delivery, PostgreSQL para invoice storage
-- **Operación**: Generación inmediata post-pago, batch generation para suscripciones el día 1 de cada mes
-- **Event-driven**: Consume `payment.completed` para trigger de generación inmediata
-
-**fraud-detection-service**
-
-- **Función**: Risk scoring en tiempo real basado en patrones de comportamiento y machine learning
-- **Herramientas**: Apache Spark MLlib para models, Amazon SageMaker para model deployment, Redis para feature store, DynamoDB para historical data
-- **Operación**: Scoring en <200ms durante checkout, reentrenamiento de models semanalmente usando SageMaker
-- **Event-driven**: Consume todos los payment events para continuous learning
-
-**webhook-handler-service**
-
-- **Función**: Manejo seguro de webhooks de payment providers con signature validation
-- **Herramientas**: FastAPI con async processing, RabbitMQ para reliable delivery, Redis para deduplication
-- **Operación**: Procesamiento inmediato de webhooks, retry con exponential backoff para failures
-- **Event-driven**: Produce payment state updates basados en confirmaciones de providers
-
-**Endpoints expuestos al API Gateway:**
-
-- `POST /api/v1/payments/initiate` - Inicio de proceso de pago
-- `GET /api/v1/payments/{id}/status` - Estado de transacción específica
-- `POST /api/v1/subscriptions` - Creación de nueva suscripción
-- `PUT /api/v1/subscriptions/{id}/cancel` - Cancelación de suscripción
-- `GET /api/v1/invoices` - Listado de facturas del usuario
-- `POST /api/v1/payments/webhooks/{provider}` - Webhooks de payment providers
-
-#### **marketplace-access-service**
-
-Ejecuta continuamente para gestionar acceso a datasets, con activación intensa post-compra cuando debe provisionar permisos inmediatamente. Opera distribuido para manejar múltiples usuarios accediendo datasets simultáneamente durante horarios peak. Se integra en tiempo real con La Bóveda para activar acceso y con Bioregistro para validar permisos. Monitorea uso continuo para aplicar rate limiting y generar billing por uso de APIs.
-
-##### **Microservicios internos:**
-
-**access-provisioning-service**
-
-- **Función**: Activación automática de acceso a datasets post-compra con integración a La Bóveda
-- **Herramientas**: gRPC clients para La Bóveda y Bioregistro, PostgreSQL para access records, RabbitMQ para event coordination
-- **Operación**: Provisioning inmediato (< 30 segundos) después de payment confirmation
-- **Event-driven**: Consume `payment.completed`, `subscription.activated`, produce `access.granted`
-
-**token-management-service**
-
-- **Función**: Generación y gestión de JWT tokens para acceso programático a datasets
-- **Herramientas**: JWT libraries con RS256 signing, Redis para token blacklisting, PostgreSQL para token metadata
-- **Operación**: Tokens con TTL de 24 horas, refresh automático para usuarios activos
-- **Event-driven**: Produce `token.generated`, `token.revoked` para audit logging
-
-**usage-tracking-service**
-
-- **Función**: Monitoreo de uso de datasets para billing, rate limiting, y analytics
-- **Herramientas**: RabbitMQ para real-time streaming, OpenSearch para time-series storage, Redis para rate limiting counters
-- **Operación**: Tracking en tiempo real de cada API call, batch aggregation horaria para billing
-- **Event-driven**: Consume `dataset.accessed`, produce `usage.threshold_exceeded`
-
-**permission-validator-service**
-
-- **Función**: Validación granular de permisos por dataset, usuario, y tipo de operación
-- **Herramientas**: Redis para cache de permissions, PostgreSQL para permission rules, gRPC para Bioregistro integration
-- **Operación**: Validación en <50ms para cada request, cache de permissions por 15 minutos
-- **Event-driven**: Consume `permission.updated` del Bioregistro, `access.revoked` events
-
-**audit-logger-service**
-
-- **Función**: Logging completo de accesos para compliance y auditoría
-- **Herramientas**: OpenSearch para log storage y analytics, PostgreSQL para audit summaries
-- **Operación**: Logging inmediato de cada acceso, retention de 7 años para compliance
-- **Event-driven**: Consume todos los access events para comprehensive audit trail
-
-**Endpoints expuestos al API Gateway:**
-
-- `POST /api/v1/access/provision` - Provisioning de acceso (sistema interno)
-- `GET /api/v1/access/my-datasets` - Datasets accesibles por usuario
-- `POST /api/v1/access/tokens/generate` - Generación de access token
-- `DELETE /api/v1/access/tokens/{id}` - Revocación de token
-- `GET /api/v1/access/usage` - Estadísticas de uso del usuario
-
-#### **marketplace-recommendation-service**
-
-Ejecuta batch processing nocturno (1-5 AM) para entrenar modelos ML con datos del día anterior, mientras sirve recomendaciones en tiempo real durante horas de navegación activa. Distribuido en pods optimizados para ML inference con GPU support para modelos complejos. Reutiliza infraestructura Spark del Motor de Transformación para feature engineering. Se activa especialmente durante onboarding de nuevos usuarios para cold-start recommendations.
-
-##### **Microservicios internos:**
-
-**behavioral-ml-service**
-
-- **Función**: Análisis de comportamiento de usuarios con machine learning para recommendations personalizadas
-- **Herramientas**: Apache Spark MLlib para collaborative filtering, Amazon SageMaker para model training y deployment, Hugging Face Transformers para embeddings
-- **Operación**: Entrenamiento nocturno con datos agregados, inference en tiempo real <100ms usando SageMaker endpoints
-- **Event-driven**: Consume `user.behavior_updated`, produce `recommendations.updated`
-
-**content-similarity-service**
-
-- **Función**: Cálculo de similaridad entre datasets basado en metadatos y contenido
-- **Herramientas**: Apache Spark para feature extraction, OpenSearch para similarity search, Hugging Face Transformers (all-mpnet-base-v2) para embeddings semánticos
-- **Operación**: Recálculo semanal de similarity matrix, updates incrementales cuando nuevos datasets se agregan
-- **Event-driven**: Consume `dataset.metadata_updated`, `dataset.added` para similarity recalculation
-
-**recommendation-engine-service**
-
-- **Función**: Motor principal que combina behavioral, content-based, y collaborative filtering
-- **Herramientas**: Redis para cache de recommendations, PostgreSQL para model weights, Apache Spark para ensemble methods
-- **Operación**: Pre-cálculo de recommendations para usuarios activos, real-time computation para cold users
-- **Event-driven**: Produce `recommendation.served` para effectiveness tracking
-
-**ab-testing-framework-service**
-
-- **Función**: Framework para testing de diferentes algoritmos de recomendación
-- **Herramientas**: PostgreSQL para experiment configuration, Redis for traffic splitting, Apache Spark para statistical analysis
-- **Operación**: Experimentos con duración de 2 semanas, análisis automático de significance
-- **Event-driven**: Consume `recommendation.clicked`, `recommendation.converted` para effectiveness measurement
-
-**Endpoints expuestos al API Gateway:**
-
-- `GET /api/v1/recommendations/personalized` - Recomendaciones personalizadas
-- `GET /api/v1/recommendations/similar/{dataset_id}` - Datasets similares
-- `GET /api/v1/recommendations/trending` - Trending recommendations
-- `POST /api/v1/recommendations/feedback` - Feedback de calidad de recomendaciones
-
-#### **marketplace-notification-service**
-
-Opera continuamente para delivery de notificaciones multi-canal, con picos durante confirmaciones de pago y eventos de datasets. Distribuido geográficamente para optimal delivery según timezone del usuario. Se activa especialmente durante campaigns de marketing y launches de nuevos datasets premium. Consume eventos de todos los microservicios del marketplace para trigger automático de comunicaciones contextuales.
-
-##### **Microservicios internos:**
-
-**notification-dispatcher-service**
-
-- **Función**: Router central que determina canal óptimo y timing para cada notificación
-- **Herramientas**: RabbitMQ para message queuing, Redis for user preferences, machine learning para optimal timing
-- **Operación**: Dispatch inmediato para transactional, scheduling inteligente para marketing
-- **Event-driven**: Consume events de todos los marketplace services, produce `notification.dispatched`
-
-**email-delivery-service**
-
-- **Función**: Gestión completa de email campaigns con templates y personalization
-- **Herramientas**: Amazon SES para delivery, Python Jinja2 para templating, PostgreSQL para tracking, Redis para rate limiting
-- **Operación**: Delivery inmediato para transactional, batch delivery para newsletters
-- **Event-driven**: Consume `notification.email_requested`, produce `email.delivered`, `email.bounced`
-
-**push-notification-service**
-
-- **Función**: Push notifications para browsers y mobile apps con targeting avanzado
-- **Herramientas**: Firebase Cloud Messaging, WebSocket para real-time, Redis para device tokens
-- **Operación**: Delivery inmediato con retry logic, cleanup de inactive tokens semanalmente
-- **Event-driven**: Consume `notification.push_requested`, produce `push.delivered`
-
-**sms-service**
-
-- **Función**: SMS delivery para notificaciones críticas integrado con sistema de autenticación
-- **Herramientas**: Amazon SNS para SMS delivery, PostgreSQL para message tracking, Redis for rate limiting
-- **Operación**: Delivery para emergencies únicamente, strict rate limiting por usuario
-- **Event-driven**: Consume `notification.sms_required` para casos críticos únicamente
-
-**template-management-service**
-
-- **Función**: Gestión de templates con multi-lenguaje y A/B testing
-- **Herramientas**: PostgreSQL para template storage, Redis for template cache, Jinja2 para rendering
-- **Operación**: Cache de templates populares, invalidation automática en updates
-- **Event-driven**: Produce `template.updated` cuando hay cambios en messaging
-
-**Endpoints expuestos al API Gateway:**
-
-- `GET /api/v1/notifications/preferences` - Preferencias de notificación del usuario
-- `PUT /api/v1/notifications/preferences` - Actualización de preferencias
-- `GET /api/v1/notifications/history` - Historial de notificaciones
-- `POST /api/v1/notifications/mark-read` - Marcar notificaciones como leídas
-
-#### **marketplace-analytics-service**
-
-Ejecuta continuamente con dos modes: real-time para dashboards operacionales y batch processing nocturno para métricas complejas de negocio. Distribuido con pods dedicados para stream processing durante business hours. Reutiliza infraestructura Spark del Motor de Transformación para analytics pesados. Se intensifica durante fin de mes para reportes financieros y análisis de performance.
-
-##### **Microservicios internos:**
-
-**event-ingestion-service**
-
-- **Función**: Ingesta masiva de eventos de todos los microservicios del marketplace
-- **Herramientas**: RabbitMQ para streaming, Apache Spark Streaming para processing, OpenSearch para time-series storage, DynamoDB para event metadata
-- **Operación**: Ingesta 24/7 con processing en tiempo real, batch aggregation cada hora
-- **Event-driven**: Consume todos los marketplace events, produce `analytics.event_processed`
-
-**business-metrics-calculator-service**
-
-- **Función**: Cálculo de KPIs de negocio como revenue, conversion rates, churn
-- **Herramientas**: Apache Spark para complex aggregations, PostgreSQL para metrics storage, Redis para real-time counters
-- **Operación**: Cálculos en tiempo real para dashboards, recalculations completos nocturnos
-- **Event-driven**: Consume payment, subscription, user events para metric updates
-
-**user-analytics-service**
-
-- **Función**: Análisis de comportamiento de usuarios, journey mapping, segmentación
-- **Herramientas**: Apache Spark MLlib para clustering, OpenSearch para user timelines, DynamoDB para user segments
-- **Operación**: Segmentación diaria de usuarios, cohort analysis semanal
-- **Event-driven**: Consume user behavior events, produce `user.segment_updated`
-
-**dataset-performance-analyzer-service**
-
-- **Función**: Análisis de performance de datasets, popularidad, revenue attribution
-- **Herramientas**: Apache Spark para analytics, OpenSearch para search analytics, DynamoDB para rankings
-- **Operación**: Rankings diarios de datasets, trend analysis semanal
-- **Event-driven**: Consume dataset access events, produce `dataset.trending_updated`
-
-**reporting-service**
-
-- **Función**: Generación de reportes automáticos para stakeholders y dataset owners
-- **Herramientas**: Apache Spark para data processing, Python para PDF generation, Amazon SES para delivery
-- **Operación**: Reportes diarios para operations, reportes mensuales para business
-- **Event-driven**: Scheduled generation basado en calendar events
-
-**Endpoints expuestos al API Gateway:**
-
-- `GET /api/v1/analytics/dashboard` - Métricas para dashboard principal
-- `GET /api/v1/analytics/revenue` - Métricas de revenue y financial KPIs
-- `GET /api/v1/analytics/users` - Analytics de comportamiento de usuarios
-- `GET /api/v1/analytics/datasets` - Performance analytics de datasets
-- `POST /api/v1/analytics/reports/generate` - Generación de reportes custom
-
-#### Event-Driven Architecture Patterns
-
-##### **Event Flow Principal**
-
-**User Journey Events:**
-
-1. `user.registered` → Triggers welcome email, initial recommendations calculation
-2. `user.search_performed` → Updates behavior tracking, feeds recommendation engine
-3. `user.dataset_viewed` → Records interest, updates popularity metrics
-4. `payment.completed` → Triggers access provisioning, invoice generation, confirmation email
-5. `access.granted` → Enables dataset usage, starts usage tracking
-6. `dataset.accessed` → Records usage for billing, updates analytics
-
-**Marketplace Operation Events:**
-
-1. `dataset.processed` (from Motor) → Triggers metadata sync, search reindexing
-2. `dataset.quality_updated` (from Motor) → Updates catalog rankings, triggers notifications to interested users
-3. `subscription.expiring` → Triggers renewal reminders, offers relevant upgrades
-4. `usage.threshold_exceeded` → Triggers upgrade suggestions, usage notifications
-
-#### **Event Processing Patterns**
-
-**Immediate Processing (< 1 second):**
-
-- Payment confirmations → Access provisioning
-- User authentication → Session creation
-- API access requests → Permission validation
-
-**Near Real-time (< 5 seconds):**
-
-- Search queries → Analytics updates
-- Dataset views → Popularity scoring
-- User behavior → Recommendation refresh
-
-**Batch Processing (hourly/daily):**
-
-- ML model training → Recommendation engine updates
-- Usage aggregation → Billing calculations
-- Analytics rollups → Business intelligence reports
-
-#### **Event Reliability Patterns**
-
-**Dead Letter Queues:** Para eventos críticos como payment processing que requieren manual intervention si fallan
-**Event Replay:** Capability para replay events durante disaster recovery o data corrections
-**Idempotency:** Todos los event handlers implementan idempotency keys para safe replay
-**Circuit Breakers:** Protection contra event storms que podrían overwhelm downstream services
-
-#### API Gateway Integration
-
-##### **API Gateway Routing Configuration**
-
-**Authentication & Authorization Layer:**
-
-- Validación de JWT tokens del Bioregistro
-- Rate limiting por usuario y endpoint
-- Request/response transformation
-- API key management para acceso programático
-
-**Service Routing:**
-
+### marketplace-catalog-service
+
+**Responsabilidad Principal**
+Gestión del catálogo de datasets con capacidades avanzadas de búsqueda, indexación y agregación de métricas de calidad.
+
+**Componentes Internos**
+- **catalog-metadata-sync-service**: Sincroniza metadatos entre La Bóveda y marketplace cada 15 minutos
+- **catalog-search-engine-service**: Gestiona indexación en OpenSearch con soporte multilenguaje
+- **catalog-quality-aggregator-service**: Agrega métricas de calidad del Motor de Transformación
+
+**Tecnologías Utilizadas**
+- FastAPI para endpoints REST
+- OpenSearch para búsqueda y analytics
+- Redis para cache de queries frecuentes
+- PostgreSQL para metadatos de datasets
+
+**APIs Expuestas**
 ```
-/api/v1/catalog/* → marketplace-catalog-service
-/api/v1/users/* → marketplace-user-service
-/api/v1/payments/* → marketplace-payment-service
-/api/v1/access/* → marketplace-access-service
-/api/v1/recommendations/* → marketplace-recommendation-service
-/api/v1/notifications/* → marketplace-notification-service
-/api/v1/analytics/* → marketplace-analytics-service
+GET /api/v1/catalog/search - Búsqueda avanzada con filtros y faceting
+GET /api/v1/catalog/datasets/{id} - Detalles completos de dataset
+GET /api/v1/catalog/categories - Listado de categorías con conteos
+GET /api/v1/catalog/trending - Datasets trending basados en analytics
+GET /api/v1/catalog/recommendations/{user_id} - Recomendaciones personalizadas
 ```
 
-**Cross-Cutting Concerns:**
+**Operación**
+Activo constantemente con picos durante búsquedas matutinas (8-10 AM) y sincronizaciones nocturnas (2-4 AM). Opera en EKS con pods distribuidos en availability zones para alta disponibilidad.
 
-- Request correlation IDs para distributed tracing
-- Centralized logging de todas las API calls
-- Metrics collection para Prometheus
-- Error handling y standardized error responses
 
-##### **Rate Limiting Strategy**
 
-**Tier-based Limits:**
+### marketplace-payment-service
 
-- Free tier: 100 requests/hour para search, 10 dataset views/day
-- Basic tier: 1000 requests/hour, 100 dataset views/day
-- Premium tier: 10000 requests/hour, unlimited views
-- Enterprise tier: Custom limits basados en SLA
+**Responsabilidad Principal**
+Procesamiento de pagos únicos y recurrentes, gestión de suscripciones, detección de fraude y generación automática de facturas.
 
-**Endpoint-specific Limits:**
+**Componentes Internos**
+- **payment-processor-service**: Procesamiento con validación y fraud detection
+- **subscription-billing-service**: Gestión de suscripciones recurrentes y renovaciones
+- **invoice-generator-service**: Generación automática de facturas PDF
+- **fraud-detection-service**: Risk scoring en tiempo real con ML
+- **webhook-handler-service**: Manejo seguro de webhooks de providers
 
-- Search endpoints: Higher limits para discovery
-- Payment endpoints: Lower limits para security
-- Analytics endpoints: Restricted to authorized users only
-- Data access endpoints: Based on purchased access levels
+**Integraciones Externas**
+- Stripe SDK para pagos internacionales
+- Sistema de pagos local costarricense
+- Redis para idempotencia de transacciones
+- FastAPI para todos los endpoints
+
+**APIs Expuestas**
+```
+POST /api/v1/payments/initiate - Inicio de proceso de pago
+GET /api/v1/payments/{id}/status - Estado de transacción específica
+POST /api/v1/subscriptions - Creación de nueva suscripción
+PUT /api/v1/subscriptions/{id}/cancel - Cancelación de suscripción
+GET /api/v1/invoices - Listado de facturas del usuario
+POST /api/v1/payments/webhooks/{provider} - Webhooks de providers
+```
+
+**Operación**
+Alta disponibilidad 24/7 con picos durante horarios de oficina y finales de mes. Distribuido en pods con affinity a nodos dedicados para cumplir PCI DSS compliance.
+
+---
+
+### marketplace-access-service
+
+**Responsabilidad Principal**
+Control granular de acceso a datasets, generación de tokens JWT, tracking de uso en tiempo real y auditoría completa de accesos.
+
+**Componentes Internos**
+- **access-provisioning-service**: Activación automática post-compra (<30 segundos)
+- **token-management-service**: Generación y gestión de JWT tokens con TTL de 24 horas
+- **usage-tracking-service**: Monitoreo en tiempo real para billing y rate limiting
+- **permission-validator-service**: Validación granular en <50ms por request
+- **audit-logger-service**: Logging completo para compliance (retención 7 años)
+
+**Integraciones**
+- gRPC clients para La Bóveda y Bioregistro
+- PostgreSQL para access records
+- RabbitMQ para coordinación de eventos
+- OpenSearch para logs de auditoría
+
+**APIs Expuestas**
+```
+POST /api/v1/access/provision - Provisioning de acceso (interno)
+GET /api/v1/access/my-datasets - Datasets accesibles por usuario
+POST /api/v1/access/tokens/generate - Generación de access token
+DELETE /api/v1/access/tokens/{id} - Revocación de token
+GET /api/v1/access/usage - Estadísticas de uso del usuario
+```
+
+**Operación**
+Ejecuta continuamente con activación intensa post-compra. Opera distribuido para manejar múltiples usuarios simultáneos durante horarios peak.
+
+
+### marketplace-user-service
+
+**Responsabilidad Principal**
+Gestión de perfiles comerciales, tracking de comportamiento de navegación y preferencias de usuarios con sincronización cross-device.
+
+**Componentes Internos**
+- **user-profile-manager-service**: Gestiona perfiles complementando autenticación del Bioregistro
+- **user-behavior-tracker-service**: Rastrea navegación para ML de recomendaciones
+- **user-preference-engine-service**: Motor de preferencias con clustering de usuarios
+- **user-session-manager-service**: Sesiones distribuidas con sincronización cross-device
+
+**Tecnologías Especializadas**
+- Redis para sesiones distribuidas
+- PostgreSQL para storage de preferencias
+- DynamoDB para storage de comportamiento
+- FastAPI para APIs de usuario
+
+**APIs Expuestas**
+```
+POST /api/v1/users/register - Registro de nuevo usuario
+GET /api/v1/users/me - Perfil completo del usuario actual
+PUT /api/v1/users/me/preferences - Actualización de preferencias
+POST /api/v1/users/behavior - Tracking de eventos de comportamiento
+GET /api/v1/users/me/recommendations - Recomendaciones personalizadas
+```
+
+**Operación**
+Activo 24/7 para gestión de sesiones globales, con mayor carga durante horarios laborales de Costa Rica (6 AM - 6 PM UTC-6).
+
+
+
+### marketplace-recommendation-service
+
+**Responsabilidad Principal**
+Motor de recomendaciones personalizadas basado en machine learning, análisis de comportamiento y similitud de contenido.
+
+**Componentes Internos**
+- **behavioral-ml-service**: Análisis con ML para recommendations personalizadas
+- **content-similarity-service**: Cálculo de similaridad entre datasets
+- **recommendation-engine-service**: Motor principal que combina multiple enfoques
+- **ab-testing-framework-service**: Framework para testing de algoritmos
+
+**Tecnologías de ML**
+- Amazon SageMaker para model training y deployment
+- Hugging Face Transformers para embeddings semánticos
+- Redis para cache de recommendations
+- FastAPI para endpoints de recomendaciones
+
+**Estrategias Implementadas**
+- **Collaborative Filtering**: Usuarios con preferencias similares
+- **Content-Based Filtering**: Similitud de metadatos de datasets
+- **Hybrid Ensemble**: Combinación weighted de ambos enfoques
+
+**APIs Expuestas**
+```
+GET /api/v1/recommendations/personalized - Recomendaciones personalizadas
+GET /api/v1/recommendations/similar/{dataset_id} - Datasets similares
+GET /api/v1/recommendations/trending - Trending recommendations
+POST /api/v1/recommendations/feedback - Feedback de calidad
+```
+
+**Operación**
+Batch processing nocturno para entrenar modelos, inference en tiempo real <100ms durante navegación activa. Pods optimizados para ML inference desplegados en EKS.
+
 
 
 ###### Diagrama de clases
@@ -6046,281 +5798,141 @@ Finalmente, existe una capa de repositorios para la persistencia de datos (Postg
 
 ![image](img/ClasesMarketplace3.png)
 
-### Servicios de AWS - Componente Marketplace (Backend)
-
-#### Amazon EKS (Elastic Kubernetes Service)
-
-El cluster de Kubernetes funciona como la plataforma central de orquestación para todos los microservicios del marketplace, proporcionando escalabilidad automática y alta disponibilidad. Durante horarios de alta actividad comercial (8-10 AM) y finales de mes cuando ocurren renovaciones masivas, el cluster escala dinámicamente desde 2 nodos base hasta 12 nodos distribuidos estratégicamente en múltiples zonas de disponibilidad.
-
-Los pods especializados operan según la naturaleza de cada microservicio: marketplace-recommendation-service ejecuta en nodos t3.xlarge optimizados para inferencia de machine learning, mientras que servicios transaccionales como marketplace-payment-service utilizan nodos t3.large para alta concurrencia. El service mesh implementa circuit breakers y health checks que detectan degradaciones de performance automáticamente, manteniendo la experiencia de usuario fluida durante picos de tráfico.
-
-**Configuración de Hardware:**
-
-- **Versión de Kubernetes:** 1.29 (alineada con ecosistema Data Pura Vida)
-- **Tipo de nodos base:** t3.large (2 vCPU, 8 GB RAM)
-- **Nodos especializados ML:** t3.xlarge (4 vCPU, 16 GB RAM)
-- **Auto Scaling:** 2-12 nodos con métricas CPU/memoria >70% por 5 minutos
-- **Almacenamiento:** EBS gp3 50GB por nodo para cache local y logs
-- **Red:** VPC privada compartida con networking optimizado para ML
-
-#### Amazon RDS PostgreSQL
-
-Utiliza la misma instancia compartida establecida por Bioregistro y La Bóveda, extendiendo el esquema de base de datos con tablas específicas para operaciones comerciales del marketplace. Las transacciones de pago se procesan con integridad ACID completa, mientras que las suscripciones se sincronizan continuamente con Stripe para mantener consistencia entre sistemas.
-
-La configuración Multi-AZ garantiza failover automático en menos de 60 segundos durante operaciones críticas como confirmaciones de pago y activación de accesos a datasets. El motor procesa concurrentemente consultas intensivas de catálogo durante búsquedas de usuarios y escrituras de alta frecuencia generadas por tracking de comportamiento.
-
-**Tablas específicas del Marketplace:**
-
-- **MarketplaceOrder:** Órdenes de compra con estados y timestamps
-- **Subscription:** Suscripciones activas con calendarios de renovación
-- **PaymentTransaction:** Historial completo de transacciones
-- **DatasetPricing:** Configuraciones de precios por dataset
-- **UserPurchaseHistory:** Historial de compras por usuario
-
-#### Amazon DynamoDB
-
-Maneja datos de alta velocidad que requieren latencia ultra-baja, especialmente durante interacciones en tiempo real como navegación de catálogo, seguimiento de comportamiento y cache de recomendaciones. El modo On-Demand se adapta automáticamente a picos impredecibles de tráfico durante launches de datasets premium o campañas de marketing.
-
-Las tablas utilizan TTL automático para optimizar costos y performance, eliminando datos temporales como sesiones expiradas y cache obsoleto. DynamoDB Streams replica automáticamente cambios a pipelines de analytics y ML para mantener modelos de recomendación actualizados.
-
-**Configuración de Tablas:**
-
-- **UserBehavior:** Tracking de clics, búsquedas y tiempo en página
-  - Partition Key: user_id, Sort Key: timestamp
-  - TTL: 90 días para analytics históricos
-- **SessionData:** Sesiones distribuidas cross-device
-  - Partition Key: session_id, TTL: 8 horas
-- **RecommendationCache:** Cache personalizado de recomendaciones
-  - Partition Key: user_id, TTL: 4 horas
-- **NotificationQueue:** Cola de notificaciones pendientes
-  - Partition Key: user_id, Sort Key: notification_id
-
-#### Amazon OpenSearch
-
-Motor de búsqueda especializado que indexa metadatos de todos los datasets del marketplace, proporcionando capacidades avanzadas de búsqueda full-text, filtrado facetado y análisis semántico. Los analyzers personalizados para español optimizan resultados para usuarios costarricenses, mientras que la funcionalidad de auto-complete mejora la experiencia de búsqueda.
-
-El cluster procesa consultas complejas con agregaciones en tiempo real para generar facets dinámicos (por categoría, precio, popularidad) y analytics de búsqueda que alimentan el motor de recomendaciones. Los índices se actualizan automáticamente cuando La Bóveda notifica cambios en datasets.
-
-**Configuración del Dominio:**
-
-- **Versión:** OpenSearch 2.3
-- **Cluster:** 3 nodos t3.medium.search para alta disponibilidad
-- **Almacenamiento:** 100GB EBS gp3 por nodo con auto-scaling habilitado
-- **Índices principales:**
-  - `datasets-catalog`: Metadatos completos con embeddings semánticos
-  - `user-searches`: Historial de búsquedas para analytics y recomendaciones
-  - `marketplace-analytics`: Métricas de tiempo real del marketplace
-- **Seguridad:** VPC privada, HTTPS obligatorio, fine-grained access control
-
-#### Amazon S3
-
-Proporciona almacenamiento escalable para diferentes tipos de contenido del marketplace, desde assets visuales hasta documentación generada automáticamente. Las políticas de lifecycle management optimizan costos moviendo automáticamente contenido antiguo a clases de almacenamiento más económicas según patrones de acceso.
-
-**Buckets especializados:**
-
-- **`dpv-marketplace-assets`:**
-  - Thumbnails y previews de datasets generados automáticamente
-  - Configuración: Versionado habilitado, CDN optimizado
-- **`dpv-marketplace-reports`:**
-  - Facturas PDF, reportes de analytics, documentos legales
-  - Configuración: Cifrado SSE-KMS, retención 7 años
-- **`dpv-marketplace-backups`:**
-  - Respaldos de configuraciones críticas y datos de recovery
-  - Configuración: Cross-region replication a us-west-1
-- **`dpv-marketplace-logs`:**
-  - Logs de auditoría extendida para compliance
-  - Configuración: Lifecycle a Glacier después de 90 días
-
-#### AWS KMS (Key Management Service)
-
-Gestiona claves de cifrado específicas para diferentes tipos de datos del marketplace, proporcionando separación de responsabilidades y cumplimiento de normativas de seguridad. La rotación automática anual mantiene la postura de seguridad actualizada sin interrumpir operaciones.
-
-**Claves especializadas:**
-
-- **`dpv-marketplace-payments`:**
-  - Cifrado de datos de transacciones, tokens de pago y información financiera
-  - Política: Acceso restringido solo a payment-service
-- **`dpv-marketplace-analytics`:**
-  - Protección de datos de comportamiento y preferencias de usuarios
-  - Política: Acceso para analytics y recommendation services
-- **`dpv-marketplace-reports`:**
-  - Cifrado de facturas, reportes financieros y documentos sensibles
-  - Política: Acceso para generación automática y backoffice
-- **`dpv-marketplace-recommendations`:**
-  - Protección de algoritmos ML y datos de entrenamiento
-  - Política: Acceso exclusivo para SageMaker endpoints
-
-#### AWS Secrets Manager
-
-Centraliza el manejo seguro de credenciales y API keys utilizadas por microservicios del marketplace, implementando rotación automática donde sea posible y alertas para credenciales próximas a expirar. La integración con IAM garantiza que cada microservicio acceda únicamente a los secrets necesarios para su función.
-
-**Secrets del Marketplace:**
-
-- **`dpv/marketplace/stripe-keys`:**
-  - API keys públicas y privadas de Stripe
-  - Rotación: Manual coordinada con Stripe
-- **`dpv/marketplace/local-payment-providers`:**
-  - Credenciales para BAC Credomatic y otros procesadores locales
-  - Configuración: Cifrado adicional para compliance local
-- **`dpv/marketplace/recommendation-ml-tokens`:**
-  - Tokens de acceso para endpoints de SageMaker
-  - Rotación: Automática cada 30 días
-- **`dpv/marketplace/analytics-db-credentials`:**
-  - Credenciales específicas para acceso de solo lectura a analytics
-  - Configuración: Least privilege access
-
-#### Amazon SageMaker
-
-Plataforma de machine learning que potencia el motor de recomendaciones del marketplace mediante modelos especializados que analizan comportamiento de usuarios, similitud de datasets y patrones de compra. Los endpoints en tiempo real proporcionan recomendaciones personalizadas con latencia <100ms, mientras que jobs de entrenamiento nocturnos mantienen modelos actualizados con datos del día anterior.
-
-El sistema implementa A/B testing automático para evaluar efectividad de diferentes algoritmos de recomendación, optimizando continuamente para métricas de negocio como click-through rate y conversion rate.
-
-**Configuración para Recomendaciones:**
-
-- **Endpoints en tiempo real:**
-  - 2 instancias ml.t3.medium con auto-scaling hasta 6 instancias
-  - Latencia objetivo: <100ms para inference
-- **Modelos desplegados:**
-  - Collaborative filtering: Usuarios con preferencias similares
-  - Content-based filtering: Similitud de metadatos de datasets
-  - Hybrid ensemble: Combinación weighted de ambos enfoques
-- **Training Jobs:**
-  - Frecuencia: Semanal con datos agregados de comportamiento
-  - Instancias: ml.m5.xlarge para processing distribuido
-  - Feature engineering: Apache Spark integration para ETL de features
-
-#### Amazon RabbitMQ (Amazon MQ)
-
-Message broker que coordina comunicación asíncrona entre microservicios del marketplace, garantizando delivery confiable de eventos críticos como confirmaciones de pago, actualizaciones de suscripciones y triggers de notificaciones. La configuración active/standby en múltiples AZ elimina single points of failure en el sistema de messaging.
-
-Los dead letter queues capturan mensajes que fallan el procesamiento inicial, permitiendo retry logic sofisticado y análisis de fallos para mejorar la robustez del sistema.
-
-**Configuración:**
-
-- **Tipo:** RabbitMQ 3.11.x para compatibilidad con ecosystem existente
-- **Instancias:** mq.m5.large en producción, mq.t3.micro para desarrollo
-- **Alta disponibilidad:** Configuración active/standby en múltiples AZ
-- **Durabilidad:** Queues persistentes para eventos críticos de pago
-
-**Exchanges y Queues principales:**
-
-- **`marketplace.events`:** Exchange principal para routing de eventos
-- **`payment.processing`:** Cola específica para procesamiento de pagos
-- **`notification.delivery`:** Delivery de notificaciones con retry logic
-- **`recommendation.updates`:** Actualización de cache de recomendaciones
-- **`analytics.tracking`:** Streaming de eventos para analytics en tiempo real
-
-#### Amazon SES (Simple Email Service)
-
-Gestiona el envío confiable de notificaciones transaccionales del marketplace, desde confirmaciones de compra hasta alertas de límites de uso. Los templates personalizables mantienen consistencia de marca mientras que el tracking de engagement proporciona insights sobre efectividad de comunicaciones.
-
-La configuración de bounce y complaint handling protege la reputación del dominio, mientras que la integración con SNS permite procesamiento automatizado de eventos de email.
-
-**Configuración:**
-
-- **Región:** us-east-1 para consistencia con otros servicios
-- **Dominio verificado:** marketplace.datapuravida.cr con DKIM/SPF
-- **Templates de email:**
-  - Confirmación de compra con detalles de dataset adquirido
-  - Facturas y recibos con PDF adjunto
-  - Notificaciones de renovación de suscripción
-  - Alertas de límites de uso próximos a agotarse
-- **Bounce handling:** Automático con SNS integration
-- **Sending limits:** Configurados según volumen proyectado de usuarios
-
-#### AWS Lambda
-
-Funciones serverless que manejan procesamiento específico y respuesta a eventos sin mantener infraestructura dedicada. Las funciones se activan automáticamente en respuesta a webhooks de payment providers, schedules de renovación, y eventos de fraude detection, proporcionando respuesta rápida y costos optimizados.
-
-**Funciones principales:**
-
-- **`marketplace-webhook-processor`:**
-  - Procesa webhooks de Stripe y otros payment providers
-  - Timeout: 30 segundos, Memory: 512MB
-  - Integración: SQS para reliable processing
-- **`marketplace-invoice-generator`:**
-  - Genera PDFs de facturas automáticamente post-pago
-  - Timeout: 5 minutos, Memory: 1024MB
-  - Storage: S3 para archivos generados
-- **`marketplace-subscription-renewal`:**
-  - Procesa renovaciones automáticas y notificaciones
-  - Trigger: EventBridge schedule
-  - Integration: RDS para subscription state management
-- **`marketplace-fraud-detector`:**
-  - Análisis en tiempo real de patrones sospechosos
-  - Timeout: 15 segundos, Memory: 512MB
-  - ML Integration: SageMaker endpoint para scoring
-
-#### Amazon CloudFront
-
-Red de distribución de contenido que acelera la entrega de assets del marketplace a usuarios globales, aunque se enfoca principalmente en usuarios de Costa Rica. El cache inteligente diferencia entre contenido estático (thumbnails, assets) y dinámico (APIs, datos en tiempo real) para optimizar performance y reducir latencia.
-
-**Configuración de distribución:**
-
-- **Orígenes múltiples:**
-  - S3 bucket para assets estáticos del marketplace
-  - Application Load Balancer del EKS para contenido dinámico
-- **Behaviors de cache:**
-  - Assets estáticos: TTL 24 horas con compression habilitada
-  - APIs del marketplace: Sin cache, pass-through al backend
-  - Thumbnails de datasets: TTL 4 horas con invalidation automática
-- **Seguridad:** WAF integrado para protección contra ataques DDoS y bot traffic
-
-#### AWS Systems Manager Parameter Store
-
-Almacena configuraciones operacionales y feature flags que se ajustan dinámicamente sin requerir redespliegue de aplicaciones. Los parámetros se organizan jerárquicamente para facilitar management y se versionan para permitir rollback rápido de cambios problemáticos.
-
-**Parámetros organizados por categoría:**
-
-- **`/dpv/marketplace/pricing/`:**
-  - Configuraciones de precios dinámicos por región
-  - Descuentos automáticos basados en volumen
-- **`/dpv/marketplace/features/`:**
-  - Feature flags para rollout gradual de funcionalidades
-  - A/B testing configuration para UI experiments
-- **`/dpv/marketplace/limits/`:**
-  - Rate limiting específico por tipo de usuario
-  - Quotas de API calls y bandwidth por tier
-- **`/dpv/marketplace/ml/`:**
-  - Hyperparámetros para modelos de recomendación
-  - Thresholds para triggers de reentrenamiento
-
-#### Amazon EventBridge
-
-Servicio de eventos que orquesta integraciones complejas entre microservicios del marketplace y sistemas externos, permitiendo arquitectura event-driven que escala automáticamente. Las reglas configurables enrutan eventos específicos a targets apropiados, mientras que el retry automático garantiza delivery confiable.
-
-**Reglas principales:**
-
-- **Payment events:** Routing de confirmaciones de pago a múltiples servicios
-- **Subscription renewals:** Trigger automático de procesos de renovación
-- **Dataset updates:** Coordinación con La Bóveda para actualizar catálogo
-- **Analytics aggregation:** Scheduling de jobs de agregación de métricas
-
-**Targets integrados:**
-
-- Lambda functions para procesamiento inmediato de eventos críticos
-- SQS queues para procesamiento diferido y batching
-- SNS topics para notificaciones de sistema y alertas
-
-#### VPC Endpoints
-
-Configuración de endpoints privados que mantiene todo el tráfico sensible del marketplace dentro de la red privada de AWS, eliminando exposición a internet público y optimizando seguridad. Los endpoints se configuran específicamente para servicios utilizados frecuentemente por microservicios del marketplace.
-
-**Endpoints configurados:**
-
-- **S3 Gateway Endpoint:**
-  - Acceso directo a buckets de assets sin tráfico internet
-  - Optimización de latencia para operaciones de upload/download
-- **SES Interface Endpoint:**
-  - Envío de emails transaccionales desde VPC privada
-  - Compliance con políticas de seguridad gubernamentales
-- **SageMaker Interface Endpoint:**
-  - ML inference sin exposición de datos a internet público
-  - Protección de modelos propietarios y datos de entrenamiento
-- **Secrets Manager Interface Endpoint:**
-  - Acceso seguro a credenciales desde pods en EKS
-  - Eliminación de dependencies en internet para operaciones críticas
-
+# Servicios AWS 
+
+## Amazon EKS (Elastic Kubernetes Service)
+**Propósito**: Orquestación de microservicios del marketplace
+
+**Configuración**:
+- **Versión**: Kubernetes 1.29
+- **Nodos**: 3-15 nodos t3.large (2 vCPU, 8 GB RAM)
+- **Auto-scaling**: CPU/memoria >70% por 5 minutos
+- **Almacenamiento**: EBS gp3 50GB por nodo
+- **Red**: VPC privada
+
+**Microservicios desplegados**:
+- `marketplace-catalog-service`: Gestión del catálogo y búsquedas
+- `marketplace-payment-service`: Procesamiento de pagos y suscripciones
+- `marketplace-access-service`: Control de acceso a datasets
+- `marketplace-notification-service`: Notificaciones del marketplace
+
+## Amazon RDS PostgreSQL
+**Propósito**: Almacenamiento transaccional
+
+**Configuración**:
+- **Motor**: PostgreSQL
+- **Tipo de instancia**: db.t3.medium o superior
+- **Almacenamiento**: EBS gp3 escalable
+- **Multi-AZ**: Habilitado para alta disponibilidad
+
+**Tablas del marketplace**:
+- `MarketplaceOrder`: Órdenes de compra
+- `Subscription`: Suscripciones activas
+- `PaymentTransaction`: Historial de transacciones
+- `DatasetRating`: Calificaciones y reseñas
+
+## Amazon DynamoDB
+**Propósito**: Almacenamiento NoSQL para datos temporales
+
+**Configuración**:
+- **Modo**: On-Demand
+- **TTL**: Habilitado para limpieza automática
+
+**Tablas**:
+- `UserBehaviorMarketplace`: Tracking de navegación (TTL: 90 días)
+- `MarketplaceSessionData`: Sesiones de usuario (TTL: 8 horas)
+- `DatasetRecommendationCache`: Cache de recomendaciones (TTL: 4 horas)
+
+## Amazon OpenSearch
+**Propósito**: Motor de búsqueda de datasets
+
+**Configuración**:
+- **Versión**: OpenSearch 2.3
+- **Cluster**: 2 nodos t3.small.search
+- **Almacenamiento**: 50GB EBS por nodo
+- **Seguridad**: VPC privada, HTTPS obligatorio
+
+**Índices**:
+- `datasets-marketplace-catalog`: Metadatos con búsqueda full-text
+- `user-marketplace-searches`: Historial de búsquedas
+
+## Amazon S3
+**Propósito**: Almacenamiento de objetos
+
+**Buckets**:
+- **`dpv-marketplace-assets`**: Thumbnails y previews de datasets
+- **`dpv-marketplace-invoices`**: Facturas PDF
+
+**Configuración**:
+- Cifrado SSE-S3 automático
+- Lifecycle policies a Glacier después de 90 días
+- Versionado habilitado
+
+## AWS Lambda
+**Propósito**: Funciones serverless
+
+**Funciones**:
+- **`marketplace-webhook-processor`**: 
+  - Procesa webhooks de Stripe
+  - Memoria: 512MB, Timeout: 30s
+- **`marketplace-invoice-generator`**: 
+  - Genera PDFs de facturas
+  - Memoria: 1GB, Timeout: 5min
+- **`marketplace-search-indexer`**: 
+  - Actualiza índices de OpenSearch
+  - Memoria: 256MB, Timeout: 1min
+
+## Amazon API Gateway
+**Propósito**: Gateway de APIs REST
+
+**Configuración**:
+- Rate limiting: 1000 requests/minuto por usuario
+- Autenticación vía Cognito
+- Caching: 5 minutos para búsquedas
+
+## Amazon Cognito
+**Propósito**: Autenticación y autorización
+
+**Configuración**:
+- User Pools para autenticación
+- MFA obligatorio
+- JWT tokens
+
+**Roles del marketplace**:
+- `marketplace:buyer`: Usuarios que pueden comprar
+- `marketplace:seller`: Organizaciones que venden datasets
+
+## AWS Secrets Manager
+**Propósito**: Gestión segura de credenciales
+
+**Secrets almacenados**:
+- `dpv/marketplace/stripe-keys`: Claves de Stripe
+- `dpv/marketplace/db-credentials`: Credenciales de RDS
+
+**Configuración**:
+- Cifrado con AWS KMS
+- Rotación automática configurada
+
+## Amazon SES
+**Propósito**: Envío de emails
+
+**Configuración**:
+- Dominio verificado: `marketplace@datapuravida.cr`
+- Templates para confirmaciones, facturas y notificaciones
+- Bounce handling automático
+- Políticas anti-spam
+
+## AWS KMS
+**Propósito**: Gestión de claves de cifrado
+
+**Claves especializadas**:
+- `dpv-marketplace-payments`: Datos de transacciones
+- `dpv-marketplace-assets`: Assets y documentos
+- `dpv-marketplace-analytics`: Datos de comportamiento
+
+**Configuración**:
+- Rotación automática anual
+- Políticas de acceso por servicio
 ###### Sistema de Monitoreo
 El monitoreo del componente Marketplace de Datos de Data Pura Vida será utilizado para lograr que todo funcione bien, sea seguro y esté siempre disponible.
 
