@@ -606,7 +606,7 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 | **R02** | **Alcance**       | **Subestimación del alcance del diseño**             | El tiempo asignado puede ser insuficiente para diseñar completamente todos los componentes técnicos con el nivel de detalle requerido para un sistema de esta magnitud                          | **Muy Alta (100%)** | **Medio (60%)**     | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Planning Poker diario 30min, re-estimación miércoles, time tracking obligatorio en ClickUp, descomponer tareas en máximo 8h cada una<br>**Contingencia:** Si desvío > 150% en 3 tareas: reducir nivel de detalle en diagramas de secuencia (de completos a conceptuales), simplificar especificaciones APIs (menos endpoints), priorizar componentes críticos primero, redistribuir trabajo en 1 día               |
 | **R03** | **Documentación** | **Inconsistencias en la documentación técnica**      | Generar documentación técnica coherente entre arquitectura de alto nivel, especificaciones de APIs, modelos de datos, diagramas de seguridad y patrones de integración                          | **Alta (80%)**      | **Alto (80%)**      | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Templates estándar GitHub, peer review obligatorio, checklist calidad por componente<br>**Contingencia:** Auditoría documental semanal viernes 2h, refactoring inmediato de documentos inconsistentes, responsable: Santiago Chaves                                                                                                                                                                                |
 | **R04** | **Tiempo**        | **Cronograma optimista para la complejidad**         | El tiempo asignado puede ser insuficiente para diseñar completamente todos los componentes técnicos con el nivel de detalle requerido para un sistema de esta magnitud                          | **Muy Alta (100%)** | **Medio (60%)**     | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Re-estimación semanal con burndown charts, escalación automática si > 20% desvío, buffer de 2 días por semana<br>**Contingencia:** Redistribuir tareas inmediatamente, asignar 2 personas a componentes críticos (Bio Registro y La Bóveda), reducir documentación detallada a documentación funcional, completar diseño básico de todos los componentes                                                           |
-| **R05** | **Técnico**       | **Complejidad del motor de transformación**                | Especificar técnicamente un motor que procese automáticamente múltiples formatos, detecte duplicados, relacione datos y aplique transformaciones inteligentes es altamente complejo             | **Media (60%)**     | **Muy Alto (100%)** | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Spike 16h Apache Spark + PySpark (Luis David), prototipo 3 casos (CSV→PostgreSQL, JSON→S3, API→DynamoDB), validar 10MB en <30min<br>**Contingencia:** Motor simplificado con AWS Glue + transformaciones predefinidas, o integración Talend Open Studio (setup 1 semana)                                                                                                                                           |
+| **R05** | **Técnico**       | **Complejidad del motor de transformación**          | Especificar técnicamente un motor que procese automáticamente múltiples formatos, detecte duplicados, relacione datos y aplique transformaciones inteligentes es altamente complejo             | **Media (60%)**     | **Muy Alto (100%)** | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Spike 16h Apache Spark + PySpark (Luis David), prototipo 3 casos (CSV→PostgreSQL, JSON→S3, API→DynamoDB), validar 10MB en <30min<br>**Contingencia:** Motor simplificado con AWS Glue + transformaciones predefinidas, o integración Talend Open Studio (setup 1 semana)                                                                                                                                           |
 | **R06** | **Seguridad**     | **Diseño de sistema de cifrado tripartito**          | Especificar correctamente un sistema de llaves criptográficas divididas entre tres custodios, incluyendo protocolos de recuperación y validación mancomunada                                    | **Baja (40%)**      | **Muy Alto (100%)** | **🟠 ALTO**     | **TRANSFERIR** | **Prevención:** Consulta expertos criptografía (8h consultoría), documentar estándares FIPS 140-2, validación externa con especialista<br>**Contingencia:** Implementar cifrado HSM tradicional AWS KMS, esquema dual en lugar de tripartito, mantiene seguridad pero reduce complejidad                                                                                                                                           |
 | **R07** | **Integración**   | **Interfaces entre componentes mal definidas**       | Riesgo de que las especificaciones de APIs, contratos de datos y protocolos de comunicación entre portal, backend y datalake no sean completamente compatibles                                  | **Media (60%)**     | **Alto (80%)**      | **🟠 ALTO**     | **MITIGAR**    | **Prevención:** Contratos OpenAPI 3.0 obligatorios, reuniones sync bi-semanales martes/viernes, diagramas de secuencia por flujo<br>**Contingencia:** Workshop alineación 4h si incompatibilidades detectadas, rediseño contratos en 2 días, validación cruzada inmediata                                                                                                                                                          |
 | **R08** | **Escalabilidad** | **Arquitectura no preparada para la carga esperada** | El diseño puede no contemplar adecuadamente el manejo de millones de registros, miles de usuarios concurrentes y procesamiento de grandes volúmenes de datos                                    | **Baja (40%)**      | **Medio (60%)**     | **🟡 MODERADO** | **MITIGAR**    | **Prevención:** Definir límites técnicos concretos por componente (Bio Registro: 100 req/min, La Bóveda: 10GB/día), especificar patrones de escalabilidad (load balancers, auto-scaling), calcular capacidad mínima requerida<br>**Contingencia:** Rediseñar arquitectura con clustering activo/pasivo, implementar sharding en diseño de BD, especificar CDN y caching layers, definir estrategia de particionamiento horizontal  |
@@ -698,7 +698,6 @@ La evaluación de riesgos utiliza una matriz de probabilidad versus impacto basa
 2. **Slack**: Métricas de comunicación y tiempo de respuesta
 3. **GitHub**: Commits, documentación y versiones
 4. **Reuniones semanales**: Revisión manual de KPIs y ajustes
-
 
 ## 2. Supuestos del proyecto
 
@@ -1535,7 +1534,6 @@ Durante el desarrollo e integración de la plataforma Data Pura Vida, se contemp
 
 Para garantizar que **Data Pura Vida** funcione exitosamente como ecosistema nacional de datos de Costa Rica, se establecen cinco aspectos de calidad fundamentales con implementaciones técnicas específicas que guiarán el diseño y operación del sistema.
 
-
 #### **2.5.1 Escalabilidad**
 
 La escalabilidad es la capacidad del sistema para manejar un crecimiento progresivo de usuarios, datos y transacciones sin que se degrade el rendimiento o la calidad del servicio.
@@ -1595,8 +1593,6 @@ Dado que modificar el diseño de modelos concurrentemente es peligroso, se imple
 **Mecanismos de escalabilidad:**
 
 El sistema utilizará escalado automático, que significa que cuando detecta mayor actividad, automáticamente asigna más recursos computacionales (servidores adicionales) para mantener el rendimiento. Cada componente puede crecer independientemente según su demanda específica, y el sistema se optimiza continuamente basándose en los patrones de uso reales de los costarricenses.
-
-
 
 #### **2.5.2 Mantenibilidad**
 
@@ -1960,7 +1956,6 @@ En cada una documentar versiones de frameworks, SDKs, lenguajes y herramientas u
 - **Amazon SageMaker**: Entrenamiento, ajuste fino y despliegue de modelos personalizados de machine learning.
 - **Hugging face**: para modelos ya entrenados que nos puedan servir (all-mpnet-base-v2 genera embeddings que podría servir para entrenar IA)
 
-
 ### Sistemas de Terceros
 
 - **SumSub:** Sistema para poder realizar las comprobaciones KYC, AML y sdk para realizar pruebas de vida.
@@ -2088,10 +2083,9 @@ Empresas de menor escala que operan en comercio, manufactura ligera, servicios d
   - Constancia de incripción en el PYME: Demuestra que está registrada en el MEIC y cumple los requisitos para ser PYME.
   - Departamento a Registrar: Se debe registrar a que departamento de la empresa pertenece el registro.
 
-
-
 **Sociedades Anónimas (S.A.)**
 Empresas grandes con estructura formal, juntas directivas y accionistas. Comunes en construcción, industria, finanzas o tecnología.
+
 - **Actividad diaria**: operación por departamentos, contratación de proveedores, desarrollo de productos, comercio exterior.
 - **Datos potenciales**: operaciones financieras, productividad, logística, desempeño empresarial.
 - **Documentos necesarios para Identificarla**:
@@ -2105,7 +2099,6 @@ Empresas grandes con estructura formal, juntas directivas y accionistas. Comunes
   - Certificado de Existencia: Documento legal que certifica la existencia de la empresa.
   - Departamento a Registrar: Se debe registrar a que departamento de la empresa pertenece el registro.
 
-
 #### **Empresas públicas y entes estatales**
 
 Entidades que operan con fondos públicos y ofrecen servicios esenciales.
@@ -2113,6 +2106,7 @@ Entidades que operan con fondos públicos y ofrecen servicios esenciales.
 **Instituciones autónomas**
 
 Ejemplos: CCSS, ICE, INS, TSE.
+
 - **Actividad diaria**: prestación de servicios de salud, energía, seguros, agua, telecomunicaciones.
 - **Datos potenciales**: cobertura geográfica, consumo, atención médica, reclamos ciudadanos.
 - **Documentos necesarios para Identificarla**:
@@ -2126,6 +2120,7 @@ Ejemplos: CCSS, ICE, INS, TSE.
 
 **Empresas estatales**
 Ejemplos: RECOPE, RACSA.
+
 - **Actividad diaria**: importación, distribución de bienes estratégicos, operación con entes reguladores.
 - **Datos potenciales**: consumo nacional, logística, demanda energética.
 - **Documentos necesarios para Identificarla**:
@@ -2140,6 +2135,7 @@ Ejemplos: RECOPE, RACSA.
 
 **Empresas municipales**
 Entidades creadas por municipalidades para servicios locales, un ejemplo es la ESPH (Empresa de Servicios Públicos de Heredia).
+
 - **Actividad diaria**: recolección de residuos, parqueo, mantenimiento urbano, servicios culturales.
 - **Datos potenciales**: desarrollo cantonal, planificación urbana, gestión ambiental.
 - **Documentos necesarios para Identificarla**:
@@ -2151,9 +2147,10 @@ Entidades creadas por municipalidades para servicios locales, un ejemplo es la E
   - Correo Institucional: correo electrónico del encargado de la institución.
   - Acuerdo Municipal: Un acta firmada que describa la resolución dada internamente en el ente municipal.
 
-
 #### **Órganos del Poder Ejecutivo**
+
 Ejemplos: MEP, MINAE, MOPT
+
 - **Actividad diaria**: Formulación e implementación de políticas públicas, ejecución de programas nacionales, regulación sectorial, gestión presupuestaria y administrativa.
 - **Datos potenciales**: Indicadores educativos, ambientales, de infraestructura y transporte; estadísticas de cobertura, acceso y calidad de servicios; y datos geoespaciales y sectoriales según competencia del ministerio.
 - **Documentos necesarios para Identificarla**:
@@ -2162,13 +2159,13 @@ Ejemplos: MEP, MINAE, MOPT
   - Correo Institucional: correo electrónico del encargado de la institución.
   - Nombre y Apellido del representante del órgano.
 
-
 #### **Cámaras y gremios**
 
 Organizaciones que agrupan empresas o profesionales.
 
 **Cámaras empresariales**
 Ejemplos: Cámara de la Construcción, Cámara de Tecnologías de Información, Cámara de Exportadores de Flores.
+
 - **Actividad diaria**: representación del sector, capacitaciones, generación de estudios y estadísticas.
 - **Datos potenciales**: empleo, productividad, retos sectoriales, inversión.
 - **Documentos necesarios para Identificarla**:
@@ -2181,6 +2178,7 @@ Ejemplos: Cámara de la Construcción, Cámara de Tecnologías de Información, 
 
 **Gremios profesionales o técnicos**
 Ejemplos: colegios de médicos, ingenieros, abogados.
+
 - **Actividad diaria**: certificación profesional, formación continua, vigilancia del ejercicio profesional.
 - **Datos potenciales**: matrícula, servicios ofrecidos, formación, cobertura geográfica.
 - **Documentos necesarios para Identificarla**:
@@ -2196,6 +2194,7 @@ Ejemplos: colegios de médicos, ingenieros, abogados.
 Instituciones de educación superior, tanto públicas como privadas, dedicadas a la formación profesional, la investigación científica y la extensión social. Dentro de estas operan subdivisiones como facultades, escuelas y centros de investigación (CI).
 
 **Universidades públicas y privadas**
+
 - **Actividad diaria**: matrícula, gestión de carreras, proyectos de investigación y extensión.
 - **Datos potenciales**: rendimiento académico, estadísticas de graduación, impacto social.
 - **Documentos necesarios para Identificarla**:
@@ -2207,7 +2206,6 @@ Instituciones de educación superior, tanto públicas como privadas, dedicadas a
   - Cédula del representante legal: Debe coincidir con el de la certificación de personería jurídica.
   - Nombre y Apellido del representante.
   - Correo Institucional: correo electrónico del encargado de la institución.
-
 
 #### Llaves Tripartita
 
@@ -2255,7 +2253,7 @@ Por ello no se usará Cognito para las empresas. Sin embargo, para la validació
 
 Por lo tanto, la validación de empresas también será implementada con SumSub. El almacenamiento de información y la delegación de llaves tripartitas serán discutidos más adelante en la sección del backend.
 
-Por otro lado, cabe aclarar que para poder llevar a cabo las validaciones con SumSub es necesario dirigirse a la página de SumSub y ahí generar flows. Los desarrolladores tendrán que crear estos flows con base en las especificaciones dadas sobre que información se le debe solicitar a cada tipo de usuario (los distintos tipos de jurídico y el físico)  que fue especificada previamente en este subcapítulo.
+Por otro lado, cabe aclarar que para poder llevar a cabo las validaciones con SumSub es necesario dirigirse a la página de SumSub y ahí generar flows. Los desarrolladores tendrán que crear estos flows con base en las especificaciones dadas sobre que información se le debe solicitar a cada tipo de usuario (los distintos tipos de jurídico y el físico) que fue especificada previamente en este subcapítulo.
 
 ##### Arquitectura de Cliente
 
@@ -2264,7 +2262,6 @@ Nuestra arquitectura de cliente consistirá en Client Side Rendering con renderi
 Por otro lado, uno de los requerimientos de este módulo es que solo puede ser accedido con IPs Costarricenses (El registro), por lo que cuando se desee acceder a la página de registro Cloudfront ejecutará un Lambda@Edge Function que revisará la IP del usuario y en caso de no ser de Costa Rica, no servirá dicha ruta del App.
 
 Además, para acceder al backend se utilizará una única API, desarrollada en FastAPI. Se entrará en más detalles de dicha API más adelante.
-
 
 ##### Patrones de Diseño de Objetos
 
@@ -2276,7 +2273,6 @@ A Continuación el diagrama de clases del frontend del Bioregistro:
 - **Cajas Celeste**: Las cajas celestes representan el strategy pattern, ya que por medio de herencia se aisla los distintos tipos de forms para colectivos, y de colectivos.
 - **Caja Roja**: Esta caja roja cumple dos funciones, de Singleton y de Facade. De singleton porque de esta manera solo existe una instancia que se conecta al API en todo momento. Además funciona como Facade ya que aisla toda la lógica de conexión con el API del backend en una sola clase.
 
-
 ##### Componentes Visuales
 
 **Patrones y Principios**
@@ -2284,6 +2280,7 @@ A Continuación el diagrama de clases del frontend del Bioregistro:
 - **Responsive Design**: Aunque el enfoque principal de nuestro sistema está en el uso desde web desktop, es importante implementar un diseño responsivo para que los usuarios puedan realizar el registro, prueba de vida y verificación de cédula de forma cómoda desde la cámara de sus celulares. Este diseño responsivo se logrará aprovechando las opciones que ofrece Tailwind CSS para distintos tamaños de pantalla, utilizando prefijos como sm:, md:, lg:, y xl:, que permiten adaptar los estilos según el dispositivo.
 
 - **SOLID**:
+
   - Single Responsibility: Cada componente en el bioregistro solo tendrá una responsabilidad. Por ejemplo, el formulario que detecta si es persona física o un conjunto solo emplea esa tarea, o los componentes de verificación de SumSub son distintos y cada uno hace su propia tarea: uno para la prueba de vida, otro para la verificación de id, y así para todo componente.
   - Open Closed Principle: Los componentes de registro son dinámicos y están separados, gracias a esto, si en un futuro se desea agregar otro tipo de organización, tan solo se debe desarrollar dicho componente y de ahí la conexión con el resto del flujo será directa.
   - Liskov Substitution Principle: La herencia debe ser utilizada solo cuando es necesaria. Por ejemplo, para los formularios de documentos para empresas si es valioso usar una superclase, pero no tiene sentido agruparlos en una clase madre con el formulario de prueba de vida.
@@ -2301,17 +2298,15 @@ A Continuación el diagrama de clases del frontend del Bioregistro:
   - View: Será toda la parte visual de los componentes, que van a seguir atomic design.
   - ViewModel: Se implementará en los custom hooks reutilizables que gestionan la lógica de negocio.
 
-
 **Toolkits y Standards**:
 
 - **Vite**: Se usará como servidor local para el desarrollo, y también para hacer el bundle de la aplicación.
 - **React Router**: Herramienta que permite manejar un app de react por medio de rutas.
 - **ESlint**: Se usará para mantener un estándar de código y evitar errores comunes.
 
-
 ##### Estructura de Carpetas
 
-``` bash
+```bash
 frontend/
 ├── public/                   #Assets como imagenes
 ├── src/
@@ -2360,22 +2355,20 @@ frontend/
 ```
 
 ##### Diagrama del Front
+
 A continuación se presenta el diagrama del frontend de Bioregistro. En él se muestra cómo el contenido estático generado por React se almacena en un bucket de S3, donde residen todos los componentes visuales, su ViewModel a través de funciones y custom hooks, y las clases modelo como Person y Collective.
 
 También se indica que los componentes visuales están estilizados con Tailwind CSS. La interacción con el backend se realiza mediante el módulo apiConnector.
 
 Finalmente, se incluye una Lambda@Edge function que, antes de que CloudFront entregue el HTML, verifica si la IP de acceso corresponde a Costa Rica, como parte de un filtro geográfico.
 
-
 ![image](img/DiagramaFrontRegistro.png)
 
 #### Diseño del backend
 
-
 ##### Microservicios
 
 A continuación se dará una explicación de todos los microservicios correspondientes al Bioregistro.
-
 
 **1. identity-verification-service**
 
@@ -2403,14 +2396,14 @@ Ahora bien dentro de él existirán los siguientes componentes:
   - /sumsub/collective/manual-verification: Para que los colectivos tengan la opción de solicitar una verificación manual.
   - /sumsub/collective/webhook: Para recibir aprobaciones de colectivos desde SumSub.
 - CollectiveService: Se encarga de abstraer las llamadas a los workflows de SumSub según el tipo de colectivo, y hacer el registro del applicant.
-- PersonService:	Se encarga de registrar las personas en SumSub y generar UUIDs para los usuarios.
-- WebHookProcessor:	Se encarga de procesar los resultados de las respuestas de SumSub.
+- PersonService: Se encarga de registrar las personas en SumSub y generar UUIDs para los usuarios.
+- WebHookProcessor: Se encarga de procesar los resultados de las respuestas de SumSub.
 - CollectiveVerificationRouter: Middleware que se encarga de ver si se hace verifación manual o por medio de SumSub a los colectivos.
-
 
 A continuación se muestra el flujo completo de interacción entre frontend y este componente para verificar una persona física:
 
 1. La persona inicia el proceso de verificación:
+
 - Frontend llama a: POST /sumsub/person/token:
   ```json
   {
@@ -2423,6 +2416,7 @@ A continuación se muestra el flujo completo de interacción entre frontend y es
   }
   ```
 - El SumSubController dirige la carga al PersonService que se encargará de registrar el Applicant en SumSub y enviarle un UUID interno. Obtendrá de respuesta el Id interno de SumSub que se usará para realizar la verificación.
+
   - También en la tabla de SumSubApplicants se registrará el UUID interno, una fila llamada Approved en False, y todas las credenciales dadas. Esto permitirá que cuando las personas traten de registrarse solo puedan una ves este flag sea cambiado a True (Más detalles sobre el registro serán explicados en el registration-service).
 
 - Se retorna al frontend:
@@ -2432,11 +2426,13 @@ A continuación se muestra el flujo completo de interacción entre frontend y es
     "InternalId": "uuid-del-sistema"
   }
   ```
+
 2. El sdk de SumSub realiza la prueba de vida, la verificación de id, y la prueba de dirección física:
 
 - En este punto el proceso puede durar desde minutos a horas, por lo que se detiene el proceso.
 
 3. Llamada al Webhook desde SumSub:
+
 - Una vez SumSub haya finalizado el proceso de verificación procedera a llamar al endpoint (En el dashboard de SumSub se puede configurar una uri hacia donde mandar las verificaciones) del webhook por medio de una solicitud POST a /sumsub/person/webhook con la siguiente información:
 
   ```json
@@ -2447,11 +2443,13 @@ A continuación se muestra el flujo completo de interacción entre frontend y es
     "timestamp": "2025-06-06T15:00:00Z"
   }
   ```
+
 - Se envía dicha información a WebHookProcessor para que empiece el proceso de aprobación:
+
   - Se pone el estado en SumSubApplicants como approved en True.
   - Se genera un token UUID, el cual será guardado en Redis junto al UUID del usuario en SumSubApplicants, de la siguiente forma:
 
-    ``` python
+    ```python
     import redis
     import uuid
 
@@ -2464,7 +2462,7 @@ A continuación se muestra el flujo completo de interacción entre frontend y es
     ```
 
   - Ya que se tiene el token se envía un mensaje por medio de RabbitMQ al Notification Service para que envíe un correo con un link al registro, que lleve de query parameter el token:
-    ``` txt
+    ```txt
     https://data-pura-vida.com/register/person?token=<token_uuid>
     ```
   - Más adelante, en el registration-service se dirá como se manejará el registro con base en dicho token de redis.
@@ -2474,6 +2472,7 @@ A continuación se muestra el flujo completo de interacción entre frontend y es
 Ahora, se muestra el flujo completo de interacción entre frontend y este componente para verificar un colectivo:
 
 1. La persona representante del colectivo inicia el proceso de verificación:
+
 - Frontend llama a: POST /sumsub/collective/token:
   ```json
   {
@@ -2489,6 +2488,7 @@ Ahora, se muestra el flujo completo de interacción entre frontend y este compon
     "InternalId": "uuid-del-sistema"
   }
   ```
+
 2. El sdk de SumSub realiza la búsqueda de Colectivo en el registro nacional
 
 3. El usuario adjunta al formulario los documentos legales según el tipo de colectivo, y los representantes que ya deben de estar previamente registrados en el sistema (Cabe aclarar que el administrador de la empresa que está haciendo la gestión del registro también debe de estar registrado en el sistema de Data Pura Vida)
@@ -2517,6 +2517,7 @@ Ahora, se muestra el flujo completo de interacción entre frontend y este compon
 - En este punto el proceso puede durar desde minutos a horas, por lo que se detiene el registro de empresa en el frontend.
 
 4. Llamada al Webhook desde SumSub:
+
 - Una vez SumSub haya finalizado el proceso de verificación procederá a llamar al endpoint del webhook por medio de una solicitud POST a /sumsub/collective/webhook con la siguiente información:
 
   ```json
@@ -2529,10 +2530,11 @@ Ahora, se muestra el flujo completo de interacción entre frontend y este compon
   ```
 
 - Se envía dicha información a WebHookProcessor para que empiece el proceso de aprobación:
+
   - Se pone el estado en SumSubCollectiveApplicant como approved en True.
   - Se genera un token UUID, el cual será guardado en Redis junto al UUID del colectivo en SumSubCollectiveApplicant, de la siguiente forma:
 
-    ``` python
+    ```python
     import redis
     import uuid
 
@@ -2546,10 +2548,11 @@ Ahora, se muestra el flujo completo de interacción entre frontend y este compon
 
 - Ya que se tiene el token se envía un mensaje por medio de RabbitMQ al Notification Service para que envíe un correo con un link a la creación de llaves tripartitas, que lleve de query parameter el token:
 
-  ``` txt
+  ```txt
   https://data-pura-vida.com/collective-register?token=<token_uuid>
   ```
-  - Más adelante, en el  registration-service se dirá como se manejará el registro con base en dicho token de redis.
+
+  - Más adelante, en el registration-service se dirá como se manejará el registro con base en dicho token de redis.
 
 4. El proceso de verificación fue exitoso, se continua a creación de las llaves tripartita.
 
@@ -2557,7 +2560,7 @@ Ahora bien, en el caso de colectivos, puede suceder que SumSub no encuentre al c
 
 Previamente fue mencionado, pero a modo de aclaración cabe decir que los templates de revisión serán creados desde el SumSub Dashboard. con base en la información listada al inicio del capítulo. Posteriormente en el código podrán ser llamados de esta forma por medio de un request al API similar a este:
 
-``` python
+```python
 import requests
 import time
 import hmac
@@ -2607,12 +2610,13 @@ Este servicio es un facade de autenticación sobre Cognito, por el cuál los usu
   - /auth/login/verify-mfa Para poder revisar que el MFA sea satisfactorio
   - /auth/logout: Para la gestión del Logout de la aplicación
 - CognitoService: Se encarga de abstraer las llamadas de signup, login, challenge y refresh.
-- MFAService:	Lógica para MFA (enviar y validar OTP por SMS/email).
-- AuthChoiceHandler:	Implementa lógica de choice-based auth (elegir entre OTP o pass).
+- MFAService: Lógica para MFA (enviar y validar OTP por SMS/email).
+- AuthChoiceHandler: Implementa lógica de choice-based auth (elegir entre OTP o pass).
 
 A continuación se muestra el flujo completo de inicio de sesión con MFA en la arquitectura:
 
 1. El usuario inicia sesión:
+
 - Frontend llama a: POST /auth/login:
 
   ```json
@@ -2622,9 +2626,11 @@ A continuación se muestra el flujo completo de inicio de sesión con MFA en la 
     "password": "****" // solo si es método "password"
   }
   ```
+
 - AuthController recibe el request y llama a AuthChoiceHandler para enrutar según authMethod.
 
 2. Verificación de credenciales (si es con contraseña)
+
 - Si authMethod es "password":
   - AuthChoiceHandler llama a CognitoService.initiateAuth()
   - Cognito verifica credenciales.
@@ -2632,10 +2638,12 @@ A continuación se muestra el flujo completo de inicio de sesión con MFA en la 
     - Si el usuario no tiene MFA activado, responde con el JWT Token directamente.
 
 3. El frontend reacciona a la respuesta
+
 - Si recibe ChallengeName y Session, el frontend muestra pantalla MFA.
 - Luego procede a enviar una llamada a /auth/login/mfa para que el MFAService envié un mensaje por medio de rabbitMQ al notification-service. Para que así se envíe un correo electrónico con el pin.
 
 4. Usuario envía su código MFA
+
 - Frontend llama a: POST /auth/login/veriyf-mfa con:
 
   ```json
@@ -2646,18 +2654,18 @@ A continuación se muestra el flujo completo de inicio de sesión con MFA en la 
     "deliveryMethod": "email"
   }
   ```
+
 - AuthController pasa a MFAService.verifyCode()
   - Llama a CognitoService.respondToAuthChallenge()
   - Si todo bien, devuelve los JWT tokens (ID, access, refresh).
 
 5. Tokens son devueltos al frontend
-- Frontend los guarda y los manda en cada request siguiente al backend.
 
+- Frontend los guarda y los manda en cada request siguiente al backend.
 
 Ahora bien, en caso de que el usuario decida iniciar sesión por medio de OTP el proceso es similar lo que cambia es que el primer request pide "OTP", y el sistema va a generar uno que se enviará por medio de SMS al usuario para que posteriormente pueda iniciar sesión.
 
 Cabe aclarar que las interacciones entre los componentes de este microservicio se realizarán por medio de REST APIs. Por lo que cada uno de ellos estará escritos en FastAPI y recibirá las solicitudes por medio de dicha interfáz. Para cada componente se tendrá un archivo con los endpoints y la lógica del api, y otros con la lógica de negocio de cada uno.
-
 
 **3. registration-service**
 
@@ -2668,12 +2676,12 @@ Con respecto al registro de personas se encarga de cargarlas a Cognito y tambié
 En el habrán los siguientes componentes:
 
 - RegistrationController: Expone los endpoints del servicio para que el API General pueda acceder a él, estos serán:
- - /register/person: Registro de una persona física.
- - /register/collective: Registro de una organización/colectivo.
- - /register/collective/key-generation: Endpoint para llamar al KeyGenerationHandler.
- - /register/check-token: Revisa el token UUID generado por el identity-verification-service.
- - /register/person/generate-token: Genera un nuevo token UUID para poder registrar al usuario en el sistema.
- - /register/collective/generate-token: Genera un nuevo token UUID para poder registrar al colectivo en el sistema.
+- /register/person: Registro de una persona física.
+- /register/collective: Registro de una organización/colectivo.
+- /register/collective/key-generation: Endpoint para llamar al KeyGenerationHandler.
+- /register/check-token: Revisa el token UUID generado por el identity-verification-service.
+- /register/person/generate-token: Genera un nuevo token UUID para poder registrar al usuario en el sistema.
+- /register/collective/generate-token: Genera un nuevo token UUID para poder registrar al colectivo en el sistema.
 - TokenManager: Este componente se encargará de operar con los tokens.
 - PersonRegistrationService: Este componente se encargará del crear el usuario en cognito y rds.
 - CollectiveRegistrationService: Este componente se encargará del crear el usuario en rds, dynamo y cargar documentos al bucket adecuado.
@@ -2682,6 +2690,7 @@ En el habrán los siguientes componentes:
 A continuación se presenta el flujo de registro de una persona física:
 
 1. Verificación de token UUID:
+
 - Apenas el usuario entra al sitio web de registro (Si lo hace de forma correcta fue siguiendo el link que se envió a su correo en el identity-verification-service)
 
 - Se hace un POST con /register/check-token, y se pasa el control a TokenManager para que se verifica si el query parameter de token: registration_token:<TOKEN_UUID> existe.
@@ -2711,7 +2720,7 @@ A continuación se presenta el flujo de registro de una persona física:
 
 - Primero se hace el registro del usuario en la cognito pool, y se extrae el UUID usado en dicha pool, para usarlo también en RDS, de esta forma se guarda simetría entre ambos sistemas. Se hace de la siguiente forma:
 
-  ``` Python
+  ```Python
   import boto3
 
   client = boto3.client('cognito-idp', region_name='us-east-1')
@@ -2747,10 +2756,10 @@ A continuación se presenta el flujo de registro de una persona física:
 
 4. Proceso de registro de persona física exitoso.
 
-
 Otro proceso posible es el de creación de un nuevo token en caso de que el TTL haya muerto (el proceso de solicitar un nuevo token como colectivo es el mismo, solo cambia el path):
 
 1. Desde el Frontend el usuario hace:
+
 - POST /register/person/generate-token
 
   ```json
@@ -2772,6 +2781,7 @@ Otro proceso posible es el de creación de un nuevo token en caso de que el TTL 
 Finalmente se presenta el flujo de registro de un Colectivo:
 
 1. Verificación de token UUID:
+
 - Apenas el usuario administrador del colectivo entra al sitio web de registro (Si lo hace de forma correcta fue siguiendo el link que se envió a su correo en el identity-verification-service)
 
 - Se hace un POST con /register/check-token, y se pasa el control a TokenManager para que verifice si el query parameter de token: collective-register:<TOKEN_UUID> existe.
@@ -2787,6 +2797,7 @@ Finalmente se presenta el flujo de registro de un Colectivo:
   ```
 
 2. Se llama a la creación de KEKs (Key Encryption Key) y DEKs parciales
+
 - Hace un POST a /register/collective/key-generation
 
   ```json
@@ -2806,13 +2817,13 @@ Finalmente se presenta el flujo de registro de un Colectivo:
     "representatives_dek": "[IdDelRepresentate : DEK del representante]"
   }
   ```
+
 - Cabe aclarar que cada DEK es un dictionary (en el key-management-service se muestra de que consiste), que debe ser guardado en postgres como JSONB.
 
 3. Registro de información:
-Desde el frontend se hace
+   Desde el frontend se hace
 
 - POST /register/collective
-
 
 - Se procede a hacer el registro de toda la información correspondiente al colectivo.
 
@@ -2825,8 +2836,10 @@ Desde el frontend se hace
 - Se pasan todos los documentos del S3 Bucket temporal (Se conoce el directorio ya que es el mismo UUID de la tabla SumSubCollectiveApplicant) a "collective_data". Además se guarda referencia a dicha información en DynamoDB, y se usa el mismo Id que el usado en RDS para guardar el Colectivo para mantener simetría.
 
 - Se crea un rol de IAM para que el colectivo pueda acceder a los datasets que suba, más explicación sobre como sirve esto se verá en el componente de la bóveda:
+
   - Se crea el json sobre el rol:
-    ``` json
+
+    ```json
     {
       "RoleName": "DPV_DataAccess_Colectivo1234",
       "AssumeRolePolicyDocument": {
@@ -2852,7 +2865,7 @@ Desde el frontend se hace
 
   - Se crea el rol en IAM de aws:
 
-    ``` python
+    ```python
     import boto3
     import json
 
@@ -2897,9 +2910,9 @@ Estas KEKs se envían directamente a los usuarios y no se almacenan en la base d
 En el habrán los siguientes componentes:
 
 - KeyManagementController: Expone los endpoints del servicio para que el API General y otros microservicios puedan acceder a él, estos serán:
- - /encrypt/collective: Recibe el Token UUID desde el registration-service.
- - /encrypt/verify/user: Por medio de este endpoint el usuario representante manda su kek para su aprobación.
- - /encrypt/verify/admin: Por medio de este endpoint el usuario administrador manda su kek para aprobar a un representante.
+- /encrypt/collective: Recibe el Token UUID desde el registration-service.
+- /encrypt/verify/user: Por medio de este endpoint el usuario representante manda su kek para su aprobación.
+- /encrypt/verify/admin: Por medio de este endpoint el usuario administrador manda su kek para aprobar a un representante.
 - EncryptionManager: Este componente se encarga del proceso de encripción.
 - DecryptionManager: Este componente se encarga del proceso de desencriptado.
 - Generator: Este componente se encarga de generar las DEKs y KEKs.
@@ -2908,6 +2921,7 @@ En el habrán los siguientes componentes:
 A continuación algunos flujos del microservicio que muestrán cuando y donde se usa. Primeramente, el proceso de generación de KEKs y DEKs.
 
 1. Llega el request a creación desde el registration-service:
+
 - Por medio de POST /encrypt/collective
 
   ```json
@@ -2915,6 +2929,7 @@ A continuación algunos flujos del microservicio que muestrán cuando y donde se
     "token": "El mismo Token UUID de redis"
   }
   ```
+
 - el KeyManagementController pasa el control al Generator.
 
 - Con dicho token se saca el UUID que se encuentra en redis por medio de: collective-register:<TOKEN_UUID>.
@@ -2926,7 +2941,9 @@ A continuación algunos flujos del microservicio que muestrán cuando y donde se
 - Se obtienen los Ids de los usuarios representantes en la tabla de PersonaFísica, y el del administrador de la empresa.
 
 3. Creación de keys
+
 - El Generator llama al EncryptionManager por medio del API de FastAPI que posee y le envía los representantes para que sepa cuantas KEKs/DEKs debe generar:
+
   ```json
   {
     "representatives": "[Los ids en la base de datos de dichos usuarios]"
@@ -3009,6 +3026,7 @@ A continuación algunos flujos del microservicio que muestrán cuando y donde se
 Ahora, el otro punto importante en el key-management-service es el proceso de verificación de KEKs para poder aprobar un usuario representante.
 
 1. Interacción del usuario representante:
+
 - Desde el frontend hace un POST /encrypt/verify/user
 
   ```json
@@ -3019,7 +3037,7 @@ Ahora, el otro punto importante en el key-management-service es el proceso de ve
 
 - Luego de esto el KeyManagementController enruta al Verificator para que se encargue de primero que todo obtener el id del usuario de la tabla de Representantes, y crea una entrada en redis (del mismo modo que con los tokens UUID en el registration-service) con un TTL de 48 horas:
 
-  ``` redis
+  ```redis
     check_kek:<TOKEN_UUID> : [<ID_DEL_USUARIO>, <KEK_DEL_USUARIO>]
   ```
 
@@ -3040,7 +3058,7 @@ Ahora, el otro punto importante en el key-management-service es el proceso de ve
 
 - Una vez se obtiene la kek del usuario representante se saca la kek de Data pura vida desde DEKDataPuraVida para así empezar el proceso de validación de keks.
 
-  ``` python
+  ```python
   from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
   from cryptography.hazmat.backends import default_backend
   import base64
@@ -3075,11 +3093,9 @@ Ahora, el otro punto importante en el key-management-service es el proceso de ve
 
 3. En caso de que las tres llaves coincidan entonces se aprueba la validación y se actualiza el estado del representante en Postgres a Aprobado. Además se comunica con rabbitMQ y el notification-service para que envie un correo al usuario para que sepa que su kek fue aprobado.
 
-
 Esos fueron los flujos principales del microservicio de key-management-service.
 
 Cabe aclarar que las interacciones entre los componentes de este microservicio, cuando no se hizo explicita en la explicación, es porque se realizarán por medio de REST APIs. Por lo que cada uno de ellos estará escrito en FastAPI y recibirá las solicitudes por medio de dicha interfáz. Para cada componente se tendrá un archivo con los endpoints y la lógica del api, y otros con la lógica de negocio de cada uno.
-
 
 **5. notification-service**
 
@@ -3109,7 +3125,7 @@ Una vez configurado AWS SES desde la consola de aws se tendrán que definir plan
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>Confirmación de Registro</title>
   </head>
   <body style="font-family: Arial, sans-serif;">
@@ -3117,7 +3133,13 @@ Una vez configurado AWS SES desde la consola de aws se tendrán que definir plan
     <p>Hola {{ nombre }},</p>
     <p>Tu proceso de verificación ha sido aprobado exitosamente.</p>
     <p>Podés ingresar al sistema usando el siguiente enlace:</p>
-    <p><a href="{{ link }}" style="padding: 10px 15px; background-color: #008f39; color: white; text-decoration: none;">Acceder a la plataforma</a></p>
+    <p>
+      <a
+        href="{{ link }}"
+        style="padding: 10px 15px; background-color: #008f39; color: white; text-decoration: none;"
+        >Acceder a la plataforma</a
+      >
+    </p>
     <p>Gracias por confiar en nosotros.</p>
     <p>— El equipo de Data Pura Vida</p>
   </body>
@@ -3169,7 +3191,6 @@ En cuanto al manejo de notificaciones dentro de la aplicación web, el flujo en 
 
 - En caso de encontrar notificaciones, las recupera, las envía al usuario y luego las elimina de DynamoDB. Si no hay notificaciones, no se realiza ninguna acción adicional.
 
-
 ##### Diagramas de Clases
 
 En esta sección se presentarán los distintos diagramas de clase correspondientes a cada microservicio descrito en la sección anterior. Para cada uno se explicará además cuales patrones de diseño fueron implementados. Además, cabe aclarar que en algunos microservicios aparecerán clases que ya se habían utilizado en otros. A nivel del diagrama, estas clases se muestran duplicadas para mayor claridad, pero en el código serán reutilizadas.
@@ -3212,8 +3233,7 @@ Primeramente, los patrones de diseño orientados a objetos utilizados son los si
 - Naranja: Representa un dependency injection.
 - Verde: Representa un strategy.
 
-
-Ahora bien, las clases tienen un funcionamiento muy simple, el punto de entrada es AuthController, que actúa como facade para que el API general pueda acceder al microservicio. Luego el EventManager se encarga de distribuir según lo que se pidio al AuthController. En este caso es el AuthChoiceHandler el que escucha, y decide cual es el tipo de login que se solicitó. Luego están las clases de MFAService y CognitoService  que se encargan de comunicarse con Cognito
+Ahora bien, las clases tienen un funcionamiento muy simple, el punto de entrada es AuthController, que actúa como facade para que el API general pueda acceder al microservicio. Luego el EventManager se encarga de distribuir según lo que se pidio al AuthController. En este caso es el AuthChoiceHandler el que escucha, y decide cual es el tipo de login que se solicitó. Luego están las clases de MFAService y CognitoService que se encargan de comunicarse con Cognito
 
 ![identity clases](img/ClasesBioregistro2.png)
 
@@ -3246,7 +3266,6 @@ Finalmente, existe una capa de repositorios gestionada mediante el patrón Facto
 
 ![identity clases](img/ClasesBioregistro3.png)
 
-
 **4. key-management-service**
 
 Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
@@ -3276,7 +3295,6 @@ Finalmente, existe una capa de repositorios gestionada mediante el patrón Facto
 
 ![identity clases](img/ClasesBioregistro4.png)
 
-
 **5. notification-service**
 
 Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
@@ -3298,7 +3316,6 @@ Finalmente, existe una capa de repositorios gestionada mediante el patrón Facto
 
 ![identity clases](img/ClasesBioregistro5.png)
 
-
 ##### Servicios en AWS
 
 A continuación se presentan todos los servicios AWS con los que se operará en los microservicios del Bioregistro, además se listarán las configuraciones de hardware para cada uno
@@ -3310,7 +3327,6 @@ Será el lugar donde estarán contenerizados los distintos microservicios.
   - **Versión de Kubernetes:** 1.29 (o la más reciente compatible).
   - **Tipo de nodo:** Amazon EC2.
   - **Tipo de instancia:** t3.medium (2 vCPU, 4 GB RAM) o superior.
-
 
 **RDS**
 Base de datos relacional para almacenar datos estructurados de la aplicación. Se entrará en más detalle en el diseño de los datos.
@@ -3329,14 +3345,12 @@ Base de datos NoSQL escalable para almacenamiento de datos con acceso rápido y 
   - **Modo de capacidad:** On-Demand.
   - **Streams:** Habilitados para replicación o integración con otros servicios.
 
-
 **S3**
 Almacenamiento de objetos para archivos, backups y datos estáticos.
 
 - **Configuración:**
   - **Versionado:** Activado para control de versiones y recuperación de datos.
   - **Lifecycle policies:** Para transición a almacenamiento más barato (Glacier) o eliminación automática.
-
 
 **AWS SES**
 Servicio para envío de correos electrónicos confiables y escalables.
@@ -3346,7 +3360,6 @@ Servicio para envío de correos electrónicos confiables y escalables.
   - **Identidad verificada:** Dominios y correos electrónicos verificados.
   - **Políticas de envío:** Limitaciones y tasas configuradas para evitar bloqueos.
   - **Autenticación:** SPF, DKIM y DMARC configurados para mejorar entregabilidad.
-
 
 **Amazon ElastiCache (Redis)**
 Se usará para albergar el servicio de redis. Se entrará en más detalle en el diseño de los datos.
@@ -3358,8 +3371,8 @@ Se usará para albergar el servicio de redis. Se entrará en más detalle en el 
   - **Multi-AZ:** Activado para alta disponibilidad (opcional).
   - **Seguridad:** VPC privada, grupos de seguridad restrictivos y cifrado en tránsito y en reposo activados.
 
-
 ##### Sistema de Monitoreo
+
 El monitoreo del componente Bioregistro se implementará siguiendo una estrategia de observabilidad integral que permita supervisar en tiempo real el comportamiento, rendimiento y seguridad del microservicio. Esta estrategia se alinea con las tecnologías definidas en el stack tecnológico del proyecto.
 
 **Arquitectura de Observabilidad**
@@ -3391,24 +3404,28 @@ El sistema de logging aprovechará **CloudWatch Logs** para centralizar todos lo
 **Sistema de Alertas y Notificaciones**
 Se configurará un sistema proactivo de alertas utilizando CloudWatch Alarms que notificará al equipo de operaciones cuando se detecten condiciones anómalas:
 **Alertas críticas (respuesta inmediata requerida):**
+
 - Fallo total del servicio o indisponibilidad del endpoint de health check
 - Tasa de error superior al 20% en ventana de 5 minutos
 - Fallo en la conexión con servicios críticos (Cognito, SumSub, bases de datos)
 - Detección de múltiples intentos de acceso desde IPs no autorizadas
 
 **Alertas de advertencia (revisión prioritaria):**
+
 - Degradación del rendimiento con latencias superiores a 3 segundos
 - Uso de recursos por encima del 80% de capacidad
 - Incremento inusual en validaciones fallidas
 - Acumulación de tareas en cola de procesamiento manual
 
 **Alertas informativas (seguimiento regular):**
+
 - Resumen diario de métricas operacionales
 - Reporte semanal de tendencias y patrones
 - Notificaciones de mantenimiento programado
 
 **Monitoreo de Cumplimiento y Seguridad**
 Dado el carácter sensible de los datos manejados por el Bioregistro, se implementarán controles específicos de monitoreo para garantizar el cumplimiento normativo:
+
 - **Seguimiento de consentimientos:** Monitoreo del ciclo de vida de los consentimientos otorgados por usuarios, incluyendo fechas de otorgamiento, actualizaciones y revocaciones.
 - **Auditoría de accesos:** Registro detallado de todos los accesos a datos personales, identificando quién accedió, cuándo, desde dónde y con qué propósito.
 - **Monitoreo de retención de datos:** Seguimiento automatizado de los períodos de retención de datos según las políticas establecidas, con alertas para datos próximos a expirar.
@@ -3430,6 +3447,7 @@ El sistema de monitoreo no solo detectará problemas, sino que proporcionará in
 - Optimización de costos: Análisis del uso de recursos para identificar oportunidades de optimización sin comprometer el rendimiento.
 
 ##### Modelo de seguridad detallado
+
 El módulo de Bioregistro maneja información altamente sensible relacionada con personas naturales y jurídicas (incluyendo representantes legales, personas con poder legal, etc.). Su backend será asegurado mediante un conjunto de mecanismos orientados a prevenir accesos no autorizados, garantizar integridad, confidencialidad, trazabilidad y disponibilidad continua de los datos.
 
 **1. Control de Acceso Granular**
@@ -3438,21 +3456,22 @@ El módulo de Bioregistro maneja información altamente sensible relacionada con
 
 **RBAC (Role Based Access):** Se le otorgará permisos a los usuarios según el rol que desempeñen dentro del sistema; esto con el fin de limitar acceso a solo los recursos necesarios y evitar privilegios excesivos. Existiran 4 tipos de roles:
 
-| Rol del Usuario                            | Descripción                          | Permisos sobre recursos del Bioregistro           |
-| ------------------------------ | --------------------------------- | -------- |
-| `bio:viewer` | Visualiza registros existentes                 | Lectura en PostgreSQL y DynamoDB    |
-| `bio:editor `   | Crea y modifica registros, sin aprobarlos         | Lectura y escritura parcial     |
-| `bio:approver`  | Aprueba, certifica o valida registros | Escritura total + validación cruzada     |
-| `bio:admin`          | Gestión completa del módulo, incluyendo usuarios y configuración      | Acceso total y eliminación    |
+| Rol del Usuario | Descripción                                                      | Permisos sobre recursos del Bioregistro |
+| --------------- | ---------------------------------------------------------------- | --------------------------------------- |
+| `bio:viewer`    | Visualiza registros existentes                                   | Lectura en PostgreSQL y DynamoDB        |
+| `bio:editor `   | Crea y modifica registros, sin aprobarlos                        | Lectura y escritura parcial             |
+| `bio:approver`  | Aprueba, certifica o valida registros                            | Escritura total + validación cruzada    |
+| `bio:admin`     | Gestión completa del módulo, incluyendo usuarios y configuración | Acceso total y eliminación              |
 
 - La equivalencia de estos roles en la base de datos se puede mapear de la siguiente manera:
   - Viewer: Son los usuarios en la tabla llamada AccesoDataset.
   - Editor: Esto hace referencia a los representantes de los colectivos, ubicados en la tabla de Representantes.
   - Approver: Hace referencia a los administradores del colectivo, se ubican en la tabla de cada colectivo.
 
-
 **Asociacion de RBAC a las bases de datos del sistema:**
+
 - **PostgreSQL:** Usado para almacenar entidades estructuradas.
+
   - Personas físicas/jurídicas, Certificados, Estados de validación, Trazas de auditoría
   - Se usan los roles exactamente como en la tabla anterior.
   - En la capa de acceso, se verifica el rol antes de ejecutar consultas SQL.
@@ -3462,6 +3481,7 @@ El módulo de Bioregistro maneja información altamente sensible relacionada con
   - En cada tabla DynamoDB, los accesos se segmentan con políticas AWS IAM condicionales según el rol (Condition: "bio:role" == "approver").
 
 Ejemplo flujo autenticación:
+
 ```json
 {
   "sub": "uuid",
@@ -3472,16 +3492,15 @@ Ejemplo flujo autenticación:
 
 **AWS Identity and Access Management (IAM):** Permite definir de manera segura quién puede acceder a qué recursos y con qué nivel de permisos dentro del entorno en la nube. La implementación se hará con con políticas por rol, usando etiquetas.
 
-
-| Caso de uso                            | Acción permitida                          | Servicio AWS           | Rol asociado
-| ------------------------------ | --------------------------------- | -------- | ------------ |
-| **Consulta de certificados validados** | `Vdynamodb:GetItem`, `Query`                 | DynamoDB    | `bio:viewer`, `bio:approver`   |
-| **Carga de archivos adjuntos**   | `s3:PutObject`, `GetObject`         | Bucket S3     | `bio:editor`, `bio:approver` |
-| **Lectura de llaves privadas**  | `secretsmanager:GetSecretValue` | Secrets Manager     | `bio:admin` |
-| **Acceso a logs de auditoría**          | `logs:FilterLogEvents`     | CloudWatch Logs    | `bio:admin`, `bio:approver` |
-
+| Caso de uso                            | Acción permitida                | Servicio AWS    | Rol asociado                 |
+| -------------------------------------- | ------------------------------- | --------------- | ---------------------------- |
+| **Consulta de certificados validados** | `Vdynamodb:GetItem`, `Query`    | DynamoDB        | `bio:viewer`, `bio:approver` |
+| **Carga de archivos adjuntos**         | `s3:PutObject`, `GetObject`     | Bucket S3       | `bio:editor`, `bio:approver` |
+| **Lectura de llaves privadas**         | `secretsmanager:GetSecretValue` | Secrets Manager | `bio:admin`                  |
+| **Acceso a logs de auditoría**         | `logs:FilterLogEvents`          | CloudWatch Logs | `bio:admin`, `bio:approver`  |
 
 Ejemplo politica por rol:
+
 ```json
 {
   "Version": "2012-10-17",
@@ -3499,19 +3518,23 @@ Ejemplo politica por rol:
   ]
 }
 ```
+
 **3. Validación de entradas**
 
 Para proteger el backend del Bioregistro, se implementarán validaciones estrictas de datos en todas las capas de entrada. Estas validaciones estarán directamente integradas en los endpoints de la API desarrollados con FastAPI, usando las capacidades de tipado y validación de Pydantic, reforzadas con validadores personalizados.
 
 La aplicación de esto sucede en los siguientes eventos:
+
 - En todos los endpoints RESTful del Bioregistro (registro, modificación, eliminación, consulta).
 - En validaciones internas antes de realizar operaciones sobre la base de datos.
 
 **Validaciones estructurales:**
+
 - Uso de tipos estrictos: `str`, `int`, `EmailStr`, `UUID`, `datetime`.
 - Validaciones de longitud y formato (Regex).
 
 Ejemplo de validación estructural:
+
 ```python
 from pydantic import BaseModel, Field, EmailStr
 class RegistroResidente(BaseModel):
@@ -3521,15 +3544,16 @@ class RegistroResidente(BaseModel):
     telefono: str = Field(..., regex=r'^\d{8}$')
     fechaNacimiento: str
 ```
-**Prevención de Inyecciones:**
-- **SQL Injection:** al usar ORMs o query builders con `SQLALCHEMY`, evitando la concatenación de strings en queries.
--**NoSQL Injection:** validación de claves primarias/secundarias con tipos y formatos válidos.
 
+**Prevención de Inyecciones:**
+
+- **SQL Injection:** al usar ORMs o query builders con `SQLALCHEMY`, evitando la concatenación de strings en queries. -**NoSQL Injection:** validación de claves primarias/secundarias con tipos y formatos válidos.
 
 **Validadores personalizados:**
 Se emplearán funciones decoradoras (@validator) para definir reglas de negocio complejas
 
 ejemplo:
+
 ```python
 from pydantic import validator
 class Registro(BaseModel):
@@ -3542,7 +3566,6 @@ class Registro(BaseModel):
             raise ValueError("La fecha de defunción no puede ser anterior a la fecha de nacimiento.")
         return v
 ```
-
 
 **4. Auditoría y Registro de Actividades**
 Se hará con el objetivo de monitorear en tiempo real y registrar de forma persistente todos los accesos, modificaciones y acciones críticas sobre los datos del Bioregistro, tanto por parte de usuarios humanos como de servicios automatizados.
@@ -3559,20 +3582,21 @@ Se hará con el objetivo de monitorear en tiempo real y registrar de forma persi
 **Implementación Técnica**
 
 ###### Middleware de FastAPI
+
 Se desarrollará un middleware de auditoría personalizado que capture metadatos clave en cada interacción:
 
-  - IP de origen
-  - Usuario autenticado
-  - Timestamp
-  - Endpoint accedido
-  - Método HTTP
-  - Código de respuesta (status code)
-  - Rol del usuario
-
+- IP de origen
+- Usuario autenticado
+- Timestamp
+- Endpoint accedido
+- Método HTTP
+- Código de respuesta (status code)
+- Rol del usuario
 
 Los registros se almacenarán en DynamoDB, aprovechando su alto rendimiento y consulta eficiente para logs estructurados.
 
 Ejemplo:
+
 ```json
 {
   "PK": "user#1234",
@@ -3584,9 +3608,11 @@ Ejemplo:
   "role": "PersonalAutorizado"
 }
 ```
+
 ###### AWS CloudWatch
 
 Se tiene una visualización en tiempo real de los logs generados por el backend. Se realiza la creación de alarmas automatizadas para eventos sospechosos o violaciones de políticas como las siguientes:
+
 - Más de 5 intentos fallidos de autenticación en 60 segundos.
 - Acceso masivo a datos de residentes por un mismo usuario.
 - Actividades fuera del horario laboral.
@@ -3594,6 +3620,7 @@ Se tiene una visualización en tiempo real de los logs generados por el backend.
 ###### Integración con AWS CloudTrail
 
 Para capturar eventos directamente desde el entorno AWS, se utilizará AWS CloudTrail como complemento de auditoría. Este registra todas las llamadas a la API de AWS, incluyendo:
+
 - Uso de AWS KMS
 - Acceso a buckets S3 con documentos biométricos
 - Cambios a roles, políticas y grupos de IAM
@@ -3604,28 +3631,26 @@ Beneficios:
 - Integración con AWS KMS para detectar uso indebido de claves
 - Compatible con otros servicios de AWS para ejecutar consultas avanzadas sobre logs
 
-
 **5. Cifrado de Datos**
 El módulo Bioregistro maneja información sensible relacionada con la identidad de los residentes, como números de identificación, datos biométricos y documentos oficiales. Por ello, se implementa lo siguiente:
 
-| Tipo de Cifrado                            | Descripción                          | Aplicación en el Bioregistro           | Herramientas/Protocolos Usados | Caso de Uso |
-| ------------------------------ | --------------------------------- | -------- | ------------ | -------------- |
-| **Cifrado en Tránsito** | Protege los datos mientras se transmiten entre el cliente y el servidor. Evita intercepciones o manipulaciones.                 | Aplicado en todas las solicitudes HTTP entre frontend y backend, y entre backend y servicios como Amazon Cognito, PostgreSQL y RabbitMQ..    | TLS 1.3, HTTPS obligatorio con AWS Certificate Manager   |La adopción de HTTPS obligatorio será gestionada mediante certificados válidos y renovables (por ejemplo, con AWS Certificate Manager). |
-| **Cifrado en Reposo**   | Protege los datos almacenados en bases de datos o archivos para evitar acceso no autorizado.         | Aplica al almacenamiento de cédulas, datos biométricos y documentos subidos a S3 o PostgreSQL.    | AES-256, PostgreSQL TDE, S3 + SSE-KMS |Para almacenamiento de documentos e imágenes biométricas en Amazon S3, se aplicará cifrado del lado del servidor (SSE) con claves gestionadas por AWS Key Management Service (KMS). |
+| Tipo de Cifrado         | Descripción                                                                                                     | Aplicación en el Bioregistro                                                                                                              | Herramientas/Protocolos Usados                         | Caso de Uso                                                                                                                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Cifrado en Tránsito** | Protege los datos mientras se transmiten entre el cliente y el servidor. Evita intercepciones o manipulaciones. | Aplicado en todas las solicitudes HTTP entre frontend y backend, y entre backend y servicios como Amazon Cognito, PostgreSQL y RabbitMQ.. | TLS 1.3, HTTPS obligatorio con AWS Certificate Manager | La adopción de HTTPS obligatorio será gestionada mediante certificados válidos y renovables (por ejemplo, con AWS Certificate Manager).                                             |
+| **Cifrado en Reposo**   | Protege los datos almacenados en bases de datos o archivos para evitar acceso no autorizado.                    | Aplica al almacenamiento de cédulas, datos biométricos y documentos subidos a S3 o PostgreSQL.                                            | AES-256, PostgreSQL TDE, S3 + SSE-KMS                  | Para almacenamiento de documentos e imágenes biométricas en Amazon S3, se aplicará cifrado del lado del servidor (SSE) con claves gestionadas por AWS Key Management Service (KMS). |
 
 **Uso de AWS KMS para Gestión de Claves**
 
 AWS KMS permitirá la centralización del manejo de claves de cifrado, incluyendo:
+
 - Rotación automática de claves
 - Control de acceso por política granular
 - Auditoría completa mediante integración con AWS CloudTrail
 - Cada operación de cifrado y descifrado queda registrada, permitiendo trazabilidad sobre qué usuario accedió a qué recurso, cuándo y con qué clave.
 
-
 **Protección Extendida**
 
 Se combinará cifrado del lado del cliente con el cifrado del lado del servidor, especialmente en flujos sensibles como subida de documentos biométricos desde el frontend. Esto permite que los datos ya lleguen cifrados a S3, agregando una capa adicional de defensa en caso de vulneración de acceso al bucket.
-
 
 **Verificación de Implementación**
 
@@ -3639,28 +3664,29 @@ Estas medidas aseguran la confidencialidad de los datos personales y fortalecen 
 
 **6. Protección contra Abuso y Ataques**
 
-| Categoría                           | Estrategia                          | Herramienta / Tecnología            | Caso de uso
-| ------------------------------ | --------------------------------- | -------- | ------------ |
-| **Limitación de tráfico** | 	Aplicar límites de solicitudes por IP por endpoint y método.                 | AWS API Gateway + FastAPI Middleware    | Evitar que un usuario o bot consulte masivamente los datos de residentes en un corto periodo.   |
-| **Bloqueo por patrones**   | Identificación de IPs con comportamiento malicioso y bloqueo automático.         | AWS WAF     | Bloqueo de IPs que intenten manipular repetidamente URLs como `/residente/1234/edit` |
-| **Protección contra bots**  | 	Detección de bots mediante análisis de headers y frecuencia. | Middleware personalizado + WAF     | Evita scraping automático de datos personales o intentos de acceso automatizado al registro. |
-| **Protección DoS/Brute Force**          | Prevención de ataques de denegación de servicio o fuerza bruta en login.     | AWS Shield + CloudWatch    | Resguarda el endpoint de autenticación Cognito usado por el personal autorizado. |
-| **Validación profunda de inputs**          | Inspección de JSON y parámetros de URL para detectar inyecciones     | Pydantic + validadores personalizados    | Prevenir que usuarios maliciosos inserten comandos o scripts en campos como nombre o dirección. |
+| Categoría                         | Estrategia                                                               | Herramienta / Tecnología              | Caso de uso                                                                                     |
+| --------------------------------- | ------------------------------------------------------------------------ | ------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **Limitación de tráfico**         | Aplicar límites de solicitudes por IP por endpoint y método.             | AWS API Gateway + FastAPI Middleware  | Evitar que un usuario o bot consulte masivamente los datos de residentes en un corto periodo.   |
+| **Bloqueo por patrones**          | Identificación de IPs con comportamiento malicioso y bloqueo automático. | AWS WAF                               | Bloqueo de IPs que intenten manipular repetidamente URLs como `/residente/1234/edit`            |
+| **Protección contra bots**        | Detección de bots mediante análisis de headers y frecuencia.             | Middleware personalizado + WAF        | Evita scraping automático de datos personales o intentos de acceso automatizado al registro.    |
+| **Protección DoS/Brute Force**    | Prevención de ataques de denegación de servicio o fuerza bruta en login. | AWS Shield + CloudWatch               | Resguarda el endpoint de autenticación Cognito usado por el personal autorizado.                |
+| **Validación profunda de inputs** | Inspección de JSON y parámetros de URL para detectar inyecciones         | Pydantic + validadores personalizados | Prevenir que usuarios maliciosos inserten comandos o scripts en campos como nombre o dirección. |
 
 **7. Gestión de Secretos con AWS Secrets Manager**
 
 Se usará AWS Secrets Manager como proveedor principal para almacenar, cifrar y rotar automáticamente los secretos necesarios del backend. Este servicio permite:
+
 - Cifrado automático con AWS KMS de los valores sensibles.
 - Control de acceso detallado mediante políticas IAM por recurso.
 - Auditoría completa con AWS CloudTrail.
 - Integración directa desde FastAPI usando AWS SDK (boto3).
 
-| Nombre del Secreto  |	Contenido     |	Servicio  |	Rotación Automática
-| ---------- | --- | ---| --- |
-| `bioregistro/db_credentials`	| Usuario y contraseña para acceder a PostgreSQL	| PostgreSQL	| Activada cada 30 días
-| `bioregistro/jwt_signing_key`	| Llave privada para firmar JWT |	FastAPI auth middleware	|  Solo lectura
-| `bioregistro/rabbitmq_credentials` |	Usuario y contraseña para conectarse a RabbitMQ	| RabbitMQ (eventos)|  |
-| `bioregistro/s3_upload_token` |	Token temporal para subida de archivos desde frontend	| S3 + Cognito	|  12h de disponibilidad |
+| Nombre del Secreto                 | Contenido                                             | Servicio                | Rotación Automática   |
+| ---------------------------------- | ----------------------------------------------------- | ----------------------- | --------------------- |
+| `bioregistro/db_credentials`       | Usuario y contraseña para acceder a PostgreSQL        | PostgreSQL              | Activada cada 30 días |
+| `bioregistro/jwt_signing_key`      | Llave privada para firmar JWT                         | FastAPI auth middleware | Solo lectura          |
+| `bioregistro/rabbitmq_credentials` | Usuario y contraseña para conectarse a RabbitMQ       | RabbitMQ (eventos)      |                       |
+| `bioregistro/s3_upload_token`      | Token temporal para subida de archivos desde frontend | S3 + Cognito            | 12h de disponibilidad |
 
 Ejemplo de acceso seguro desde FastAPI
 
@@ -3679,6 +3705,7 @@ DB_PASS = db_creds["password"]
 ```
 
 Ejemplo de politicas de secretos con AWS IAM
+
 ```json
 {
   "Effect": "Allow",
@@ -3691,6 +3718,7 @@ Ejemplo de politicas de secretos con AWS IAM
 ```
 
 **8. Procedimiento de Recuperación ante Incidente**
+
 1. Detección del incidente mediante alertas de CloudWatch.
 2. Validación del último snapshot válido en RDS o versión del objeto en S3.
 3. Restauración automática desde consola de AWS Backup, RDS o S3.
@@ -3707,21 +3735,21 @@ Para asegurar la continuidad operativa del sistema en caso de fallos, se configu
 
 El almacenamiento de documentos legales y biométricos se realiza en Amazon S3, mientras que DynamoDB se configura con respaldo continuo mediante Point-in-Time Recovery. Estos mecanismos se activan cada vez que se cargan o modifican datos, y garantizan una recuperación confiable en caso de pérdidas o errores.
 
-| Recurso | Tecnología | Implementación | Activación | Ubicación |
-| ------- | ---------- | -------------- | ---------- | --------- |
-| Documentos | **Amazon S3** | Versionado y replicación cruzada semanal | Al cargar o modificar | `us-east-1` / `us-west-1` |
-| Metadatos | **DynamoDB** | Backup continuo con Point-in-Time Recovery | En cada escritura | `us-east-1` |
+| Recurso    | Tecnología    | Implementación                             | Activación            | Ubicación                 |
+| ---------- | ------------- | ------------------------------------------ | --------------------- | ------------------------- |
+| Documentos | **Amazon S3** | Versionado y replicación cruzada semanal   | Al cargar o modificar | `us-east-1` / `us-west-1` |
+| Metadatos  | **DynamoDB**  | Backup continuo con Point-in-Time Recovery | En cada escritura     | `us-east-1`               |
 
 **3. Estrategias Avanzadas de Monitoreo y Alertas**
 
 La supervisión del backend se lleva a cabo en tiempo real gracias a **AWS CloudWatch** y **Prometheus**, que operan dentro del clúster `AWS EKS` donde residen los microservicios. Estas herramientas recogen métricas de uso, disponibilidad e integridad del sistema y emiten alertas inmediatas ante comportamientos inusuales. Grafana nos permite visualizar esta información mediante dashboards.
 
-| Tecnología | Rol | Donde se ejecuta | Momento de ejecución |
-| ------- | ---------- | -------------- | ---------- |
-| **CloudWatch** | Captura métricas y logs de servicios AWS | Servicios AWS | En tiempo real y continuo |
-| **Prometheus** | Recoge métricas internas de microservicios a través de endpoints personalizados | Dentro del clúster EKS | Cada vez que se actualizan métricas |
-| **EKS** | Aloja los microservicios del backend y los componentes de monitoreo | AWS (región `us-east-1`) | Siempre activo durante operación |
-| Grafana | Visualiza datos recolectados para análisis y diagnóstico | Conectado a CloudWatch y Prometheus | Monitoreo continuo |
+| Tecnología     | Rol                                                                             | Donde se ejecuta                    | Momento de ejecución                |
+| -------------- | ------------------------------------------------------------------------------- | ----------------------------------- | ----------------------------------- |
+| **CloudWatch** | Captura métricas y logs de servicios AWS                                        | Servicios AWS                       | En tiempo real y continuo           |
+| **Prometheus** | Recoge métricas internas de microservicios a través de endpoints personalizados | Dentro del clúster EKS              | Cada vez que se actualizan métricas |
+| **EKS**        | Aloja los microservicios del backend y los componentes de monitoreo             | AWS (región `us-east-1`)            | Siempre activo durante operación    |
+| Grafana        | Visualiza datos recolectados para análisis y diagnóstico                        | Conectado a CloudWatch y Prometheus | Monitoreo continuo                  |
 
 **4. Sistema Automatizado de Backups**
 
@@ -3751,18 +3779,20 @@ Se muestra cómo la contenerización de cada microservicio se realizará utiliza
 
 ##### Topología de Datos
 
-  - **Tipo:** Base de Datos Replicada tipo OLTP, Almacenamiento de Objetos, Base de datos documental
-    - Vamos a utilizar RDS con PostgreSQL como almacenamiento OLTP de los usuarios y sus distintos tipos. Se usará un módelo master-slave con 2 read replicas en us-east-1 . Además se activará el Multi-AZ failover para permitir pasar el rol de master a una de replica lista para failover, esto nos dará alta disponibilidad. Estos respaldos se harán todos los días a las 2 de la mañana de costa rica y se guaradarán en un S3 bucket de respaldos.
-    - Utilizaremos un S3 Bucket como almacenamiento de objetos para guardar PDFs y documentos legales sobre las organizaciones.
-    - Usaremos DynamoDB como base de datos documental, en ella se almacenará la metadata correspondiente a los documentos en el S3, y también los distintos datos no estructurados que tienen los distintos colectivos. No utilizaremos los servicios de Global Tables ya que el acceso al sistema es principalmente desde Costa Rica. Por lo que solo usaremos 1 region: us-east-1.
-    - Cabe aclarar que el Id para las personas físicas será el mismo en Cognito y RDS, mientras que el Id de los colectivos será el mismo tanto en RDS como en Dynamo.
-    - También se implementará el uso de Redis por medio de Amazon Elastic Caché. Se usará el modo Clustered para garantizar mayor escalamiento, y se configurará dentro de la misma VPC de los microservicios del Bioregistro, para que así seolo pueda ser accedida desde ahí.
+- **Tipo:** Base de Datos Replicada tipo OLTP, Almacenamiento de Objetos, Base de datos documental
+  - Vamos a utilizar RDS con PostgreSQL como almacenamiento OLTP de los usuarios y sus distintos tipos. Se usará un módelo master-slave con 2 read replicas en us-east-1 . Además se activará el Multi-AZ failover para permitir pasar el rol de master a una de replica lista para failover, esto nos dará alta disponibilidad. Estos respaldos se harán todos los días a las 2 de la mañana de costa rica y se guaradarán en un S3 bucket de respaldos.
+  - Utilizaremos un S3 Bucket como almacenamiento de objetos para guardar PDFs y documentos legales sobre las organizaciones.
+  - Usaremos DynamoDB como base de datos documental, en ella se almacenará la metadata correspondiente a los documentos en el S3, y también los distintos datos no estructurados que tienen los distintos colectivos. No utilizaremos los servicios de Global Tables ya que el acceso al sistema es principalmente desde Costa Rica. Por lo que solo usaremos 1 region: us-east-1.
+  - Cabe aclarar que el Id para las personas físicas será el mismo en Cognito y RDS, mientras que el Id de los colectivos será el mismo tanto en RDS como en Dynamo.
+  - También se implementará el uso de Redis por medio de Amazon Elastic Caché. Se usará el modo Clustered para garantizar mayor escalamiento, y se configurará dentro de la misma VPC de los microservicios del Bioregistro, para que así seolo pueda ser accedida desde ahí.
 - **Tecnología Cloud**:
+
   - RDS
   - DynamoDB
   - CloudWatch: Para el monitoreo de dichos servicios de AWS
 
 - **Polítcias y Reglas**:
+
   - Single-region: Solo se usará una región para RDS y DynamoDB, us-east-1
   - Backups automáticos: Tanto RDS como Dynamo harán backups automáticos a las 2 de la mañana y lo subirán a un S3.
   - Backups cruzados: Para proteger los respaldos en caso de que la región de aws caiga (poco probable), se cargaran adicionalmente en un S3 Bucket en us-west-1. Esto se hará cada semana los viernes a las 2 de la mañana, ya que su prioridad es menor.
@@ -3774,7 +3804,6 @@ Se muestra cómo la contenerización de cada microservicio se realizará utiliza
   - Postgres es una Base de Datos open source por lo que no hace falta pagar licensias.
   - DynamoDB es de las opciones de BD documental más veloces, además está completamente integrada con el ecosistema de aws, por lo que hacer respaldos o sacarle métricas es muy sencillo.
   - DynamoDB está respaldado por AWS, por lo que ofrece un SLA del 99.999% y es 100% compatible con el resto de nuestros servicios en AWS.
-
 
 ##### Tenency, Seguridad y Privacidad
 
@@ -3793,12 +3822,14 @@ Se muestra cómo la contenerización de cada microservicio se realizará utiliza
   - El manejo de la encripción de las DEKs está a cargo del key-management-service, sin embargo, a dicha encripción también se le aplicará el encryption at rest.
 
 - **Encripción**:
+
   - Metadata de las Organizaciones (detallada al inicio del capítulo de Bioregistro).
   - Emails de los usuarios.
   - Información de contacto de usuarios y organizaciones.
   - Configuraciones de pago.
 
 - **Cloud**:
+
   - Amazon Cognito para el registro de personas físicas.
   - Amazon RDS para PostgreSQL con RLS.
   - Encryption at rest en DynamoDB gracias a AWS KMS
@@ -3817,29 +3848,29 @@ Se muestra cómo la contenerización de cada microservicio se realizará utiliza
 
 Usaremos SQLAlchemy como ORM para interactuar con PostgreSQL dentro de la aplicación. Además se usarán Store Procedures para operaciones más complejas como registrar a una organización y hacer las relaciones pertinentes con personas físicas.
 
-  - **Patrones de POO**:
-    - Factory: Usamos el patrón Factory para la creación de las clases RDSFactory, RDSRepository, DynamoFactory, DynamoRepository.
+- **Patrones de POO**:
 
+  - Factory: Usamos el patrón Factory para la creación de las clases RDSFactory, RDSRepository, DynamoFactory, DynamoRepository.
 
-  - **Beneficios**:
-    - El código es independiente del motor de base de datos relacional, lo que permite cambiarlo fácilmente si es necesario.
-    - El desarrollo es más ágil que escribir SQL puro.
-    - Se protege contra vulnerabilidades como SQL Injection.
-    - Se puede garantizar el cumplimiento de las propiedades ACID.
+- **Beneficios**:
+
+  - El código es independiente del motor de base de datos relacional, lo que permite cambiarlo fácilmente si es necesario.
+  - El desarrollo es más ágil que escribir SQL puro.
+  - Se protege contra vulnerabilidades como SQL Injection.
+  - Se puede garantizar el cumplimiento de las propiedades ACID.
 
 - **Pool de Conexiones**
-Usaremos el pool integrado en SQLAlchemy (QueuePool), el cual es dinámico. El tamaño base del pool será de 10 conexiones, y podrá escalar hasta 15 conexiones simultáneas.
+  Usaremos el pool integrado en SQLAlchemy (QueuePool), el cual es dinámico. El tamaño base del pool será de 10 conexiones, y podrá escalar hasta 15 conexiones simultáneas.
 
   - **Beneficios**:
     - La escalabilidad se ajusta bajo demanda.
     - Proporciona mayor estabilidad en ambientes productivos.
 
 - **Drivers**
-Para PostgreSQL utilizaremos el driver nativo psycopg2, integrado con SQLAlchemy, lo cual ofrece mejor rendimiento. Para DynamoDB y S3 emplearemos boto3, un cliente interpretado ampliamente soportado en el ecosistema AWS.
+  Para PostgreSQL utilizaremos el driver nativo psycopg2, integrado con SQLAlchemy, lo cual ofrece mejor rendimiento. Para DynamoDB y S3 emplearemos boto3, un cliente interpretado ampliamente soportado en el ecosistema AWS.
 
   - **Beneficios**:
     - Aprovechamos lo mejor de cada entorno: para PostgreSQL un driver nativo rápido, y para DynamoDB/S3 un driver interpretado más portátil y flexible.
-
 
 ##### Diagrama de Base de Datos
 
@@ -3852,7 +3883,6 @@ Además, un aspecto clave es el manejo de las llaves en el esquema tripartito. L
 Por su parte, la empresa almacena su propia KEK directamente en su tabla correspondiente, mientras que existe una tabla específica que asocia las KEKs de Data Pura Vida con cada empresa registrada.
 
 ![image](img/DiagramaBDBioregistro.png)
-
 
 ### 4.2 La Bóveda
 
@@ -3880,14 +3910,14 @@ En este componente es sumamente importante que se tenga trazabilidad de quién e
 
 Luego, gracias a la funcionalidad de Amazon Redshift logs, se podrá ver detalladamente la información del query de la siguiente forma:
 
-| Nombre de columna | Descripción |
-|-------------------|-------------|
-| recordtime        | Hora en la que ocurrió el evento. |
-| db                | Nombre de la base de datos. |
-| user              | Nombre de usuario. |
-| pid               | ID del proceso asociado con la sentencia. |
-| userid            | ID del usuario. |
-| xid               | ID de la transacción. |
+| Nombre de columna | Descripción                                         |
+| ----------------- | --------------------------------------------------- |
+| recordtime        | Hora en la que ocurrió el evento.                   |
+| db                | Nombre de la base de datos.                         |
+| user              | Nombre de usuario.                                  |
+| pid               | ID del proceso asociado con la sentencia.           |
+| userid            | ID del usuario.                                     |
+| xid               | ID de la transacción.                               |
 | query             | Un prefijo `LOG:` seguido del texto de la consulta. |
 
 Ahora bien, estos logs sirven tanto para tener un registro de qué consultas se han hecho (para más adelante dar contexto Agentes sobre como consultar un dataset), como para llevar cuotas de uso de datasets que se usan por cuotas definidas.
@@ -3898,7 +3928,8 @@ Para el resto de los casos (incluyendo cuando el dataset es de tipo cuota), se i
 Esto evitará almacenamiento masivo y poco escalable típico de motores SQL, y además funcionará como una fuente sencilla para que los agentes de IA puedan alimentarse con los queries asociados a cada dataset.
 
 A continuación un ejemplo de código de como se puede realizar dicha lambda function:
-``` python
+
+```python
 import json
 import re
 import base64
@@ -3962,7 +3993,7 @@ Más adelante se verá cómo se implementa el RBAC en el sistema, pero el API ta
 
 1. Llega consulta desde el frontend
 
-``` json
+```json
 {
   "jwt": "el token de sesión del usuario",
   "dataset": "nombre del dataset"
@@ -3971,21 +4002,21 @@ Más adelante se verá cómo se implementa el RBAC en el sistema, pero el API ta
 
 - Con el JWT se obtiene el ID de Cognito de la persona.
 
-
 2. Proceso de autorización
 
 - Primero se revisa que el usuario sea parte del colectivo propietario del dataset:
+
   - En caso de que sí, entonces se le asigna el IAM Role correspondiente al colectivo y se pasa el query a la creación de queries.
 
 - Ahora bien, si el usuario no es propietario, entonces se revisa la tabla de AccesoDataset para ver si tiene acceso al dataset.
+
   - Si no, entonces se rechaza la solicitud.
 
 - Ahora bien, si no se rechaza, entonces se revisa si el dataset es por cuotas en la tabla de DatasetDePago; en caso de que sí, se revisan las cuotas restantes en la tabla de Cuotas.
+
   - Si no quedan, entonces se rechaza la conexión.
 
 - Ya luego, si se pasó todo el proceso de autorización, se le asigna el rol de IAM correspondiente al dataset por medio de un STS que sirva solo para esa consulta.
-
-
 
 ##### Servicios en AWS
 
@@ -3994,7 +4025,8 @@ Se mencionarán solo los servicios de AWS que aún no han sido descritos en alg�
 **AWS Lambda:**
 Para las funciones serverless que obtienen información de los datasets y la loguean.
 
-**Configuración de Hardware:**  Aunque no gestionamos hardware directamente, sí configuraremos los recursos, como:
+**Configuración de Hardware:** Aunque no gestionamos hardware directamente, sí configuraremos los recursos, como:
+
 - **Memoria:** 1024 MB
 - **Arquitectura:** arm64
 - **Tiempo de ejecución:** Node.js 22.x
@@ -4029,18 +4061,21 @@ Para el sistema de logs para posterior entrenamiento de Agentes de IA.
 
 ##### Topología de Datos
 
-  - **Tipo:** OLAP + OLTP
-    - Para La Bóveda se empleará un enfoque híbrido, utilizando una base de datos OLAP para el almacenamiento de los distintos datasets y una base de datos OLTP para toda la parte administrativa relacionada con personas, colectivos, cuotas y gestión de acceso a los datasets.
-    - En cuanto al OLTP, como se describió previamente en la sección del Bioregistro, se utilizará una base de datos en RDS con PostgreSQL para almacenar la información de usuarios y colectivos. En esta sección se utilizará la misma base de datos, pero se agregarán nuevas tablas para registrar accesos a datasets, gestionar los registros de datasets y asociar tablas a los distintos datasets. Estas nuevas tablas serán detalladas más adelante en el diagrama correspondiente.
-    - Para el almacenamiento OLAP se utilizará Amazon Redshift, un OLAP orientado a columnas, diseñado específicamente para manejar grandes volúmenes de datos y consultas complejas a escala. Se optará por la versión Redshift Serverless, que permite el uso bajo demanda sin necesidad de configurar nodos, escalando automáticamente según la carga de trabajo. Esta versión también replica automáticamente los datos en tres zonas dentro del mismo Availability Zone y ofrece failover automático mediante snapshots. Además, se configurarán respaldos automáticos incrementales los martes y viernes a la 1 a.m.
-    - Se aprovecharán dos funcionalidades clave de Redshift: las Federated Queries, que permitirán consultar directamente las tablas administrativas almacenadas en RDS; y el almacenamiento interno de Redshift, que ofrece un modelo columnar altamente eficiente para los datos analíticos.
-    - Cabe aclarar que no se detallarán las especificaciones técnicas para RDS ya que fueron mencionadas previamente en el Bioregistro.
+- **Tipo:** OLAP + OLTP
+
+  - Para La Bóveda se empleará un enfoque híbrido, utilizando una base de datos OLAP para el almacenamiento de los distintos datasets y una base de datos OLTP para toda la parte administrativa relacionada con personas, colectivos, cuotas y gestión de acceso a los datasets.
+  - En cuanto al OLTP, como se describió previamente en la sección del Bioregistro, se utilizará una base de datos en RDS con PostgreSQL para almacenar la información de usuarios y colectivos. En esta sección se utilizará la misma base de datos, pero se agregarán nuevas tablas para registrar accesos a datasets, gestionar los registros de datasets y asociar tablas a los distintos datasets. Estas nuevas tablas serán detalladas más adelante en el diagrama correspondiente.
+  - Para el almacenamiento OLAP se utilizará Amazon Redshift, un OLAP orientado a columnas, diseñado específicamente para manejar grandes volúmenes de datos y consultas complejas a escala. Se optará por la versión Redshift Serverless, que permite el uso bajo demanda sin necesidad de configurar nodos, escalando automáticamente según la carga de trabajo. Esta versión también replica automáticamente los datos en tres zonas dentro del mismo Availability Zone y ofrece failover automático mediante snapshots. Además, se configurarán respaldos automáticos incrementales los martes y viernes a la 1 a.m.
+  - Se aprovecharán dos funcionalidades clave de Redshift: las Federated Queries, que permitirán consultar directamente las tablas administrativas almacenadas en RDS; y el almacenamiento interno de Redshift, que ofrece un modelo columnar altamente eficiente para los datos analíticos.
+  - Cabe aclarar que no se detallarán las especificaciones técnicas para RDS ya que fueron mencionadas previamente en el Bioregistro.
 
 - **Tecnología Cloud**:
+
   - RDS para PostgreSQL.
   - Amazon Redshift.
 
 - **Polítcias y Reglas**:
+
   - Single-region: Solo se usará una región para RDS y Redshift, us-east-1
   - Backups automáticos: Tanto RDS como Redshift harán backups automáticos a las 1 de la mañana y lo subirán a un S3.
   - Backups cruzados: Para proteger los respaldos en caso de que la región de aws caiga (poco probable), se cargaran adicionalmente en un S3 Bucket en us-west-1. Esto se hará cada semana los viernes a las 2 de la mañana, ya que su prioridad es menor.
@@ -4054,7 +4089,7 @@ Para el sistema de logs para posterior entrenamiento de Agentes de IA.
   - AWS garantiza altos niveles de disponibilidad y cumplimiento de SLA para ambos servicios, lo que aporta estabilidad y confiabilidad a la plataforma.
   - Redshift tiene integración nativa con servicios como AWS Glue.
   - Redshift puede adherirse a RDS para interactuar con el facilmente:
-    ``` sql
+    ```sql
     CREATE EXTERNAL SCHEMA rds_schema
     FROM POSTGRES
     DATABASE 'admin_db'
@@ -4064,7 +4099,7 @@ Para el sistema de logs para posterior entrenamiento de Agentes de IA.
     SECRET_ARN 'arn:aws:secretsmanager:us-east-1:123456789012:secret:MySecret'
     ```
   - Redshift permite copiar en Batch archivos de Parquet desde un S3 y mapearlos a tablas en su almacenamiento interno:
-    ``` sql
+    ```sql
       COPY esquema.tabla_destino
       FROM 's3://tu-bucket/ruta/a/parquets/'
       IAM_ROLE 'arn:aws:iam::cuenta-dpv:role/admin-dpv'
@@ -4074,7 +4109,6 @@ Para el sistema de logs para posterior entrenamiento de Agentes de IA.
 ##### RLS
 
 No se usará RLS ya que el acceso a datasets se hace por tablas, entonces una vez un usuario tenga acceso a un dataset, podrá ver todo el contenido que este tenga; no habrán filas a las que esté restringido. Nuestro diseño es seguro porque en una misma tabla solo se guarda información correspondiente a un solo colectivo. Puede ser que esa tabla se comparta entre datasets del colectivo, pero igual no pasa nada, dado que el acceso sigue siendo por tabla. En la siguiente sección se dirá cómo se gestiona el acceso por tabla.
-
 
 ##### Tenency, Seguridad y Privacidad
 
@@ -4092,7 +4126,8 @@ No se usará RLS ya que el acceso a datasets se hace por tablas, entonces una ve
 - **Ejemplos**
 
   - A continuación como es que se crean las tags con LakeFormation para acceder a tablas en Redshift:
-    ``` python
+
+    ```python
     import boto3
 
     client = boto3.client('lakeformation')
@@ -4120,8 +4155,9 @@ No se usará RLS ya que el acceso a datasets se hace por tablas, entonces una ve
         ]
     )
     ```
+
   - Ya en la sección de registration-service del bioregistro se específico como crear un rol de IAM, ahora a continuación se muestra como asignarle tags de LakeFormation:
-    ``` python
+    ```python
     client.grant_permissions(
         Principal={ # A que rol de IAM se asigna
             'DataLakePrincipalIdentifier': 'arn:aws:iam::YOUR_ACCOUNT_ID:group/DPV_DataAccess_Empresas2024'
@@ -4143,7 +4179,8 @@ No se usará RLS ya que el acceso a datasets se hace por tablas, entonces una ve
     )
     ```
   - Ahora bien, un ejemplo de como se puede adjuntar como elemento de la Sesión el ID de cognito:
-    ``` python
+
+    ```python
     from sqlalchemy import create_engine, text
 
     #Crear el engine con los parámetros de Redshift
@@ -4158,10 +4195,13 @@ No se usará RLS ya que el acceso a datasets se hace por tablas, entonces una ve
         for row in result:
             print(row)
     ```
+
 - **Encripción**:
+
   - Toda la información estará encriptada gracias al Encryption at Rest
 
 - **Cloud**:
+
   - Amazon RDS para PostgreSQL con RLS.
   - LakeFormation, para manejar los permisos modulares a tablas
   - AWS IAM, para dar permisos específicos asociados con políticas de LakeFormation
@@ -4182,24 +4222,26 @@ No se usará RLS ya que el acceso a datasets se hace por tablas, entonces una ve
 
 Usaremos SQLAlchemy como ORM para interactuar con PostgreSQL y Redshift dentro de la aplicación. Además se usarán Store Procedures para operaciones más complejas como las consultas a datasets desde el módulo de Centro de visualización y Consumo.
 
-  - **Patrones de POO**:
-    - Factory: Usamos el patrón Factory para la creación de las clases RDSFactory, RDSRepository, RedshiftFactory,RedshiftRepository.
+- **Patrones de POO**:
 
-  - **Beneficios**:
-    - El código es independiente del motor de base de datos relacional, lo que permite cambiarlo fácilmente si es necesario. Se puede usar el mismo tanto para RDS como Redshift.
-    - El desarrollo es más ágil que escribir SQL puro.
-    - Se protege contra vulnerabilidades como SQL Injection.
-    - Se puede garantizar el cumplimiento de las propiedades ACID.
+  - Factory: Usamos el patrón Factory para la creación de las clases RDSFactory, RDSRepository, RedshiftFactory,RedshiftRepository.
+
+- **Beneficios**:
+
+  - El código es independiente del motor de base de datos relacional, lo que permite cambiarlo fácilmente si es necesario. Se puede usar el mismo tanto para RDS como Redshift.
+  - El desarrollo es más ágil que escribir SQL puro.
+  - Se protege contra vulnerabilidades como SQL Injection.
+  - Se puede garantizar el cumplimiento de las propiedades ACID.
 
 - **Pool de Conexiones**
-Usaremos el pool integrado en SQLAlchemy (QueuePool), el cual es dinámico. El tamaño base del pool será de 10 conexiones, y podrá escalar hasta 15 conexiones simultáneas.
+  Usaremos el pool integrado en SQLAlchemy (QueuePool), el cual es dinámico. El tamaño base del pool será de 10 conexiones, y podrá escalar hasta 15 conexiones simultáneas.
 
   - **Beneficios**:
     - La escalabilidad se ajusta bajo demanda.
     - Proporciona mayor estabilidad en ambientes productivos.
 
 - **Drivers**
-Para PostgreSQL y Redshift utilizaremos el driver nativo psycopg2, integrado con SQLAlchemy, lo cual ofrece mejor rendimiento.
+  Para PostgreSQL y Redshift utilizaremos el driver nativo psycopg2, integrado con SQLAlchemy, lo cual ofrece mejor rendimiento.
 
   - **Beneficios**:
     - Para PostgreSQL un driver nativo rápido, se aprovecha lo mejor.
@@ -4224,9 +4266,6 @@ La orientación de **La Bóveda** hacia un diseño habilitado a agentes de AI re
 - Mantener un registro de las consultas en una base de datos de time series permitirá proporcionar contexto actualizado y frecuente a los agentes de IA para futuras operaciones sobre los datasets.
 - Al utilizar una base de datos time series, se garantiza que la información registrada sea siempre reciente y relevante, facilitando análisis y respuestas más precisas por parte de los agentes.
 
-
-
-
 ##### Diagrama de Base de Datos
 
 A continuación se presenta el diagrama de base de datos correspondiente al módulo de La Bóveda. En él se muestra cómo se utiliza la misma base de datos de RDS que en el bioregistro, ya que su rol es meramente administrativo.
@@ -4236,8 +4275,6 @@ Se puede ver cómo existe una tabla que almacena la información principal de lo
 Con respecto a la estructura de Redshift, esta es imprescindible, por ello no se muestra en el diagrama; dependerá completamente de lo que suban los usuarios. Eso sí, definitivamente estará separada por schema para cada colectivo.
 
 ![image](img/DiagramaBDBoveda.png)
-
-
 
 ### 4.3 Centro de Carga
 
@@ -4262,7 +4299,6 @@ Todos los datos obtenidos se almacenan en estado crudo dentro de un bucket S3, s
 
 La arquitectura implementa **CSR** con contenido estático servido desde **S3** y **CloudFront** como CDN. Los bundles de React generados durante el build se almacenan en buckets S3 y se distribuyen globalmente através de CloudFront para optimizar latencia y disponibilidad.
 
-
 **API única** desarrollada en **FastAPI** para toda la comunicación backend, centralizando autenticación, validación y procesamiento de datos.
 
 ### Gestión de Estado Durante Uploads Largos
@@ -4272,7 +4308,6 @@ La arquitectura implementa **CSR** con contenido estático servido desde **S3** 
 - **Optimización de memoria** para archivos grandes procesando muestras de 10KB usando FileReader API
 
 ### PATRONES DE DISEÑO IMPLEMENTADOS
-
 
 #### Chain of Responsibility - Procesamiento de Fuentes de Datos
 
@@ -4319,7 +4354,6 @@ El progreso de upload debe actualizarse simultáneamente en múltiples component
 - **NotificationObserver**: Envía alertas al sistema de messaging del usuario
 
 ### DIAGRAMA DE DISEÑO
-
 
 El diagrama muestra la integración de todos los patrones de diseño implementados en el frontend. La arquitectura se organiza en **5 capas** claramente diferenciadas:
 
@@ -4454,12 +4488,12 @@ Los componentes internos incluyen:
 
 - **UploadFlowCoordinator:** Coordina el flujo completo desde la carga hasta la validación y notificación. Funciona como un patrón Observer.
 
-
 El flujo principal para cargar un dataset desde un archivo es el siguiente:
 
 1. Inicio del proceso de carga:
 
 - El frontend llama a `POST /upload/dataset`
+
 ```json
 {
   "userId": "uuid-del-usuario",
@@ -4487,6 +4521,7 @@ El flujo principal para cargar un dataset desde un archivo es el siguiente:
     }
   ```
   - Hace falta especificar cual es la fuente, cual es su Connection String, y cuales son las tablas/colleciones que deben ser traidas.
+
 
 2. Recepción y almacenamiento temporal:
 
@@ -4518,6 +4553,7 @@ class TemporaryStorageHandler:
             "file_id": file_id
         }
 ```
+
 - El resultado se guarda en una tabla en DynamoDB llamada `DatasetUploadTemp` con estado "uploaded".
 
 - Cabe aclarar que ese ejemplo tan solo será para los archivos de tipo CSV, JSON, y excel, para los de SQL y Mongo se hará lo siguiente:
@@ -4536,7 +4572,6 @@ class TemporaryStorageHandler:
   - Detección de campos vacíos y estructura tabular.
   - Nombre unico de Dataset.
   - Revisa si todos los registros vienen con un timestamp (este no es un criterio de rechazo, es de contexto).
-
 
 ```python
 import pandas as pd
@@ -4588,18 +4623,22 @@ class UploadFlowCoordinator:
             body=json.dumps(message)
         )
 ```
+
 5. Respuesta al frontend:
+
 ```json
 {
   "datasetId": "uuid-del-dataset",
   "status": "initial-validation-passed"
 }
 ```
+
 **2. dataset-configuration-service**
 
 Una vez el dataset haya sido cargado en el microservicio anterior, sigue el este que permite configurar el comportamiento, incluyendo privacidad, acceso, monetización y periodicidad de actualización. A continuación los componentes internos:
 
 - **ConfigurationController:** Expone los endpoints para definir políticas de configuración por dataset.
+
   - `/config/dataset/access`
   - `/config/dataset/payment`
   - `/config/dataset/delta`
@@ -4615,6 +4654,7 @@ Una vez el dataset haya sido cargado en el microservicio anterior, sigue el este
 1. Definición de acceso
 
 - El frontend realiza una solicitud `POST /config/dataset/access` con el datasetId y el tipo de acceso:
+
 ```json
 {
   "datasetId": "uuid-del-dataset",
@@ -4645,6 +4685,7 @@ Una vez el dataset haya sido cargado en el microservicio anterior, sigue el este
 3. Configuración de cargas incrementales
 
 - Solicitud `POST /config/dataset/delta`:
+
 ```json
 {
   "datasetId": "uuid-del-dataset",
@@ -4659,14 +4700,17 @@ Una vez el dataset haya sido cargado en el microservicio anterior, sigue el este
 - `DeltaUploadManager` invoca a `SecurityController.retrieve()` del security-service para obtener credenciales.
 
 - Para el parámetro del Cron se definirán en la UI como posibles tiempos:
+
   - A una hora específica del día: 1:00, 7:00, 13:00, 22:00, etc.
   - Opción para ejecutar cada 12, 6, 3 horas.
 
 - Para el parámetro de mode están las siguientes opciones.
+
   - Delta: Permite hacer cargas diferenciales. **Esta opción solo se permitirá si el dataset de la fuente tiene: timestamps en cada registro, garantiza que las PKs (o equivalente) no cambian y son incrementales**.
   - Complete: Solicita que se cargue todo el dataset desde 0 y se deseche el que hay en Redshift.
 
 - Para triggerMethod existen dos opciones:
+
   - Callback: no se registra el dataset como timed_pull y se asumirá que solo se puede actualizar on demand.
   - Si triggerMethod es timed_pull entonces se registrará en `DatasetCrons` de RDS cada cuanto se hace el pull de los datos, cual es la fuente de datos (el connection string o URL), que tipo es (SQL, MongoDB o API), y el modo en el que opera (Complete o Delta).
 
@@ -4674,8 +4718,8 @@ Una vez el dataset haya sido cargado en el microservicio anterior, sigue el este
   - Si se desea que se ignoren columnas nuevas que vengan en los datasets posteriores a la primera carga.
   - Si se desea que cuando venga una nueva columna en una tabla se le añada a toda la tabla destino en redshift.
 
-
 Respuesta al frontend:
+
 ```json
 {
   "status": "configured",
@@ -4687,9 +4731,10 @@ Respuesta al frontend:
 
 El sistema de configuración permite definir restricciones adicionales sobre el acceso a datasets privados o pagos. Estas políticas se aplican automáticamente en los microservicios de consulta y son definidas por el usuario administrador del dataset a través de `ConfigurationController`.
 
-  - El sistema de permisos evita accesos no autorizados mediante `RBAC` gestionadas por `PermissionHandler`. El sistema de ingresos a los datasets ya fue explicado previamente en el microservicio de la Bóveda, aquí aplica el mismo
+- El sistema de permisos evita accesos no autorizados mediante `RBAC` gestionadas por `PermissionHandler`. El sistema de ingresos a los datasets ya fue explicado previamente en el microservicio de la Bóveda, aquí aplica el mismo
 
 Respuesta al frontend:
+
 ```json
 {
   "status": "configured",
@@ -4714,7 +4759,8 @@ Flujos principales del microservicio:
 
 1. Almacenamiento de credenciales
 
-  - Cuando un dataset se configura para carga por conexión externa, el frontend envía:
+- Cuando un dataset se configura para carga por conexión externa, el frontend envía:
+
 ```json
 {
   "connectionName": "prod-db",
@@ -4743,11 +4789,13 @@ class SecretsManagerHandler:
 2. Recuperación de credenciales
 
 Otro microservicio solicita el secreto con un secretId:
+
 ```json
 {
   "secretId": "id123"
 }
 ```
+
 - `SecurityController` consulta a `SecretsManagerHandler` y luego llama a `EncryptionManager.decrypt()` para descifrar antes de devolverlo.
 
 ```py
@@ -4782,7 +4830,6 @@ Se envía una notificación al usuario sobre el resultado de la validación util
 
 Este servicio permite comunicar eventos relevantes del sistema a los usuarios finales y a sistemas administrativos mediante colas de mensajes, correo electrónico o notificaciones en la aplicación. Tiene los siguientes componentes:
 
-
 - **NotificationListener:** Escucha los mensajes que llegan a la cola `notification-queue` de RabbitMQ y lo procesa con los handlers segun el tipo de evento.
 
 - **EmailSender:** Envia emails a los usuarios utilizando Amazon SES.
@@ -4791,16 +4838,15 @@ Este servicio permite comunicar eventos relevantes del sistema a los usuarios fi
 
 - **AdminAuditHandler:** Registra eventos críticos como fallos de validación o problemas de pago en un log especial para revisión administrativa.
 
-
 Tabla de rutas posibles:
 
-| Tipo de evento | Handlers |
-| -------  | ----------  |
-|`upload_success`|`EmailNotificationHandler`, `AppNotificationHandler`|
-|`validation_failed` |`EmailNotificationHandler, AdminAuditHandler` |
-|`external_alert` |`WebhookNotificationHandler`|
-|`quota_exceeded` |`AppNotificationHandler`, `EmailNotificationHandler` |
-|`admin_warning` |`AdminAuditHandler`, `EmailNotificationHandler`|
+| Tipo de evento      | Handlers                                             |
+| ------------------- | ---------------------------------------------------- |
+| `upload_success`    | `EmailNotificationHandler`, `AppNotificationHandler` |
+| `validation_failed` | `EmailNotificationHandler, AdminAuditHandler`        |
+| `external_alert`    | `WebhookNotificationHandler`                         |
+| `quota_exceeded`    | `AppNotificationHandler`, `EmailNotificationHandler` |
+| `admin_warning`     | `AdminAuditHandler`, `EmailNotificationHandler`      |
 
 **Flujo típico de notificación por evento exitoso:**
 
@@ -4841,6 +4887,7 @@ class NotificationListener:
 3. El correo es enviado mediante EmailNotificationHandler.`send_success_email()` y la notificación se agrega al feed del usuario.
 
 Respuesta esperada:
+
 ```json
 {
   "status": "notified",
@@ -4877,8 +4924,6 @@ En esta segunda capa se encuentran:
 Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
 
 ![identity clases](img/ClasesCentroCarga1.png)
-
-
 
 **2. dataset-configuration-service**
 
@@ -4925,9 +4970,7 @@ En esta segunda capa se encuentran:
 - AWSSecretHandler: Se encarga de cargar y obtener secretos de AWS Secret Manager .
 - EncryptionManager: Se encarga del proceso de encripción y desencripción.
 
-
 ![identity clases](img/ClasesCentroCarga3.png)
-
 
 **4. notification-service**
 
@@ -4952,9 +4995,8 @@ Finalmente, existe una capa de repositorios gestionada mediante el patrón Facto
 
 ![identity clases](img/ClasesCentroCarga4.png)
 
-
-
 ##### Servicios de AWS
+
 **Amazon S3**
 El servicio de **AWS S3** será el almacén principal para la carga de datos en crudo de los datasets este será utilizado por **TemporaryStorageHandler** en **dataset-upload-service**. También es importante mencionar que este servicio servirá para el acceso a los datasets por **validation-service** para el análisis de los datos.
 
@@ -4965,43 +5007,45 @@ Los datasets necesitan ser protegidos para ello utilizamos **AWS KMS** ya que es
 Se utilizará para proteger los datasets almacenados temporalmente en **S3** por **TemporaryStorageHandler** en **dataset-upload-service** y para el cifrado/descifrado de secretos gestionados por el **security-service**.
 
 **Configuración de Hardware:** Servicio gestionado, serverless. No requiere configuración de hardware. Sin embargo, se pueden configurar la creación de claves.
--	**Tipo de clave:**  Simétrico
--	**Uso de claves:** Cifrado y descifrado
--	**Origen del material de claves:** KMS
--	**Regionalidad:** Clave de una sola región
+
+- **Tipo de clave:** Simétrico
+- **Uso de claves:** Cifrado y descifrado
+- **Origen del material de claves:** KMS
+- **Regionalidad:** Clave de una sola región
 
 **AWS RDS**
 Servirá como la base de datos relacional primaria para metadatos estructurados.
 Se utilizará para almacenar la metadata de los datasets en el microservicio de DatasetMetadata.
 
 **Configuración de Hardware:**
+
 - **Método de creación**
-  -	 Creación estándar
+  - Creación estándar
 - **Motor de base de datos**
-  -	Aurora PostgreSQL
-  -	Versión: Compatible con PostgreSQL 16.6
-  -	Soporte extendido de RDS: No
+  - Aurora PostgreSQL
+  - Versión: Compatible con PostgreSQL 16.6
+  - Soporte extendido de RDS: No
 - **Plantilla**
-  -	Desarrollo y pruebas
+  - Desarrollo y pruebas
 - **Identificador del clúster**
-  -	database-1
+  - database-1
 - **Credenciales**
-  -	Usuario maestro: postgres
-  -	Contraseña: Autoadministrada
-  -	Administración de credenciales: Autoadministrado
-  -	Clave de cifrado: aws/secretsmanager (por defecto)
+  - Usuario maestro: postgres
+  - Contraseña: Autoadministrada
+  - Administración de credenciales: Autoadministrado
+  - Clave de cifrado: aws/secretsmanager (por defecto)
 - **Almacenamiento**
-  -	Tipo: Aurora optimizado para operaciones de E/S
+  - Tipo: Aurora optimizado para operaciones de E/S
 - **Instancia**
-  -	Clase de instancia: db.r6g.2xlarge (8 vCPUs, 64 GiB RAM)
-  -	Multi-AZ: No (sin réplica de Aurora)
+  - Clase de instancia: db.r6g.2xlarge (8 vCPUs, 64 GiB RAM)
+  - Multi-AZ: No (sin réplica de Aurora)
 - **Conectividad**
-  -	EC2 conectado: No
-  -	Tipo de red: IPv4
-  -	VPC: Default VPC (vpc-0d710bc7833e39b85)
-  -	Grupo de subredes: predeterminado
-  -	Acceso público: Sí
-  -	Grupo de seguridad de VPC: default
+  - EC2 conectado: No
+  - Tipo de red: IPv4
+  - VPC: Default VPC (vpc-0d710bc7833e39b85)
+  - Grupo de subredes: predeterminado
+  - Acceso público: Sí
+  - Grupo de seguridad de VPC: default
 
 **Amazon DynamoDB**
 Se consideraría como un complemento a RDS para metadatos de alta concurrencia o naturaleza dinámica como las sesiones de usuario, y los contadores de consumo de datasets en tiempo real.
@@ -5016,6 +5060,7 @@ Será el servicio para el envío de correos electrónicos transaccionales a los 
 Para configurar un SES simplemente necesitamos dirigirnos a crear una identidad. En tipo de identidad utilizaremos **Dirección de correo electrónico**, luego en **Dirección de correo electrónico** colocamos el correo electrónico que utilizaremos (ej. notificacionesDatos@gmail), luego nos llega una notificación al correo donde tendremos que verificar la dirección de correo electrónico.
 
 ##### Sistema de Monitoreo
+
 El monitoreo del Componente del Centro de Carga de Datos se implementará siguiendo una estrategia de observabilidad integral que permita supervisar en tiempo real el comportamiento, rendimiento y seguridad de todo el proceso de ingesta inicial de datasets.
 
 **Métricas y Rendimiento**
@@ -5023,79 +5068,323 @@ El monitoreo del Componente del Centro de Carga de Datos se implementará siguie
 **AWS CloudWatch** será el servicio para monitoreo más importante se encargara de recopilar y almacenar métricas operacionales del Componente del Centro de Carga de Datos. Se monitorizarán aspectos críticos como:
 
 **Métricas de Negocio:**
--	Cantidad de datasets cargados exitosamente por formato (CSV, Excel, JSON).
--	Tasa de éxito en la validación inicial de esquema y estructura del archivo.
--	Tiempo promedio del proceso completo de carga (desde la recepción hasta el almacenamiento temporal en S3).
--	Volumen de datos (en GB) ingesados diariamente.
--	Cantidad de notificaciones de carga enviadas (éxito/fracaso).
+
+- Cantidad de datasets cargados exitosamente por formato (CSV, Excel, JSON).
+- Tasa de éxito en la validación inicial de esquema y estructura del archivo.
+- Tiempo promedio del proceso completo de carga (desde la recepción hasta el almacenamiento temporal en S3).
+- Volumen de datos (en GB) ingesados diariamente.
+- Cantidad de notificaciones de carga enviadas (éxito/fracaso).
 
 **Métricas de Infraestructura:**
--	**S3 (data-temp-storage):** Latencia de operaciones PutObject, GetObject, ListObjects; cantidad de PutRequests, GetRequests; tasa de errores (4xx, 5xx).
--	**RDS/DynamoDB:** Latencia de conexiones, ReadIOPS, WriteIOPS, utilización de recursos para las tablas DatasetUploadTemp y DatasetMetadata.
--	**AWS RabbitMQ:** Tamaño de la cola de notificaciones de notification-queue, mensajes entrantes/salientes, latencia de conexión al broker.
--	**AWS KMS:** Tasa de solicitudes y errores en las operaciones de cifrado/descifrado de las claves usadas por dataset-upload-service.
+
+- **S3 (data-temp-storage):** Latencia de operaciones PutObject, GetObject, ListObjects; cantidad de PutRequests, GetRequests; tasa de errores (4xx, 5xx).
+- **RDS/DynamoDB:** Latencia de conexiones, ReadIOPS, WriteIOPS, utilización de recursos para las tablas DatasetUploadTemp y DatasetMetadata.
+- **AWS RabbitMQ:** Tamaño de la cola de notificaciones de notification-queue, mensajes entrantes/salientes, latencia de conexión al broker.
+- **AWS KMS:** Tasa de solicitudes y errores en las operaciones de cifrado/descifrado de las claves usadas por dataset-upload-service.
 
 **Prometheus** complementará a CloudWatch recopilando métricas específicas como las del microservicio de **dataset-upload-service** a través de un **endpoint** dedicado. Esto permitirá obtener métricas más granulares sobre el comportamiento interno de la aplicación, como:
--	Los contadores de operaciones específicas (ej., validation_attempts_total, encryption_calls_total).
--	Los histogramas de distribución de tiempos (ej., file_parsing_duration_seconds, db_write_duration_seconds).
+
+- Los contadores de operaciones específicas (ej., validation_attempts_total, encryption_calls_total).
+- Los histogramas de distribución de tiempos (ej., file_parsing_duration_seconds, db_write_duration_seconds).
 
 **Visualización y Dashboards**
 **Grafana** se utilizará como plataforma principal de visualización, integrándose tanto con CloudWatch como con Prometheus para crear dashboards interactivos que permitan:
--	**Dashboard Operacional de Carga:** Vista en tiempo real del estado general del proceso de carga de datos. Mostrará el volumen de cargas activas, la distribución de archivos por formato, la tasa de éxito/fracaso de las cargas, y el estado de salud de los pods de dataset-upload-service y sus dependencias (S3, DBs, MQ).
 
--	**Dashboard de Rendimiento de Carga:** Monitoreo específico de las latencias. Incluirá el tiempo promedio del proceso de carga, la latencia de escritura en S3, la latencia de registro de metadatos en DBs, y el consumo de recursos (CPU/memoria) del **dataset-upload-service**.
+- **Dashboard Operacional de Carga:** Vista en tiempo real del estado general del proceso de carga de datos. Mostrará el volumen de cargas activas, la distribución de archivos por formato, la tasa de éxito/fracaso de las cargas, y el estado de salud de los pods de dataset-upload-service y sus dependencias (S3, DBs, MQ).
 
--	**Dashboard de Calidad y Seguridad de Carga:** Seguimiento de eventos relacionados con la calidad inicial y la seguridad del proceso de carga. Mostrará la tasa de errores en la validación inicial de esquema, intentos de acceso no autorizado a recursos de carga vía security-service, y monitoreo de las operaciones de cifrado.
+- **Dashboard de Rendimiento de Carga:** Monitoreo específico de las latencias. Incluirá el tiempo promedio del proceso de carga, la latencia de escritura en S3, la latencia de registro de metadatos en DBs, y el consumo de recursos (CPU/memoria) del **dataset-upload-service**.
+
+- **Dashboard de Calidad y Seguridad de Carga:** Seguimiento de eventos relacionados con la calidad inicial y la seguridad del proceso de carga. Mostrará la tasa de errores en la validación inicial de esquema, intentos de acceso no autorizado a recursos de carga vía security-service, y monitoreo de las operaciones de cifrado.
 
 **Logs y Trazabilidad**
 El sistema de logging aprovechará **CloudWatch Logs** para centralizar todos los registros generados por los componentes del Centro de Carga de Datos. Se implementará un esquema de logging estructurado que facilite:
 
--	**Trazabilidad Completa con AWS X-Ray:** Cada transacción de carga tendrá un identificador único de correlación (ID de traza X-Ray) que permitirá seguir su flujo desde la recepción del archivo, pasando por la interacción con S3, KMS, el registro de metadatos en RDS/DynamoDB, y la interacción con security-service o validation-service, hasta la notificación final.
+- **Trazabilidad Completa con AWS X-Ray:** Cada transacción de carga tendrá un identificador único de correlación (ID de traza X-Ray) que permitirá seguir su flujo desde la recepción del archivo, pasando por la interacción con S3, KMS, el registro de metadatos en RDS/DynamoDB, y la interacción con security-service o validation-service, hasta la notificación final.
 
--	**Auditoría y Diagnóstico**
-    - **CloudWatch Logs Insights:** Permite la consulta interactiva de logs para identificar rápidamente la causa raíz de cualquier incidencia (ej., errores en el procesamiento de un tipo de archivo específico).
-    -  **AWS CloudTrail:** Registra todas las llamadas a la API de AWS realizadas por el dataset-upload-service y sus roles asociados (ej., s3:PutObject, kms:Encrypt, secretsmanager:GetSecretValue), esencial para auditoría y seguridad.
+- **Auditoría y Diagnóstico**
+  - **CloudWatch Logs Insights:** Permite la consulta interactiva de logs para identificar rápidamente la causa raíz de cualquier incidencia (ej., errores en el procesamiento de un tipo de archivo específico).
+  - **AWS CloudTrail:** Registra todas las llamadas a la API de AWS realizadas por el dataset-upload-service y sus roles asociados (ej., s3:PutObject, kms:Encrypt, secretsmanager:GetSecretValue), esencial para auditoría y seguridad.
 
 **Sistema de Alertas y Notificaciones**
 Se configurará un sistema proactivo de alertas utilizando **CloudWatch Alarms** que notificará al equipo de operaciones cuando se detecten condiciones anómalas:
--	**Alertas Críticas (respuesta inmediata requerida):**
-    -	Fallo total del **dataset-upload-service** o indisponibilidad de su **endpoint** de **health check**.
-    -	Tasa de error (HTTP 5xx en el UploadController o en S3) superior al 5% en una ventana de 5 minutos.
-    - Fallo en la conexión con servicios críticos (S3, RDS/DynamoDB, KMS, Amazon MQ).
-    -	Detección de un incremento súbito de errores en operaciones de cifrado/descifrado (KMS).
-    -	Errores críticos registrados en CloudWatch Logs por el dataset-upload-service (ej., Unhandled Exception).
 
--	**Alertas de Advertencia (revisión prioritaria):**
-    -	Degradación del rendimiento con latencias de carga de datasets superiores a 30 segundos.
-    -	Uso de recursos (CPU, memoria) del pod de **dataset-upload-service** por encima del 80% de capacidad.
-    -	Incremento inusual en las validaciones iniciales de datasets fallidas.
-    -	Acumulación de objetos sin procesar en el bucket data-temp-storage por más de un umbral de tiempo.
+- **Alertas Críticas (respuesta inmediata requerida):**
 
--	**Alertas Informativas (seguimiento regular):**
-    -	Resumen diario de métricas operacionales de carga (ej., total de cargas exitosas del día).
-    -	Reporte semanal de tendencias de volumen de datos ingesados.
+  - Fallo total del **dataset-upload-service** o indisponibilidad de su **endpoint** de **health check**.
+  - Tasa de error (HTTP 5xx en el UploadController o en S3) superior al 5% en una ventana de 5 minutos.
+  - Fallo en la conexión con servicios críticos (S3, RDS/DynamoDB, KMS, Amazon MQ).
+  - Detección de un incremento súbito de errores en operaciones de cifrado/descifrado (KMS).
+  - Errores críticos registrados en CloudWatch Logs por el dataset-upload-service (ej., Unhandled Exception).
+
+- **Alertas de Advertencia (revisión prioritaria):**
+
+  - Degradación del rendimiento con latencias de carga de datasets superiores a 30 segundos.
+  - Uso de recursos (CPU, memoria) del pod de **dataset-upload-service** por encima del 80% de capacidad.
+  - Incremento inusual en las validaciones iniciales de datasets fallidas.
+  - Acumulación de objetos sin procesar en el bucket data-temp-storage por más de un umbral de tiempo.
+
+- **Alertas Informativas (seguimiento regular):**
+  - Resumen diario de métricas operacionales de carga (ej., total de cargas exitosas del día).
+  - Reporte semanal de tendencias de volumen de datos ingesados.
 
 **Monitoreo de Cumplimiento y Seguridad**
 Dado el manejo de datos sensibles en la carga, se implementarán controles específicos de monitoreo para garantizar el cumplimiento normativo y la seguridad:
--	**Auditoría de Accesos a Datos Cargados:** Registro detallado usando CloudTrail y CloudWatch Logs de todos los accesos PutObject, GetObject al bucket data-temp-storage, identificando quién accedió, cuándo y con qué propósito.
--	**Verificación de Cifrado:** Monitoreo continuo del estado de cifrado de datos en reposo en S3 mediante políticas de bucket y eventos de KMS, asegurando que todos los archivos cargados estén cifrados correctamente.
--	**Monitoreo de Acceso a Secretos:** Seguimiento de los intentos de acceso y las rotaciones de credenciales en AWS Secrets Manager utilizadas por el dataset-upload-service para conectarse a fuentes externas o bases de datos.
+
+- **Auditoría de Accesos a Datos Cargados:** Registro detallado usando CloudTrail y CloudWatch Logs de todos los accesos PutObject, GetObject al bucket data-temp-storage, identificando quién accedió, cuándo y con qué propósito.
+- **Verificación de Cifrado:** Monitoreo continuo del estado de cifrado de datos en reposo en S3 mediante políticas de bucket y eventos de KMS, asegurando que todos los archivos cargados estén cifrados correctamente.
+- **Monitoreo de Acceso a Secretos:** Seguimiento de los intentos de acceso y las rotaciones de credenciales en AWS Secrets Manager utilizadas por el dataset-upload-service para conectarse a fuentes externas o bases de datos.
 
 **Health Checks y Disponibilidad**
 Los microservicios del Centro de Carga implementarán múltiples niveles de verificación de salud que serán monitoreados continuamente por Kubernetes y los sistemas de monitoreo:
--	**Liveness Probe:** Verificación básica de que el dataset-upload-service está activo y respondiendo, ejecutada cada 10 segundos por Kubernetes.
--	**Readiness Probe:** Verificación comprehensiva de que el dataset-upload-service puede procesar solicitudes de carga, incluyendo conectividad con S3, KMS, bases de datos (RDS/DynamoDB) y Amazon RabbitMQ.
--	**Deep Health Checks:** Verificaciones periódicas más exhaustivas que validan la integridad de configuraciones críticas (ej., validación de esquemas de carga), la disponibilidad de claves de cifrado, y la correcta operación del flujo completo de carga de un archivo de prueba simulado.
+
+- **Liveness Probe:** Verificación básica de que el dataset-upload-service está activo y respondiendo, ejecutada cada 10 segundos por Kubernetes.
+- **Readiness Probe:** Verificación comprehensiva de que el dataset-upload-service puede procesar solicitudes de carga, incluyendo conectividad con S3, KMS, bases de datos (RDS/DynamoDB) y Amazon RabbitMQ.
+- **Deep Health Checks:** Verificaciones periódicas más exhaustivas que validan la integridad de configuraciones críticas (ej., validación de esquemas de carga), la disponibilidad de claves de cifrado, y la correcta operación del flujo completo de carga de un archivo de prueba simulado.
 
 **Análisis y Mejora Continua**
 El sistema de monitoreo no solo detectará problemas, sino que proporcionará insights para la mejora continua del proceso de carga:
--	**Análisis de Tendencias:** Identificación de patrones en el volumen y tipo de cargas (ej., picos horarios, aumento de un formato específico) para optimizar recursos y predecir necesidades futuras.
--	**Detección de Anomalías:** Uso de las capacidades de CloudWatch para identificar comportamientos inusuales (ej., caída repentina en el número de cargas exitosas) que podrían indicar problemas emergentes.
--	**Reportes de Capacidad:** Proyecciones basadas en datos históricos de volumen de carga y uso de recursos para planificar el crecimiento de la infraestructura de almacenamiento (S3) y cómputo (EKS).
--	**Optimización de Costos:** Análisis del uso de recursos de S3, EKS y DBs para identificar oportunidades de optimización de costos sin comprometer el rendimiento.
 
+- **Análisis de Tendencias:** Identificación de patrones en el volumen y tipo de cargas (ej., picos horarios, aumento de un formato específico) para optimizar recursos y predecir necesidades futuras.
+- **Detección de Anomalías:** Uso de las capacidades de CloudWatch para identificar comportamientos inusuales (ej., caída repentina en el número de cargas exitosas) que podrían indicar problemas emergentes.
+- **Reportes de Capacidad:** Proyecciones basadas en datos históricos de volumen de carga y uso de recursos para planificar el crecimiento de la infraestructura de almacenamiento (S3) y cómputo (EKS).
+- **Optimización de Costos:** Análisis del uso de recursos de S3, EKS y DBs para identificar oportunidades de optimización de costos sin comprometer el rendimiento.
 
 ##### Modelo de seguridad detallado
+
+El backend del componente Centro de Carga gestiona información crítica relacionada con datasets, incluyendo la carga, validación y categorización. Dado su rol esencial, se implementará un modelo de seguridad robusto y granular orientado a prevenir accesos no autorizados, asegurar integridad, confidencialidad, trazabilidad y disponibilidad continua de los datos.
+
+1. Control de Acceso Granular
+
+| Rol del usuario  | Descripción                                         | Permisos sobre recursos del Centro de Carga                                                                |
+| ---------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `Carga:viewer`   | Usuario con acceso de solo lectura                  | Visualizar historial de cargas, detalles de configuración, esquema de columnas y metadatos                 |
+| `Carga:editor`   | Usuario autorizado a diseñar y actualizar cargas    | Crear cargas nuevas, definir esquema de columnas, asociar metadata, configurar delta                       |
+| `Carga:approver` | Validador de configuraciones previas a la ejecución | Aprobar configuraciones antes de ser activadas, validar transformaciones, confirmar integridad estructural |
+| `Carga:admin`    | Administrador completo del módulo de carga          | Modificar permisos de carga, eliminar configuraciones, visualizar trazabilidad completa, forzar cargas     |
+
+Ejemplo de flujo de autorización en RDS (PostgreSQL):
+
+- **AccesoADataset**: registra qué personas tienen acceso a cada dataset.
+- **DatasetDePago y TipoDePago**: gestionan la configuración de pagos asociados a datasets, incluyendo su categorización.
+- **DatasetCrons**: define el modo de carga que tendrán los datasets recurrentes (Delta, Complete), y el tipo de fuente del que pueden venir (Base de datos o API). Esta tabla será consultada por Airflow para aplicar los DAGs correspondientes de forma automatizada.
+- **Tablas**: Esta tabla almacena a que Dataset pertenecen las distintas tablas de Redshift .
+1. Un usuario autenticado realiza una solicitud para modificar una configuración de carga.
+
+2. El backend identifica que el usuario tiene rol `Carga:editor` y autentica su token internamente.
+
+3. Se ejecuta una función almacenada en PostgreSQL:
+
+
+```SQL
+SELECT actualizar_configuracion_carga(:id_config, :nueva_metadata, :usuario);
+```
+
+
+4. Dentro de la función `actualizar_configuracion_carga`, se valida que el usuario tenga permisos equivalentes al rol editor en la tabla `roles_usuario`:
+
+```SQL
+IF NOT EXISTS (SELECT 1 FROM roles_usuario WHERE usuario = $3 AND rol = 'editor') THEN
+  RAISE EXCEPTION 'Acceso no autorizado';
+END IF;
+```
+
+5. Si pasa la validación, se actualizan los campos correspondientes; en caso contrario, se bloquea la operación y se registra un intento fallido en la bitácora de auditoría.
+
+**2. Cifrado de Información**
+
+###### Cifrado en tránsito
+
+Todas las comunicaciones entre el frontend del centro de carga, los microservicios y los servicios de almacenamiento (Amazon S3 y RDS), se ejecutan mediante HTTPS con TLS 1.3. Igualmente, EKS fuerza el uso de TLS con certificados actualizados gestionados mediante AWS Certificate Manager.
+
+###### Cifrado en reposo
+
+Cada tipo de dato gestionado por el Centro de Carga está protegido mediante mecanismos nativos de cifrado proporcionados por los servicios utilizados:
+
+| Tecnología      | Elementos cifrados                                | Mecanismo de cifrado                       | Particularidades de seguridad                                                        |
+| --------------- | ------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------ |
+| Amazon S3       | Archivos de datasets cargados + metadata asociada | AWS KMS                                    | Bucket con políticas que rechazan cargas no cifradas y control de acceso restringido |
+| Amazon RDS      | Configuraciones estructurales                     | Cifrado de disco automático con claves KMS | Acceso restringido a través de funciones y roles internos                            |
+| Amazon DynamoDB | Estados de carga, historial de ejecución          | Cifrado nativo activado automáticamente    | Acceso limitado por política IAM de microservicio                                    |
+
+**Adicionalmente**
+
+- Los archivos cargados son escaneados y validados antes de ser almacenados. Solo si cumplen con los requisitos del esquema de columnas aprobado y no presentan fallos estructurales o semánticos, se escriben en el bucket correspondiente, con nombre aleatorio y metadata cifrada.
+
+- En caso de rechazo en el proceso de validación, el archivo se descarta y se registra el evento en la bitácora para trazabilidad.
+
+**3. Auditoría y Trazabilidad**
+
+###### Elementos auditados
+
+- Solicitudes de creación, modificación y eliminación de configuraciones de carga.
+- Procesos de validación estructural y semántica.
+- Aprobaciones manuales o automáticas.
+- Errores detectados en archivos cargados.
+- Consultas sobre configuraciones y ejecuciones pasadas.
+
+###### Origen y estructura del registro
+
+1. Identificador de usuario y rol.
+2. Timestamp exacto de la operación.
+3. Tipo de operación realizada.
+4. IP de origen o microservicio emisor.
+5. Resultado de la acción (éxito, error, rechazo por validación).
+
+###### Tecnologías utilizadas
+
+- **Amazon CloudWatch Logs:** Registro estructurado de eventos en tiempo real.
+
+- **Amazon DynamoDB Streams:** Replicación de eventos sensibles a una tabla de auditoría histórica.
+
+###### Acceso y resguardo
+
+El acceso a los registros está restringido a roles con privilegios de auditoría mediante políticas IAM. Se implementan estrategias de rotación, almacenamiento cifrado y retención mínima de 12 meses.
+
+**4. Monitoreo y Gestión de Incidentes**
+
+###### 4.1 Monitoreo en Tiempo Real
+
+- **Prometheus:** Se utiliza para recolectar métricas personalizadas relacionadas con la carga de datasets, como el tiempo promedio de validación de un archivo o la tasa de éxito en las cargas de datos.
+
+- **AWS CloudWatch:** Monitorea los logs generados por los microservicios del Centro de Carga, enviando alertas cuando se detectan patrones anómalos, como fallos recurrentes o tiempos de espera demasiado largos en el procesamiento de datos.
+
+###### 4.2 Gestión de Incidentes
+
+Esta sección está diseñada para identificar y responder rápidamente ante cualquier tipo de evento que pueda comprometer la integridad del sistema o la seguridad de los datos.
+
+1. **Detección de Incidentes:** Se utilizan reglas de alerta configuradas en CloudWatch para detectar incidentes como errores en la carga de datos, archivos rechazados por validaciones o caídas de servicios externos (como bases de datos o APIs).
+
+2. **Clasificación:** Se evalúa la gravedad del incidente y se clasifica como crítico, medio o bajo.
+
+| **Clasificación de Incidente** | **Descripción**                                                                                                                                                                         | **Ejemplo**                                                                                                                                                                              | **Acción Requerida**                                                                                                                            |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Crítico**                    | Incidentes que afectan directamente la operación del sistema y pueden comprometer la seguridad o la integridad de los datos. Requieren una acción inmediata para restaurar el servicio. | - Caída de base de datos (Amazon RDS) durante una carga de datos. <br> - Exposición accidental de datos sensibles.                                                                       | - Restauración inmediata desde backups. <br> - Notificación a los administradores a través de AWS SNS. <br> - Reinicio automático de servicios. |
+| **Medio**                      | Incidentes que afectan el rendimiento o la funcionalidad del sistema. Se pueden retrasar procesos o requerir una intervención manual.                                                   | - Error en la validación de un archivo de carga que retrasa la operación pero no detiene el flujo. <br> - Lento procesamiento de un dataset debido a un error de configuración temporal. | - Notificación al equipo de soporte. <br> - Revalidación y reintento de carga.                                                                  |
+| **Bajo**                       | Incidentes menores que no afectan el funcionamiento principal del sistema, pero que requieren atención para evitar que se conviertan en problemas mayores.                              | - Un archivo rechazado por un error de formato menor. <br> - Una solicitud de visualización de metadatos que no devuelve resultados por una pequeña falla en el frontend.                | - Registro del incidente en el sistema de auditoría. <br> - Resolución del error en la próxima actualización.                                   |
+
+3. **Respuesta Automática:** En caso de un incidente, se utiliza AWS Lambda para ejecutar funciones que puedan mitigar el impacto.
+
+```py
+import json
+import boto3
+import logging
+
+# Configurar el cliente de S3
+s3_client = boto3.client('s3')
+lambda_client = boto3.client('lambda')
+
+# Configurar el cliente de SNS para notificaciones
+sns_client = boto3.client('sns')
+
+# Nombre del bucket y archivo que estamos tratando de cargar
+bucket_name = 'nombre-del-bucket'
+file_key = 'ruta/al/archivo/dataset.csv'
+
+# Tema de SNS para notificación de incidentes
+sns_topic_arn = 'arn:aws:sns:region:account-id:topic-name'
+
+# Función Lambda para manejar el incidente
+def lambda_handler(event, context):
+    try:
+        # Intentamos cargar el archivo desde S3 nuevamente (simulando la carga de datos)
+        response = s3_client.upload_file(file_key, bucket_name, file_key)
+        logging.info(f"Archivo cargado exitosamente: {file_key}")
+
+        # Si la carga fue exitosa, enviar una notificación de éxito
+        send_notification("Carga de datos exitosa", "El archivo se cargó correctamente.")
+
+        return {
+            'statusCode': 200,
+            'body': json.dumps('Carga exitosa')
+        }
+
+    except Exception as e:
+        logging.error(f"Error en la carga de datos: {str(e)}")
+
+        # Enviar una notificación de error
+        send_notification("Error en la carga de datos", f"Ocurrió un error: {str(e)}")
+
+        # Reintentar la carga, si la operación falló
+        logging.info(f"Reintentando carga para el archivo: {file_key}")
+        return retry_load()
+
+# Función para reintentar la carga del archivo
+def retry_load():
+    try:
+        # Intentar subir el archivo a S3 nuevamente
+        s3_client.upload_file(file_key, bucket_name, file_key)
+        logging.info("Carga reintentada exitosa.")
+        send_notification("Carga reintentada exitosa", f"El archivo {file_key} se ha cargado exitosamente después del reintento.")
+
+        return {
+            'statusCode': 200,
+            'body': json.dumps('Carga reintentada exitosa')
+        }
+
+    except Exception as e:
+        logging.error(f"Error en el reintento de carga: {str(e)}")
+        send_notification("Error en el reintento de carga", f"Ocurrió un error en el reintento: {str(e)}")
+
+        return {
+            'statusCode': 500,
+            'body': json.dumps('Fallo en la carga después del reintento')
+        }
+
+# Función para enviar notificaciones a SNS
+def send_notification(subject, message):
+    response = sns_client.publish(
+        TopicArn=sns_topic_arn,
+        Message=message,
+        Subject=subject
+    )
+    logging.info(f"Notificación enviada: {response}")
+
+```
+
+4. **Notificación de Incidentes:** Cuando un incidente es clasificado como crítico AWS SNS envía notificaciones a los administradores y responsables de la seguridad.
+
+##### Elementos de Alta Disponibilidad
+
+**1. Almacenamiento Distribuido**
+
+Se utiliza Amazon S3 para el almacenamiento seguro de los datos de carga, incluyendo archivos de configuración, logs y otros datos asociados con el proceso. Con una política de replicación cruzada de objetos y versionado, cualquier archivo cargado se replica automáticamente a otra zona de disponibilidad. Con esto se cumple la disponibilidad de los datos en caso de fallo en una zona. Para los datos como logs de operaciones, se usa Amazon DynamoDB con activación de Point-in-Time Recovery para asegurar la disponibilidad continua de los metadatos asociados con las cargas.
+
+| Recurso        | Tecnología    | Implementación                                | Activación                     | Ubicación   |
+| -------------- | ------------- | --------------------------------------------- | ------------------------------ | ----------- |
+| Datos de Carga | **Amazon S3** | Replicación cruzada entre zonas y versionado  | Cada vez que se carga/modifica | `us-east-1` |
+| Metadatos      | **DynamoDB**  | Backup continuo con recuperación en el tiempo | En cada operación de escritura | `us-east-1` |
+
+**2. Monitoreo y Alertas**
+
+Se utiliza AWS CloudWatch para obtener métricas de disponibilidad de los recursos del backend del Centro de Carga como el uso de CPU, memoria y latencia. Por otro lado, se configura Prometheus para la recolección de métricas personalizadas sobre los microservicios que gestionan las cargas de trabajo y las interacciones del sistema, con visualización de las métricas en Grafana.
+
+| Tecnología     | Función                                         | Ubicación                           | Ejecución                           |
+| -------------- | ----------------------------------------------- | ----------------------------------- | ----------------------------------- |
+| **CloudWatch** | Monitoreo de métricas de infraestructura AWS    | Servicios de AWS                    | En tiempo real y continuo           |
+| **Prometheus** | Recolección de métricas específicas del sistema | Dentro del clúster EKS              | Cada vez que se actualizan métricas |
+| **Grafana**    | Visualización de datos para diagnóstico         | Conectado a CloudWatch y Prometheus | Monitoreo constante                 |
+
+**3. Balanceo de carga**
+
+###### 3.1 Distribución de Solicitudes a Microservicios
+
+Las solicitudes entrantes, como las que requieren la carga de datos o la consulta de estado, son dirigidas al Application Load Balancer de AWS. Este ALB distribuye las solicitudes entre las diferentes instancias de los microservicios encargados de procesar los datos.
+
+- Si el Centro de Carga recibe varias solicitudes simultáneas para cargar grandes volúmenes de datos desde Amazon S3, el ALB distribuye estas solicitudes entre las instancias disponibles que gestionan el procesamiento de estos archivos.
+
+###### 3.2 Auto Scaling para Manejo de Picos de Tráfico
+
+El Centro de Carga está configurado con Auto Scaling Groups (ASG) para ajustarse automáticamente a los picos de tráfico. Cuando el volumen de solicitudes sube, el Auto Scaling agrega nuevas instancias para manejar la mayor carga.
+
+- Si se detecta un aumento en el tráfico durante un periodo de alta demanda, el Auto Scaling aumenta automáticamente el número de instancias disponibles para manejar las nuevas solicitudes de carga sin que se experimenten fallos en el sistema.
+
+##### 3.3 Integración con Kubernetes
+
+El Centro de Carga también se beneficia del uso de Amazon EKS para gestionar microservicios. El ALB trabaja en dirigir el trafico a contenedores específicos dentro del clúster de Kubernetes, mejorando la distribución de solicitudes.
+
+- En un escenario donde se requiere escalar dinámicamente los microservicios, el Ingress Controller en combinación con el ALB asegura que el tráfico se distribuya equitativamente entre los contenedores de Kubernetes.
+
+##### Diagrama del Backend
 
 #### Diseño de los Datos
 
@@ -5109,12 +5398,1840 @@ A continuación se presenta el diagrama de base de datos correspondiente al mód
 - **AccesoADataset**: registra qué personas tienen acceso a cada dataset.
 - **DatasetDePago y TipoDePago**: gestionan la configuración de pagos asociados a datasets, incluyendo su categorización.
 - **DatasetCrons**: define el modo de carga que tendrán los datasets recurrentes (Delta, Complete), y el tipo de fuente del que pueden venir (Base de datos o API). Esta tabla será consultada por Airflow para aplicar los DAGs correspondientes de forma automatizada.
-- **Tablas**: Esta tabla almacena a que Dataset pertenecen las distintas tablas de Redshift .
 
 ![image](img/DiagramaBDCentroCarga.png)
 
 
-### 4.4 Motor De Transformación
+
+### 4.5 MarketPlace
+
+#### Diseño del Frontend
+#### Patrones de Diseño de Objetos - Frontend del Marketplace
+
+El diseño del frontend del componente Marketplace de Data Pura Vida sigue principios de diseño orientado a objetos que buscan flexibilidad, mantenibilidad y escalabilidad. Los principales patrones aplicados son los siguientes:
+
+##### 1 **Patrón de Strategy**
+
+- Ubicación: En los filtros de búsqueda de datasets.
+- Descripción: El frontend permite al usuario aplicar distintos tipos de filtros (por precio, categoría, tipo de dataset, popularidad, etc). Cada filtro implementa una estrategia diferente de ordenamiento o filtrado, pero todos heredan de una interfaz común, lo que permite agregar nuevos filtros en el futuro sin modificar el flujo principal.
+- Beneficio: Permite extender fácilmente nuevos criterios de búsqueda sin alterar el resto del sistema.
+
+##### 2️ **Patrón de Singleton**
+
+- Ubicación: Cliente HTTP centralizado (por ejemplo ApiConnector o MarketplaceApiClient).
+- Descripción: Todo el frontend utiliza una única instancia para gestionar las conexiones al backend (requests HTTP a la API REST de Marketplace).
+- Beneficio: Garantiza un único punto de configuración de headers, manejo de tokens, interceptores de error, y manejo centralizado de respuestas.
+
+##### 3️ **Patrón de Observer (Pub-Sub)**
+
+- Ubicación: Sistema de notificaciones y actualización de componentes de UI.
+- Descripción: Algunos componentes de la interfaz están suscritos a eventos globales como la finalización de una compra, actualización de un dataset o expiración de accesos.
+- Beneficio: Desacopla los componentes visuales del flujo de negocio, permitiendo que reaccionen a eventos sin depender directamente unos de otros.
+
+##### 4️ **Patrón de Facade**
+
+- Ubicación: Módulo de servicios de pago.
+- Descripción: Las operaciones de compra, validación de pagos, visualización de precios y confirmación de compra son orquestadas desde un único módulo de servicios, el cual encapsula la comunicación con Stripe y la lógica de negocio asociada.
+- Beneficio: Simplifica el uso de APIs externas, ocultando la complejidad de validaciones, formatos de respuesta y errores.
+
+##### 5️ Patrón MVVM (Model-View-ViewModel)
+
+- Ubicación: Arquitectura general del frontend.
+- Descripción:
+  - Model: Define los objetos de negocio como Dataset, Order, PaymentTransaction.
+  - ViewModel: Implementado mediante custom hooks como useDatasetSearch(), useMarketplaceCart().
+  - View: Los componentes visuales de React, organizados bajo Atomic Design.
+- Beneficio: Separa de forma clara la lógica de presentación, la lógica de negocio y el manejo de estado de UI.
+
+#### Estructura de Carpetas del Sistema - Frontend del Marketplace
+
+El frontend del componente Marketplace sigue una estructura modular basada en el patrón de diseño Atomic Design, el patrón MVVM y principios de escalabilidad y mantenibilidad. La organización permite extender fácilmente nuevos módulos de negocio dentro del Marketplace.
+
+```plaintext
+frontend/
+├── public/                     # Archivos estáticos
+├── src/
+│   ├── api/                    # Lógica de conexión con el backend (Axios + interceptores)
+│   │   ├── marketplaceApi.ts   # Endpoints específicos del Marketplace
+│   │   └── authApi.ts          # Autenticación general vía Cognito
+│   │
+│   ├── models/                 # Definición de los modelos de negocio
+│   │   ├── Dataset.ts
+│   │   ├── Order.ts
+│   │   └── Payment.ts
+│   │
+│   ├── hooks/                  # ViewModels (gestión de estado y lógica de UI)
+│   │   ├── useDatasetSearch.ts
+│   │   ├── useCart.ts
+│   │   └── usePayment.ts
+│   │
+│   ├── components/             # Componentes visuales según Atomic Design
+│   │   ├── atoms/              # Botones, inputs, etiquetas
+│   │   ├── molecules/          # Formularios de búsqueda, carritos
+│   │   ├── organisms/          # Composición de vistas completas
+│   │   └── templates/          # Layouts reutilizables
+│   │
+│   ├── pages/                  # Rutas principales del sistema
+│   │   ├── MarketplaceHome.tsx
+│   │   ├── DatasetDetails.tsx
+│   │   ├── Cart.tsx
+│   │   └── Checkout.tsx
+│   │
+│   ├── contexts/               # Contexto global de usuario y carrito
+│   │   ├── UserContext.tsx
+│   │   └── CartContext.tsx
+│   │
+│   ├── services/               # Lógica externa: pagos, facturación, etc.
+│   │   ├── stripeService.ts
+│   │   └── invoiceService.ts
+│   │
+│   ├── utils/                  # Funciones utilitarias comunes
+│   └── App.tsx                 # Punto de entrada de la aplicación
+│
+├── amplify/                    # Configuración de AWS Amplify y Cognito
+│   ├── backend/
+│   └── aws-exports.js
+│
+└── tests/                      # Pruebas unitarias e integración
+    ├── unit/
+    └── integration/
+```
+
+#### Arquitectura del Cliente - Frontend del Marketplace
+
+El frontend del componente Marketplace sigue una arquitectura moderna basada en principios de MVVM (Model-View-ViewModel), Atomic Design y desacoplamiento de responsabilidades. Este diseño permite mantener la lógica de negocio separada de las vistas, simplificando su mantenimiento y escalabilidad.
+
+#### Arquitectura General
+
+```plaintext
+[ Usuario ]
+   ↓
+[ View (components/pages) ]
+   ↓
+[ ViewModel (hooks) ]
+   ↓
+[ Model (models) ]
+   ↓
+[ API Layer (apiConnector) ]
+```
+
+#### Seguridad en el cliente
+
+- El acceso al Marketplace requiere autenticación mediante AWS Cognito, gestionando usuarios institucionales y ciudadanos.
+- Los tokens JWT son gestionados desde el cliente y renovados automáticamente.
+- Los permisos de visualización y compra de datasets se validan tanto en el cliente (UI) como en el backend (control real de acceso).
+
+#### Tecnologías utilizadas en el cliente
+
+| Tecnología    | Descripción                                |
+| ------------- | ------------------------------------------ |
+| React         | Framework principal para UI                |
+| Tailwind CSS  | Framework de estilos responsivos           |
+| Axios         | Cliente HTTP centralizado                  |
+| AWS Amplify   | Integración con Cognito y servicios AWS    |
+| Stripe        | Gestión de pagos y facturación             |
+| React Context | Manejo de estado global (usuario, carrito) |
+| React Router  | Control de rutas y navegación              |
+
+#### Beneficios de esta arquitectura
+
+- Separación clara de responsabilidades.
+- Alta reutilización de componentes.
+- Lógica de negocio desacoplada de las vistas.
+- Facilidad para agregar nuevos tipos de datasets, métodos de pago o reglas de negocio sin romper el flujo principal.
+
+### Componentes Visuales - Marketplace
+
+#### Patrones y Principios:
+
+- **Diseño Responsivo:** Aplicado desde el desarrollo inicial, permitiendo que el Marketplace sea visualizado correctamente en desktop, tablets y móviles. Se utiliza Tailwind para web y Nativewind para mobile. Las clases CSS usan unidades relativas (rem, %, vw) y los breakpoints de Tailwind manejan la adaptación automática.
+
+- **SOLID:**
+  - Single Responsibility: Cada componente de React cumple una única función. Los componentes visuales están completamente separados de los hooks de lógica.
+  - Open/Closed Principle: Los componentes son extensibles sin modificar su código interno, como los botones (Button) o tarjetas de datasets (DatasetCard).
+  - Liskov Substitution Principle: Las listas de datasets permiten diferentes tarjetas de visualización que pueden reemplazar a las generales según el tipo de dataset.
+  - Interface Segregation Principle: Gracias a Atomic Design, los componentes solo exponen las props necesarias.
+  - Dependency Inversion Principle: La lógica de negocio reside en los ViewModels (custom hooks), manteniendo los componentes visuales desacoplados.
+
+- **DRY (Don't Repeat Yourself):** Los componentes son reutilizables (atoms, molecules). Además, las funciones utilitarias en `utils/` centralizan validaciones de pago, cálculos de carrito, formateo de precios, etc.
+
+- **Separación de Responsabilidades:** Los componentes visuales solo presentan la información. Toda la lógica está en hooks como `useDatasetSearch()`, `useCart()`, `usePayment()`. Los modelos (Dataset, Order, Payment) manejan la conexión con la API.
+
+- **Atomic Design:** Implementado en la carpeta `components/`:
+  - Atoms: `Button`, `Input`, `Icon`, `Badge`.
+  - Molecules: `SearchBar`, `DatasetCard`, `PriceFilter`.
+  - Organisms: `DatasetList`, `ShoppingCartPanel`, `PaymentForm`.
+  - Templates: `MarketplaceLayout`, `CartLayout`.
+  - Pages: `MarketplaceHomePage`, `DatasetDetailsPage`, `CheckoutPage`.
+
+- **MVVM:** 
+  - Model: Clases de datos y funciones que manejan las llamadas a la API (ejemplo: `DatasetApi`).
+  - View: Componentes visuales React organizados por Atomic Design.
+  - ViewModel: Hooks como `useCart()`, `usePayment()`, `useDatasetSearch()` que gestionan la lógica de negocio.
+
+#### Herramientas y estándares:
+
+- Material Design 3: Aplicado en el diseño visual del Marketplace.
+- Tailwind/Nativewind: Framework principal de estilos responsivos.
+- Amplify: Maneja la integración continua, despliegue en AWS y conexión con Cognito.
+
+#### Diseño del Backend
+
+#### Microservicios por Componente
+
+#### **marketplace-catalog-service**
+
+Activo constantemente durante horarios de operación, con picos durante búsquedas matutinas (8-10 AM) cuando usuarios planifican análisis diarios, y durante sincronizaciones nocturnas (2-4 AM) cuando el Motor de Transformación completa procesamiento de nuevos datasets. Opera en EKS cluster dedicado del marketplace, con pods distribuidos en availability zones para alta disponibilidad durante búsquedas críticas de usuarios enterprise. Consume eventos de La Bóveda vía RabbitMQ cuando nuevos datasets están listos, actualiza índices de Elasticsearch en tiempo real, y sirve búsquedas através de cache Redis que se invalida automáticamente cuando metadatos cambian.
+
+##### **Microservicios internos:**
+
+**catalog-metadata-sync-service**
+
+- **Función**: Sincroniza metadatos entre La Bóveda y marketplace cada 15 minutos, detectando nuevos datasets y cambios de estado
+- **Herramientas**: Apache Airflow para scheduling de jobs, PostgreSQL para tracking de cambios incrementales, gRPC client para comunicación con La Bóveda
+- **Operación**: Ejecuta continuamente con intensificación durante ventanas de ETL del Motor (2-6 AM) cuando más datasets se procesan
+- **Event-driven**: Consume eventos `dataset.processed` del Motor de Transformación para updates inmediatos, `dataset.quality_updated` para refresh de métricas
+
+**catalog-search-engine-service**
+
+- **Función**: Gestiona indexación y búsqueda avanzada en OpenSearch con soporte multilenguaje y faceted search
+- **Herramientas**: OpenSearch para búsqueda y analytics, Redis para cache de queries frecuentes, Apache Spark para batch indexing
+- **Operación**: Reindexación incremental cada hora, reindexación completa los domingos durante ventana de mantenimiento
+- **Event-driven**: Procesa eventos `search.performed` para analytics, `dataset.metadata_changed` para reindexación selectiva
+
+**catalog-quality-aggregator-service**
+
+- **Función**: Agrega métricas de calidad del Motor de Transformación con ratings de usuarios para scoring híbrido
+- **Herramientas**: Apache Spark para agregaciones complejas, PostgreSQL para almacenamiento de scores, ML models para weighting
+- **Operación**: Jobs diarios durante madrugada para recalcular scores de todos los datasets activos
+- **Event-driven**: Consume `user.rating_submitted` para updates inmediatos de scores
+
+**Endpoints expuestos al API Gateway:**
+
+- `GET /api/v1/catalog/search` - Búsqueda avanzada con filtros y faceting
+- `GET /api/v1/catalog/datasets/{id}` - Detalles completos de dataset individual
+- `GET /api/v1/catalog/categories` - Listado de categorías con conteos
+- `GET /api/v1/catalog/trending` - Datasets trending basados en analytics
+- `GET /api/v1/catalog/recommendations/{user_id}` - Recomendaciones personalizadas
+
+#### **marketplace-user-service**
+
+Se mantiene activo 24/7 para gestión de sesiones globales, con mayor carga durante horarios laborales de Costa Rica (6 AM - 6 PM UTC-6) cuando usuarios buscan y compran datasets. Distribuido en pods que escalan automáticamente durante eventos de alto tráfico como lanzamientos de datasets gubernamentales. Integra con Bioregistro en tiempo real para validación de tokens mientras mantiene información comercial independiente en PostgreSQL local, sincronizando cambios de permisos vía eventos para actualizar acceso a contenido premium.
+
+##### **Microservicios internos:**
+
+**user-profile-manager-service**
+
+- **Función**: Gestiona perfiles comerciales complementando autenticación del Bioregistro
+- **Herramientas**: PostgreSQL con row-level security, Redis para cache de perfiles, gRPC client para Bioregistro
+- **Operación**: Sincronización con Bioregistro cada vez que usuario inicia sesión, cache de perfiles por 4 horas
+- **Event-driven**: Consume `user.authenticated` del Bioregistro, `subscription.updated` del payment service
+
+**user-behavior-tracker-service**
+
+- **Función**: Rastrea comportamiento de navegación, búsquedas, y interacciones para ML de recomendaciones
+- **Herramientas**: RabbitMQ para streaming de eventos, DynamoDB para storage de comportamiento, OpenSearch para analytics time-series, Apache Spark para feature engineering
+- **Operación**: Ingesta eventos en tiempo real, batch processing nocturno para agregaciones
+- **Event-driven**: Produce eventos `user.page_viewed`, `user.search_performed`, `user.dataset_clicked`
+
+**user-preference-engine-service**
+
+- **Función**: Motor de preferencias que aprende de comportamiento y permite configuración manual
+- **Herramientas**: Apache Spark MLlib para clustering de usuarios, Redis para cache de preferencias, PostgreSQL para storage
+- **Operación**: Recalcular preferencias semanalmente basado en actividad acumulada
+- **Event-driven**: Consume todos los eventos de behavior-tracker para updates de preferencias
+
+**user-session-manager-service**
+
+- **Función**: Gestión de sesiones distribuidas con sincronización cross-device
+- **Herramientas**: Redis Cluster para sesiones distribuidas, JWT para tokens, WebSocket para real-time sync
+- **Operación**: Mantiene sesiones activas por 8 horas, extensión automática durante actividad
+- **Event-driven**: Produce `user.session_started`, `user.session_expired` para analytics
+
+**Endpoints expuestos al API Gateway:**
+
+- `POST /api/v1/users/register` - Registro de nuevo usuario en marketplace
+- `GET /api/v1/users/me` - Perfil completo del usuario actual
+- `PUT /api/v1/users/me/preferences` - Actualización de preferencias
+- `POST /api/v1/users/behavior` - Tracking de eventos de comportamiento
+- `GET /api/v1/users/me/recommendations` - Recomendaciones personalizadas
+
+#### **marketplace-payment-service**
+
+Opera con alta disponibilidad 24/7 para procesar pagos globales, manejando picos de tráfico durante horarios de oficina en diferentes zonas horarias. Distribuido en pods con affinity a nodos dedicados para cumplir PCI DSS compliance. Se activa intensivamente durante finales de mes cuando empresas renuevan suscripciones y durante launches de datasets premium. Integra con múltiples payment providers según ubicación geográfica del usuario, enruta pagos automáticamente y maneja webhooks asincrónicos para confirmaciones.
+
+##### **Microservicios internos:**
+
+**payment-processor-service**
+
+- **Función**: Procesamiento de pagos únicos con validación, fraud detection, y routing de providers
+- **Herramientas**: Stripe SDK para pagos internacionales, BAC Credomatic API para Costa Rica, Redis para idempotencia
+- **Operación**: Procesamiento inmediato con timeout de 30 segundos, retry automático en caso de fallos temporales
+- **Event-driven**: Produce `payment.initiated`, `payment.completed`, `payment.failed` para workflow orchestration
+
+**subscription-billing-service**
+
+- **Función**: Gestión de suscripciones recurrentes, billing cycles, y renovaciones automáticas
+- **Herramientas**: PostgreSQL para subscription state, DynamoDB para billing events, Apache Airflow para scheduling de billing, Stripe para recurring payments
+- **Operación**: Procesa renovaciones diariamente a las 3 AM UTC, retry logic para pagos fallidos
+- **Event-driven**: Consume `subscription.created`, produce `subscription.renewed`, `subscription.cancelled`
+
+**invoice-generator-service**
+
+- **Función**: Generación automática de facturas con PDF, cálculo de impuestos, y envío por email
+- **Herramientas**: Python para PDF generation, Amazon SES para email delivery, PostgreSQL para invoice storage
+- **Operación**: Generación inmediata post-pago, batch generation para suscripciones el día 1 de cada mes
+- **Event-driven**: Consume `payment.completed` para trigger de generación inmediata
+
+**fraud-detection-service**
+
+- **Función**: Risk scoring en tiempo real basado en patrones de comportamiento y machine learning
+- **Herramientas**: Apache Spark MLlib para models, Amazon SageMaker para model deployment, Redis para feature store, DynamoDB para historical data
+- **Operación**: Scoring en <200ms durante checkout, reentrenamiento de models semanalmente usando SageMaker
+- **Event-driven**: Consume todos los payment events para continuous learning
+
+**webhook-handler-service**
+
+- **Función**: Manejo seguro de webhooks de payment providers con signature validation
+- **Herramientas**: FastAPI con async processing, RabbitMQ para reliable delivery, Redis para deduplication
+- **Operación**: Procesamiento inmediato de webhooks, retry con exponential backoff para failures
+- **Event-driven**: Produce payment state updates basados en confirmaciones de providers
+
+**Endpoints expuestos al API Gateway:**
+
+- `POST /api/v1/payments/initiate` - Inicio de proceso de pago
+- `GET /api/v1/payments/{id}/status` - Estado de transacción específica
+- `POST /api/v1/subscriptions` - Creación de nueva suscripción
+- `PUT /api/v1/subscriptions/{id}/cancel` - Cancelación de suscripción
+- `GET /api/v1/invoices` - Listado de facturas del usuario
+- `POST /api/v1/payments/webhooks/{provider}` - Webhooks de payment providers
+
+#### **marketplace-access-service**
+
+Ejecuta continuamente para gestionar acceso a datasets, con activación intensa post-compra cuando debe provisionar permisos inmediatamente. Opera distribuido para manejar múltiples usuarios accediendo datasets simultáneamente durante horarios peak. Se integra en tiempo real con La Bóveda para activar acceso y con Bioregistro para validar permisos. Monitorea uso continuo para aplicar rate limiting y generar billing por uso de APIs.
+
+##### **Microservicios internos:**
+
+**access-provisioning-service**
+
+- **Función**: Activación automática de acceso a datasets post-compra con integración a La Bóveda
+- **Herramientas**: gRPC clients para La Bóveda y Bioregistro, PostgreSQL para access records, RabbitMQ para event coordination
+- **Operación**: Provisioning inmediato (< 30 segundos) después de payment confirmation
+- **Event-driven**: Consume `payment.completed`, `subscription.activated`, produce `access.granted`
+
+**token-management-service**
+
+- **Función**: Generación y gestión de JWT tokens para acceso programático a datasets
+- **Herramientas**: JWT libraries con RS256 signing, Redis para token blacklisting, PostgreSQL para token metadata
+- **Operación**: Tokens con TTL de 24 horas, refresh automático para usuarios activos
+- **Event-driven**: Produce `token.generated`, `token.revoked` para audit logging
+
+**usage-tracking-service**
+
+- **Función**: Monitoreo de uso de datasets para billing, rate limiting, y analytics
+- **Herramientas**: RabbitMQ para real-time streaming, OpenSearch para time-series storage, Redis para rate limiting counters
+- **Operación**: Tracking en tiempo real de cada API call, batch aggregation horaria para billing
+- **Event-driven**: Consume `dataset.accessed`, produce `usage.threshold_exceeded`
+
+**permission-validator-service**
+
+- **Función**: Validación granular de permisos por dataset, usuario, y tipo de operación
+- **Herramientas**: Redis para cache de permissions, PostgreSQL para permission rules, gRPC para Bioregistro integration
+- **Operación**: Validación en <50ms para cada request, cache de permissions por 15 minutos
+- **Event-driven**: Consume `permission.updated` del Bioregistro, `access.revoked` events
+
+**audit-logger-service**
+
+- **Función**: Logging completo de accesos para compliance y auditoría
+- **Herramientas**: OpenSearch para log storage y analytics, PostgreSQL para audit summaries
+- **Operación**: Logging inmediato de cada acceso, retention de 7 años para compliance
+- **Event-driven**: Consume todos los access events para comprehensive audit trail
+
+**Endpoints expuestos al API Gateway:**
+
+- `POST /api/v1/access/provision` - Provisioning de acceso (sistema interno)
+- `GET /api/v1/access/my-datasets` - Datasets accesibles por usuario
+- `POST /api/v1/access/tokens/generate` - Generación de access token
+- `DELETE /api/v1/access/tokens/{id}` - Revocación de token
+- `GET /api/v1/access/usage` - Estadísticas de uso del usuario
+
+#### **marketplace-recommendation-service**
+
+Ejecuta batch processing nocturno (1-5 AM) para entrenar modelos ML con datos del día anterior, mientras sirve recomendaciones en tiempo real durante horas de navegación activa. Distribuido en pods optimizados para ML inference con GPU support para modelos complejos. Reutiliza infraestructura Spark del Motor de Transformación para feature engineering. Se activa especialmente durante onboarding de nuevos usuarios para cold-start recommendations.
+
+##### **Microservicios internos:**
+
+**behavioral-ml-service**
+
+- **Función**: Análisis de comportamiento de usuarios con machine learning para recommendations personalizadas
+- **Herramientas**: Apache Spark MLlib para collaborative filtering, Amazon SageMaker para model training y deployment, Hugging Face Transformers para embeddings
+- **Operación**: Entrenamiento nocturno con datos agregados, inference en tiempo real <100ms usando SageMaker endpoints
+- **Event-driven**: Consume `user.behavior_updated`, produce `recommendations.updated`
+
+**content-similarity-service**
+
+- **Función**: Cálculo de similaridad entre datasets basado en metadatos y contenido
+- **Herramientas**: Apache Spark para feature extraction, OpenSearch para similarity search, Hugging Face Transformers (all-mpnet-base-v2) para embeddings semánticos
+- **Operación**: Recálculo semanal de similarity matrix, updates incrementales cuando nuevos datasets se agregan
+- **Event-driven**: Consume `dataset.metadata_updated`, `dataset.added` para similarity recalculation
+
+**recommendation-engine-service**
+
+- **Función**: Motor principal que combina behavioral, content-based, y collaborative filtering
+- **Herramientas**: Redis para cache de recommendations, PostgreSQL para model weights, Apache Spark para ensemble methods
+- **Operación**: Pre-cálculo de recommendations para usuarios activos, real-time computation para cold users
+- **Event-driven**: Produce `recommendation.served` para effectiveness tracking
+
+**ab-testing-framework-service**
+
+- **Función**: Framework para testing de diferentes algoritmos de recomendación
+- **Herramientas**: PostgreSQL para experiment configuration, Redis for traffic splitting, Apache Spark para statistical analysis
+- **Operación**: Experimentos con duración de 2 semanas, análisis automático de significance
+- **Event-driven**: Consume `recommendation.clicked`, `recommendation.converted` para effectiveness measurement
+
+**Endpoints expuestos al API Gateway:**
+
+- `GET /api/v1/recommendations/personalized` - Recomendaciones personalizadas
+- `GET /api/v1/recommendations/similar/{dataset_id}` - Datasets similares
+- `GET /api/v1/recommendations/trending` - Trending recommendations
+- `POST /api/v1/recommendations/feedback` - Feedback de calidad de recomendaciones
+
+#### **marketplace-notification-service**
+
+Opera continuamente para delivery de notificaciones multi-canal, con picos durante confirmaciones de pago y eventos de datasets. Distribuido geográficamente para optimal delivery según timezone del usuario. Se activa especialmente durante campaigns de marketing y launches de nuevos datasets premium. Consume eventos de todos los microservicios del marketplace para trigger automático de comunicaciones contextuales.
+
+##### **Microservicios internos:**
+
+**notification-dispatcher-service**
+
+- **Función**: Router central que determina canal óptimo y timing para cada notificación
+- **Herramientas**: RabbitMQ para message queuing, Redis for user preferences, machine learning para optimal timing
+- **Operación**: Dispatch inmediato para transactional, scheduling inteligente para marketing
+- **Event-driven**: Consume events de todos los marketplace services, produce `notification.dispatched`
+
+**email-delivery-service**
+
+- **Función**: Gestión completa de email campaigns con templates y personalization
+- **Herramientas**: Amazon SES para delivery, Python Jinja2 para templating, PostgreSQL para tracking, Redis para rate limiting
+- **Operación**: Delivery inmediato para transactional, batch delivery para newsletters
+- **Event-driven**: Consume `notification.email_requested`, produce `email.delivered`, `email.bounced`
+
+**push-notification-service**
+
+- **Función**: Push notifications para browsers y mobile apps con targeting avanzado
+- **Herramientas**: Firebase Cloud Messaging, WebSocket para real-time, Redis para device tokens
+- **Operación**: Delivery inmediato con retry logic, cleanup de inactive tokens semanalmente
+- **Event-driven**: Consume `notification.push_requested`, produce `push.delivered`
+
+**sms-service**
+
+- **Función**: SMS delivery para notificaciones críticas integrado con sistema de autenticación
+- **Herramientas**: Amazon SNS para SMS delivery, PostgreSQL para message tracking, Redis for rate limiting
+- **Operación**: Delivery para emergencies únicamente, strict rate limiting por usuario
+- **Event-driven**: Consume `notification.sms_required` para casos críticos únicamente
+
+**template-management-service**
+
+- **Función**: Gestión de templates con multi-lenguaje y A/B testing
+- **Herramientas**: PostgreSQL para template storage, Redis for template cache, Jinja2 para rendering
+- **Operación**: Cache de templates populares, invalidation automática en updates
+- **Event-driven**: Produce `template.updated` cuando hay cambios en messaging
+
+**Endpoints expuestos al API Gateway:**
+
+- `GET /api/v1/notifications/preferences` - Preferencias de notificación del usuario
+- `PUT /api/v1/notifications/preferences` - Actualización de preferencias
+- `GET /api/v1/notifications/history` - Historial de notificaciones
+- `POST /api/v1/notifications/mark-read` - Marcar notificaciones como leídas
+
+#### **marketplace-analytics-service**
+
+Ejecuta continuamente con dos modes: real-time para dashboards operacionales y batch processing nocturno para métricas complejas de negocio. Distribuido con pods dedicados para stream processing durante business hours. Reutiliza infraestructura Spark del Motor de Transformación para analytics pesados. Se intensifica durante fin de mes para reportes financieros y análisis de performance.
+
+##### **Microservicios internos:**
+
+**event-ingestion-service**
+
+- **Función**: Ingesta masiva de eventos de todos los microservicios del marketplace
+- **Herramientas**: RabbitMQ para streaming, Apache Spark Streaming para processing, OpenSearch para time-series storage, DynamoDB para event metadata
+- **Operación**: Ingesta 24/7 con processing en tiempo real, batch aggregation cada hora
+- **Event-driven**: Consume todos los marketplace events, produce `analytics.event_processed`
+
+**business-metrics-calculator-service**
+
+- **Función**: Cálculo de KPIs de negocio como revenue, conversion rates, churn
+- **Herramientas**: Apache Spark para complex aggregations, PostgreSQL para metrics storage, Redis para real-time counters
+- **Operación**: Cálculos en tiempo real para dashboards, recalculations completos nocturnos
+- **Event-driven**: Consume payment, subscription, user events para metric updates
+
+**user-analytics-service**
+
+- **Función**: Análisis de comportamiento de usuarios, journey mapping, segmentación
+- **Herramientas**: Apache Spark MLlib para clustering, OpenSearch para user timelines, DynamoDB para user segments
+- **Operación**: Segmentación diaria de usuarios, cohort analysis semanal
+- **Event-driven**: Consume user behavior events, produce `user.segment_updated`
+
+**dataset-performance-analyzer-service**
+
+- **Función**: Análisis de performance de datasets, popularidad, revenue attribution
+- **Herramientas**: Apache Spark para analytics, OpenSearch para search analytics, DynamoDB para rankings
+- **Operación**: Rankings diarios de datasets, trend analysis semanal
+- **Event-driven**: Consume dataset access events, produce `dataset.trending_updated`
+
+**reporting-service**
+
+- **Función**: Generación de reportes automáticos para stakeholders y dataset owners
+- **Herramientas**: Apache Spark para data processing, Python para PDF generation, Amazon SES para delivery
+- **Operación**: Reportes diarios para operations, reportes mensuales para business
+- **Event-driven**: Scheduled generation basado en calendar events
+
+**Endpoints expuestos al API Gateway:**
+
+- `GET /api/v1/analytics/dashboard` - Métricas para dashboard principal
+- `GET /api/v1/analytics/revenue` - Métricas de revenue y financial KPIs
+- `GET /api/v1/analytics/users` - Analytics de comportamiento de usuarios
+- `GET /api/v1/analytics/datasets` - Performance analytics de datasets
+- `POST /api/v1/analytics/reports/generate` - Generación de reportes custom
+
+#### Event-Driven Architecture Patterns
+
+##### **Event Flow Principal**
+
+**User Journey Events:**
+
+1. `user.registered` → Triggers welcome email, initial recommendations calculation
+2. `user.search_performed` → Updates behavior tracking, feeds recommendation engine
+3. `user.dataset_viewed` → Records interest, updates popularity metrics
+4. `payment.completed` → Triggers access provisioning, invoice generation, confirmation email
+5. `access.granted` → Enables dataset usage, starts usage tracking
+6. `dataset.accessed` → Records usage for billing, updates analytics
+
+**Marketplace Operation Events:**
+
+1. `dataset.processed` (from Motor) → Triggers metadata sync, search reindexing
+2. `dataset.quality_updated` (from Motor) → Updates catalog rankings, triggers notifications to interested users
+3. `subscription.expiring` → Triggers renewal reminders, offers relevant upgrades
+4. `usage.threshold_exceeded` → Triggers upgrade suggestions, usage notifications
+
+#### **Event Processing Patterns**
+
+**Immediate Processing (< 1 second):**
+
+- Payment confirmations → Access provisioning
+- User authentication → Session creation
+- API access requests → Permission validation
+
+**Near Real-time (< 5 seconds):**
+
+- Search queries → Analytics updates
+- Dataset views → Popularity scoring
+- User behavior → Recommendation refresh
+
+**Batch Processing (hourly/daily):**
+
+- ML model training → Recommendation engine updates
+- Usage aggregation → Billing calculations
+- Analytics rollups → Business intelligence reports
+
+#### **Event Reliability Patterns**
+
+**Dead Letter Queues:** Para eventos críticos como payment processing que requieren manual intervention si fallan
+**Event Replay:** Capability para replay events durante disaster recovery o data corrections
+**Idempotency:** Todos los event handlers implementan idempotency keys para safe replay
+**Circuit Breakers:** Protection contra event storms que podrían overwhelm downstream services
+
+#### API Gateway Integration
+
+##### **API Gateway Routing Configuration**
+
+**Authentication & Authorization Layer:**
+
+- Validación de JWT tokens del Bioregistro
+- Rate limiting por usuario y endpoint
+- Request/response transformation
+- API key management para acceso programático
+
+**Service Routing:**
+
+```
+/api/v1/catalog/* → marketplace-catalog-service
+/api/v1/users/* → marketplace-user-service
+/api/v1/payments/* → marketplace-payment-service
+/api/v1/access/* → marketplace-access-service
+/api/v1/recommendations/* → marketplace-recommendation-service
+/api/v1/notifications/* → marketplace-notification-service
+/api/v1/analytics/* → marketplace-analytics-service
+```
+
+**Cross-Cutting Concerns:**
+
+- Request correlation IDs para distributed tracing
+- Centralized logging de todas las API calls
+- Metrics collection para Prometheus
+- Error handling y standardized error responses
+
+##### **Rate Limiting Strategy**
+
+**Tier-based Limits:**
+
+- Free tier: 100 requests/hour para search, 10 dataset views/day
+- Basic tier: 1000 requests/hour, 100 dataset views/day
+- Premium tier: 10000 requests/hour, unlimited views
+- Enterprise tier: Custom limits basados en SLA
+
+**Endpoint-specific Limits:**
+
+- Search endpoints: Higher limits para discovery
+- Payment endpoints: Lower limits para security
+- Analytics endpoints: Restricted to authorized users only
+- Data access endpoints: Based on purchased access levels
+
+
+###### Diagrama de clases
+
+**marketplace-catalog-service**
+Este microservicio se encarga de la gestión del catálogo de datasets, incluyendo la metadata, calidad, y la sincronización con el Datalake.
+
+**Patrones de Diseño Utilizados:**
+-	Morado: Facade
+-	Amarillo: Observer
+-	Celeste: Factory
+-	Café: Singleton
+-	Verde: Strategy
+
+**Organización de Clases:**
+El punto de entrada principal es el CatalogController, que actúa como Facade para las APIs externas del Marketplace (ej., /api/v1/catalog/datasets, /api/v1/catalog/categories). Este controlador delega las operaciones a un Observer central, el CatalogEventManager, encargado de notificar a los módulos de lógica de negocio relevantes.
+Dentro de la lógica de negocio, se encuentran:
+
+-	**DatasetManager:** Responsable de la creación, actualización y eliminación de datasets y su metadata. Recibe FileHandler y MetadataValidator como dependencias inyectadas.
+-	**QualityAggregator:** Escucha eventos de calidad (quality.metrics.updated) y calcula un score consolidado para cada dataset.
+-	**SearchIndexer:** Escucha eventos de actualización de datasets (dataset.updated) y coordina la indexación de los datos en OpenSearch.
+Estos módulos de lógica de negocio reciben como dependencias los servicios de la segunda capa de Facade:
+-	**MetadataFileHandler:** Se encarga de interactuar con AWS S3 para almacenar y recuperar archivos de metadata asociados a los datasets.
+-	**OpenSearchIndexer:** Abstrae la comunicación con OpenSearch para indexar y actualizar documentos de datasets. Utiliza un patrón Strategy para manejar diferentes tipos de indexación (ej., delta vs. completa).
+-	**DataQualityService:** Se comunica con el dataset-quality-service (asumido microservicio externo o interno) para obtener métricas de calidad de los datos.
+
+Finalmente, existe una capa de repositorios para la persistencia de datos (PostgreSQL, DynamoDB). Los repositorios son gestionados mediante un patrón Factory, como RepositoryFactory, que provee instancias de DatasetRepository, MetadataRepository, QualityMetricsRepository, etc. Cada conexión a la base de datos es manejada utilizando el patrón Singleton para optimizar los recursos.
+
+![image](img/ClasesMarketplace1.png)
+
+**marketplace-payment-service**
+Este microservicio gestiona todo el flujo de pagos y suscripciones en el Marketplace.
+
+**Patrones de Diseño Utilizados:**
+-	Morado: Facade
+-	Amarillo: Observer
+-	Verde: Strategy
+-	Celeste: Factory
+-	Café: Singleton
+
+**Organización de Clases:**
+El punto de entrada es el PaymentController, que actúa como Facade para las APIs de pago (/api/v1/payments/initiate, /api/v1/payments/webhook). Este controlador delega las llamadas a un Observer principal, el PaymentEventManager, encargado de notificar a la lógica de negocio según el evento de pago o webhook.
+Dentro de la lógica de negocio, se encuentran:
+
+-	**PaymentProcessor:** Orquesta el proceso de pago, interactuando con pasarelas de pago externas. Recibe StripeGateway y BACGateway como dependencias.
+-	**SubscriptionManager:** Gestiona la creación, renovación y cancelación de suscripciones.
+-	**FraudDetector:** Escucha eventos de pago (payment.initiated, payment.completed) y utiliza un patrón Strategy para aplicar diferentes algoritmos de detección de fraude.
+-	**InvoiceGenerator:** Genera facturas a partir de transacciones de pago completadas.
+Estos módulos de lógica de negocio reciben como dependencias los servicios de la segunda capa de Facade:
+-	**StripeGateway:** Abstrae la comunicación con la API de Stripe.
+-	**BACGateway:** Abstrae la comunicación con la API del BAC Credomatic.
+-	**NotificationSender:** Se comunica con el notification-service para enviar confirmaciones de pago o alertas.
+-	**AccessProvisioner:** Se comunica con el marketplace-access-service para habilitar el acceso a los datasets tras un pago exitoso.
+
+Finalmente, existe una capa de repositorios para la persistencia de datos (PostgreSQL, DynamoDB, Redis). Los repositorios son gestionados mediante un patrón Factory, como RepositoryFactory, que provee instancias de TransactionRepository, SubscriptionRepository, InvoiceRepository, etc. Las conexiones a la base de datos y al cache Redis se manejan utilizando el patrón Singleton.
+
+![image](img/ClasesMarketplace2.png)
+
+
+**marketplace-access-service**
+Este microservicio se encarga de gestionar los permisos de acceso a los datasets y la generación de tokens de acceso para los usuarios.
+
+**Patrones de Diseño Utilizados:**
+-	Morado: Facade
+-	Amarillo: Observer
+-	Naranja: Dependency Injection
+-	Celeste: Factory
+-	Café: Singleton
+
+**Organización de Clases:**
+El punto de entrada es el AccessController, que actúa como Facade para las APIs de acceso (/api/v1/access/grant, /api/v1/access/token). Este controlador delega las llamadas a un Observer principal, el AccessEventManager, encargado de notificar a la lógica de negocio según el tipo de solicitud.
+Dentro de la lógica de negocio, se encuentran:
+
+-	**PermissionHandler:** Otorga y revoca permisos a los datasets basados en eventos de compra o suscripción.
+-	**TokenManager:** Genera, valida y revoca tokens de acceso JWT.
+-	**UsageTracker:** Escucha eventos de acceso (dataset.accessed) y registra el uso de los datasets.
+Estos módulos de lógica de negocio reciben como dependencias los servicios de la segunda capa de Facade:
+-	**AuthServiceRequester:** Se comunica con el security-service para validar tokens y autenticar usuarios.
+-	**DataLakeAccessManager:** Se comunica con el Datalake (La Bóveda) para provisionar o revocar el acceso real a los datos en S3.
+-	**NotificationSender:** Se comunica con el notification-service para enviar notificaciones de concesión de acceso o revocación.
+-	**AuditLogger:** Se comunica con el audit-logger-service (si es un microservicio separado) para registrar eventos de auditoría de acceso.
+
+Finalmente, existe una capa de repositorios para la persistencia de datos (PostgreSQL, Redis). Los repositorios son gestionados mediante un patrón Factory, como RepositoryFactory, que provee instancias de PermissionRepository. Las conexiones a la base de datos y al cache Redis se manejan utilizando el patrón Singleton.
+
+![image](img/ClasesMarketplace3.png)
+
+### Servicios de AWS - Componente Marketplace (Backend)
+
+#### Amazon EKS (Elastic Kubernetes Service)
+
+El cluster de Kubernetes funciona como la plataforma central de orquestación para todos los microservicios del marketplace, proporcionando escalabilidad automática y alta disponibilidad. Durante horarios de alta actividad comercial (8-10 AM) y finales de mes cuando ocurren renovaciones masivas, el cluster escala dinámicamente desde 2 nodos base hasta 12 nodos distribuidos estratégicamente en múltiples zonas de disponibilidad.
+
+Los pods especializados operan según la naturaleza de cada microservicio: marketplace-recommendation-service ejecuta en nodos t3.xlarge optimizados para inferencia de machine learning, mientras que servicios transaccionales como marketplace-payment-service utilizan nodos t3.large para alta concurrencia. El service mesh implementa circuit breakers y health checks que detectan degradaciones de performance automáticamente, manteniendo la experiencia de usuario fluida durante picos de tráfico.
+
+**Configuración de Hardware:**
+
+- **Versión de Kubernetes:** 1.29 (alineada con ecosistema Data Pura Vida)
+- **Tipo de nodos base:** t3.large (2 vCPU, 8 GB RAM)
+- **Nodos especializados ML:** t3.xlarge (4 vCPU, 16 GB RAM)
+- **Auto Scaling:** 2-12 nodos con métricas CPU/memoria >70% por 5 minutos
+- **Almacenamiento:** EBS gp3 50GB por nodo para cache local y logs
+- **Red:** VPC privada compartida con networking optimizado para ML
+
+#### Amazon RDS PostgreSQL
+
+Utiliza la misma instancia compartida establecida por Bioregistro y La Bóveda, extendiendo el esquema de base de datos con tablas específicas para operaciones comerciales del marketplace. Las transacciones de pago se procesan con integridad ACID completa, mientras que las suscripciones se sincronizan continuamente con Stripe para mantener consistencia entre sistemas.
+
+La configuración Multi-AZ garantiza failover automático en menos de 60 segundos durante operaciones críticas como confirmaciones de pago y activación de accesos a datasets. El motor procesa concurrentemente consultas intensivas de catálogo durante búsquedas de usuarios y escrituras de alta frecuencia generadas por tracking de comportamiento.
+
+**Tablas específicas del Marketplace:**
+
+- **MarketplaceOrder:** Órdenes de compra con estados y timestamps
+- **Subscription:** Suscripciones activas con calendarios de renovación
+- **PaymentTransaction:** Historial completo de transacciones
+- **DatasetPricing:** Configuraciones de precios por dataset
+- **UserPurchaseHistory:** Historial de compras por usuario
+
+#### Amazon DynamoDB
+
+Maneja datos de alta velocidad que requieren latencia ultra-baja, especialmente durante interacciones en tiempo real como navegación de catálogo, seguimiento de comportamiento y cache de recomendaciones. El modo On-Demand se adapta automáticamente a picos impredecibles de tráfico durante launches de datasets premium o campañas de marketing.
+
+Las tablas utilizan TTL automático para optimizar costos y performance, eliminando datos temporales como sesiones expiradas y cache obsoleto. DynamoDB Streams replica automáticamente cambios a pipelines de analytics y ML para mantener modelos de recomendación actualizados.
+
+**Configuración de Tablas:**
+
+- **UserBehavior:** Tracking de clics, búsquedas y tiempo en página
+  - Partition Key: user_id, Sort Key: timestamp
+  - TTL: 90 días para analytics históricos
+- **SessionData:** Sesiones distribuidas cross-device
+  - Partition Key: session_id, TTL: 8 horas
+- **RecommendationCache:** Cache personalizado de recomendaciones
+  - Partition Key: user_id, TTL: 4 horas
+- **NotificationQueue:** Cola de notificaciones pendientes
+  - Partition Key: user_id, Sort Key: notification_id
+
+#### Amazon OpenSearch
+
+Motor de búsqueda especializado que indexa metadatos de todos los datasets del marketplace, proporcionando capacidades avanzadas de búsqueda full-text, filtrado facetado y análisis semántico. Los analyzers personalizados para español optimizan resultados para usuarios costarricenses, mientras que la funcionalidad de auto-complete mejora la experiencia de búsqueda.
+
+El cluster procesa consultas complejas con agregaciones en tiempo real para generar facets dinámicos (por categoría, precio, popularidad) y analytics de búsqueda que alimentan el motor de recomendaciones. Los índices se actualizan automáticamente cuando La Bóveda notifica cambios en datasets.
+
+**Configuración del Dominio:**
+
+- **Versión:** OpenSearch 2.3
+- **Cluster:** 3 nodos t3.medium.search para alta disponibilidad
+- **Almacenamiento:** 100GB EBS gp3 por nodo con auto-scaling habilitado
+- **Índices principales:**
+  - `datasets-catalog`: Metadatos completos con embeddings semánticos
+  - `user-searches`: Historial de búsquedas para analytics y recomendaciones
+  - `marketplace-analytics`: Métricas de tiempo real del marketplace
+- **Seguridad:** VPC privada, HTTPS obligatorio, fine-grained access control
+
+#### Amazon S3
+
+Proporciona almacenamiento escalable para diferentes tipos de contenido del marketplace, desde assets visuales hasta documentación generada automáticamente. Las políticas de lifecycle management optimizan costos moviendo automáticamente contenido antiguo a clases de almacenamiento más económicas según patrones de acceso.
+
+**Buckets especializados:**
+
+- **`dpv-marketplace-assets`:**
+  - Thumbnails y previews de datasets generados automáticamente
+  - Configuración: Versionado habilitado, CDN optimizado
+- **`dpv-marketplace-reports`:**
+  - Facturas PDF, reportes de analytics, documentos legales
+  - Configuración: Cifrado SSE-KMS, retención 7 años
+- **`dpv-marketplace-backups`:**
+  - Respaldos de configuraciones críticas y datos de recovery
+  - Configuración: Cross-region replication a us-west-1
+- **`dpv-marketplace-logs`:**
+  - Logs de auditoría extendida para compliance
+  - Configuración: Lifecycle a Glacier después de 90 días
+
+#### AWS KMS (Key Management Service)
+
+Gestiona claves de cifrado específicas para diferentes tipos de datos del marketplace, proporcionando separación de responsabilidades y cumplimiento de normativas de seguridad. La rotación automática anual mantiene la postura de seguridad actualizada sin interrumpir operaciones.
+
+**Claves especializadas:**
+
+- **`dpv-marketplace-payments`:**
+  - Cifrado de datos de transacciones, tokens de pago y información financiera
+  - Política: Acceso restringido solo a payment-service
+- **`dpv-marketplace-analytics`:**
+  - Protección de datos de comportamiento y preferencias de usuarios
+  - Política: Acceso para analytics y recommendation services
+- **`dpv-marketplace-reports`:**
+  - Cifrado de facturas, reportes financieros y documentos sensibles
+  - Política: Acceso para generación automática y backoffice
+- **`dpv-marketplace-recommendations`:**
+  - Protección de algoritmos ML y datos de entrenamiento
+  - Política: Acceso exclusivo para SageMaker endpoints
+
+#### AWS Secrets Manager
+
+Centraliza el manejo seguro de credenciales y API keys utilizadas por microservicios del marketplace, implementando rotación automática donde sea posible y alertas para credenciales próximas a expirar. La integración con IAM garantiza que cada microservicio acceda únicamente a los secrets necesarios para su función.
+
+**Secrets del Marketplace:**
+
+- **`dpv/marketplace/stripe-keys`:**
+  - API keys públicas y privadas de Stripe
+  - Rotación: Manual coordinada con Stripe
+- **`dpv/marketplace/local-payment-providers`:**
+  - Credenciales para BAC Credomatic y otros procesadores locales
+  - Configuración: Cifrado adicional para compliance local
+- **`dpv/marketplace/recommendation-ml-tokens`:**
+  - Tokens de acceso para endpoints de SageMaker
+  - Rotación: Automática cada 30 días
+- **`dpv/marketplace/analytics-db-credentials`:**
+  - Credenciales específicas para acceso de solo lectura a analytics
+  - Configuración: Least privilege access
+
+#### Amazon SageMaker
+
+Plataforma de machine learning que potencia el motor de recomendaciones del marketplace mediante modelos especializados que analizan comportamiento de usuarios, similitud de datasets y patrones de compra. Los endpoints en tiempo real proporcionan recomendaciones personalizadas con latencia <100ms, mientras que jobs de entrenamiento nocturnos mantienen modelos actualizados con datos del día anterior.
+
+El sistema implementa A/B testing automático para evaluar efectividad de diferentes algoritmos de recomendación, optimizando continuamente para métricas de negocio como click-through rate y conversion rate.
+
+**Configuración para Recomendaciones:**
+
+- **Endpoints en tiempo real:**
+  - 2 instancias ml.t3.medium con auto-scaling hasta 6 instancias
+  - Latencia objetivo: <100ms para inference
+- **Modelos desplegados:**
+  - Collaborative filtering: Usuarios con preferencias similares
+  - Content-based filtering: Similitud de metadatos de datasets
+  - Hybrid ensemble: Combinación weighted de ambos enfoques
+- **Training Jobs:**
+  - Frecuencia: Semanal con datos agregados de comportamiento
+  - Instancias: ml.m5.xlarge para processing distribuido
+  - Feature engineering: Apache Spark integration para ETL de features
+
+#### Amazon RabbitMQ (Amazon MQ)
+
+Message broker que coordina comunicación asíncrona entre microservicios del marketplace, garantizando delivery confiable de eventos críticos como confirmaciones de pago, actualizaciones de suscripciones y triggers de notificaciones. La configuración active/standby en múltiples AZ elimina single points of failure en el sistema de messaging.
+
+Los dead letter queues capturan mensajes que fallan el procesamiento inicial, permitiendo retry logic sofisticado y análisis de fallos para mejorar la robustez del sistema.
+
+**Configuración:**
+
+- **Tipo:** RabbitMQ 3.11.x para compatibilidad con ecosystem existente
+- **Instancias:** mq.m5.large en producción, mq.t3.micro para desarrollo
+- **Alta disponibilidad:** Configuración active/standby en múltiples AZ
+- **Durabilidad:** Queues persistentes para eventos críticos de pago
+
+**Exchanges y Queues principales:**
+
+- **`marketplace.events`:** Exchange principal para routing de eventos
+- **`payment.processing`:** Cola específica para procesamiento de pagos
+- **`notification.delivery`:** Delivery de notificaciones con retry logic
+- **`recommendation.updates`:** Actualización de cache de recomendaciones
+- **`analytics.tracking`:** Streaming de eventos para analytics en tiempo real
+
+#### Amazon SES (Simple Email Service)
+
+Gestiona el envío confiable de notificaciones transaccionales del marketplace, desde confirmaciones de compra hasta alertas de límites de uso. Los templates personalizables mantienen consistencia de marca mientras que el tracking de engagement proporciona insights sobre efectividad de comunicaciones.
+
+La configuración de bounce y complaint handling protege la reputación del dominio, mientras que la integración con SNS permite procesamiento automatizado de eventos de email.
+
+**Configuración:**
+
+- **Región:** us-east-1 para consistencia con otros servicios
+- **Dominio verificado:** marketplace.datapuravida.cr con DKIM/SPF
+- **Templates de email:**
+  - Confirmación de compra con detalles de dataset adquirido
+  - Facturas y recibos con PDF adjunto
+  - Notificaciones de renovación de suscripción
+  - Alertas de límites de uso próximos a agotarse
+- **Bounce handling:** Automático con SNS integration
+- **Sending limits:** Configurados según volumen proyectado de usuarios
+
+#### AWS Lambda
+
+Funciones serverless que manejan procesamiento específico y respuesta a eventos sin mantener infraestructura dedicada. Las funciones se activan automáticamente en respuesta a webhooks de payment providers, schedules de renovación, y eventos de fraude detection, proporcionando respuesta rápida y costos optimizados.
+
+**Funciones principales:**
+
+- **`marketplace-webhook-processor`:**
+  - Procesa webhooks de Stripe y otros payment providers
+  - Timeout: 30 segundos, Memory: 512MB
+  - Integración: SQS para reliable processing
+- **`marketplace-invoice-generator`:**
+  - Genera PDFs de facturas automáticamente post-pago
+  - Timeout: 5 minutos, Memory: 1024MB
+  - Storage: S3 para archivos generados
+- **`marketplace-subscription-renewal`:**
+  - Procesa renovaciones automáticas y notificaciones
+  - Trigger: EventBridge schedule
+  - Integration: RDS para subscription state management
+- **`marketplace-fraud-detector`:**
+  - Análisis en tiempo real de patrones sospechosos
+  - Timeout: 15 segundos, Memory: 512MB
+  - ML Integration: SageMaker endpoint para scoring
+
+#### Amazon CloudFront
+
+Red de distribución de contenido que acelera la entrega de assets del marketplace a usuarios globales, aunque se enfoca principalmente en usuarios de Costa Rica. El cache inteligente diferencia entre contenido estático (thumbnails, assets) y dinámico (APIs, datos en tiempo real) para optimizar performance y reducir latencia.
+
+**Configuración de distribución:**
+
+- **Orígenes múltiples:**
+  - S3 bucket para assets estáticos del marketplace
+  - Application Load Balancer del EKS para contenido dinámico
+- **Behaviors de cache:**
+  - Assets estáticos: TTL 24 horas con compression habilitada
+  - APIs del marketplace: Sin cache, pass-through al backend
+  - Thumbnails de datasets: TTL 4 horas con invalidation automática
+- **Seguridad:** WAF integrado para protección contra ataques DDoS y bot traffic
+
+#### AWS Systems Manager Parameter Store
+
+Almacena configuraciones operacionales y feature flags que se ajustan dinámicamente sin requerir redespliegue de aplicaciones. Los parámetros se organizan jerárquicamente para facilitar management y se versionan para permitir rollback rápido de cambios problemáticos.
+
+**Parámetros organizados por categoría:**
+
+- **`/dpv/marketplace/pricing/`:**
+  - Configuraciones de precios dinámicos por región
+  - Descuentos automáticos basados en volumen
+- **`/dpv/marketplace/features/`:**
+  - Feature flags para rollout gradual de funcionalidades
+  - A/B testing configuration para UI experiments
+- **`/dpv/marketplace/limits/`:**
+  - Rate limiting específico por tipo de usuario
+  - Quotas de API calls y bandwidth por tier
+- **`/dpv/marketplace/ml/`:**
+  - Hyperparámetros para modelos de recomendación
+  - Thresholds para triggers de reentrenamiento
+
+#### Amazon EventBridge
+
+Servicio de eventos que orquesta integraciones complejas entre microservicios del marketplace y sistemas externos, permitiendo arquitectura event-driven que escala automáticamente. Las reglas configurables enrutan eventos específicos a targets apropiados, mientras que el retry automático garantiza delivery confiable.
+
+**Reglas principales:**
+
+- **Payment events:** Routing de confirmaciones de pago a múltiples servicios
+- **Subscription renewals:** Trigger automático de procesos de renovación
+- **Dataset updates:** Coordinación con La Bóveda para actualizar catálogo
+- **Analytics aggregation:** Scheduling de jobs de agregación de métricas
+
+**Targets integrados:**
+
+- Lambda functions para procesamiento inmediato de eventos críticos
+- SQS queues para procesamiento diferido y batching
+- SNS topics para notificaciones de sistema y alertas
+
+#### VPC Endpoints
+
+Configuración de endpoints privados que mantiene todo el tráfico sensible del marketplace dentro de la red privada de AWS, eliminando exposición a internet público y optimizando seguridad. Los endpoints se configuran específicamente para servicios utilizados frecuentemente por microservicios del marketplace.
+
+**Endpoints configurados:**
+
+- **S3 Gateway Endpoint:**
+  - Acceso directo a buckets de assets sin tráfico internet
+  - Optimización de latencia para operaciones de upload/download
+- **SES Interface Endpoint:**
+  - Envío de emails transaccionales desde VPC privada
+  - Compliance con políticas de seguridad gubernamentales
+- **SageMaker Interface Endpoint:**
+  - ML inference sin exposición de datos a internet público
+  - Protección de modelos propietarios y datos de entrenamiento
+- **Secrets Manager Interface Endpoint:**
+  - Acceso seguro a credenciales desde pods en EKS
+  - Eliminación de dependencies en internet para operaciones críticas
+
+###### Sistema de Monitoreo
+El monitoreo del componente Marketplace de Datos de Data Pura Vida será utilizado para lograr que todo funcione bien, sea seguro y esté siempre disponible.
+
+**Métricas y Rendimiento**
+Utilizaremos distintas herramientas para recopilar métricas. Estas métricas se implementarán en puntos clave dentro de los microservicios, con el fin de tener una visión del comportamiento del sistema.
+
+**Métricas de Negocio:**
+Las métricas de negocio nos darán una visión de cómo el marketplace está funcionando desde una perspectiva de usuario y valor. Por ejemplo, es crucial saber cuántas veces los usuarios buscan datasets o si los pagos se están procesando correctamente.
+
+-	**Número de búsquedas realizadas:** Esta métrica es fundamental para entender la actividad del catálogo. Esta será recopilada dentro del catalog-search-engine-service, ya que este microservicio gestiona las búsquedas avanzadas en Elasticsearch. Cada vez que el endpoint /api/v1/catalog/search es invocado a través del API Gateway, el catalog-search-engine-service incrementará un contador que reflejará la cantidad de búsquedas.
+
+-	**Transacciones de pago iniciadas y completadas/fallidas:** El seguimiento de las financias es crucial para el componente de marketplace. Esta métrica se rastreará directamente en el payment-processor-service. Este servicio es el encargado de manejar el procesamiento de pagos únicos y emitirá eventos como payment.initiated, payment.completed y payment.failed, que serán contabilizados para obtener esta métrica.
+
+-	**Volumen de datos consultados:** Permite entender el consumo real de los datasets. Esta métrica se capturará en el usage-tracking-service. Este consume eventos dataset.accessed generados por el Datalake o La Bóveda cada vez que un usuario accede a un dataset.
+
+
+
+**Métricas de Infraestructura:**
+Las métricas de infraestructura nos ayudad a verificar nuestra plataforma, asegurando que los recursos estén disponibles y funcionando de manera eficiente.
+-	**Latencia de consultas a bases de datos:** Esta métrica se medirá en cada microservicio que interactúa con una base de datos. Por ejemplo, el user-profile-manager-service (que usa PostgreSQL) y el catalog-metadata-sync-service (que usa PostgreSQL). Estos servicios expondrán un contador o histograma de latencia para las operaciones de base de datos que realizan, como lectura y escritura.
+
+-	**Tamaño de las colas y lag de consumidores:** Estas métricas son importantes en el monitoreo del sistema de mensajería asíncronos. Se obtendrán directamente de los brokers de mensajes y los consumidores. Por ejemplo, el notification-dispatcher-service que consume eventos de RabbitMQ. Los exporters de Prometheus para RabbitMQ se encargarán de recolectar esta información de las colas y los grupos de consumidores.
+
+**Herramientas de Monitoreo**
+Estas métricas se utilizarán en las siguientes herramientas:
+-	**Prometheus:** Recopilará métricas directamente desde los endpoints /metrics expuestos por cada microservicio. Los exporters de Prometheus para bases de datos (PostgreSQL), Redis y RabbitMQ se usarán para métricas de infraestructura.
+
+-	**AWS CloudWatch:** Para métricas a nivel de infraestructura de AWS (EKS, RDS, S3, KMS) y para métricas de logs.
+
+-	**Grafana:** Será la plataforma de visualización principal, integrando datos de Prometheus y CloudWatch para crear dashboards interactivos y personalizados.
+
+
+**Logs y Trazabilidad**
+Un sistema centralizado de logs y trazabilidad es crucial para diagnosticar problemas en un entorno de microservicios.
+
+-	Centralización de Logs: 
+    - 	Todos los microservicios configurarán sus aplicaciones para emitir logs estructurados (JSON) a stdout.
+    -	También se pueden enviar logs a CloudWatch Logs para integrarse con otras herramientas de AWS y facilitar la consulta con CloudWatch Logs Insights.
+
+-	**Trazabilidad Distribuida:**
+    -	Todos los microservicios (ej., marketplace-catalog-service, marketplace-user-service, marketplace-payment-service, marketplace-access-service, marketplace-recommendation-service, marketplace-notification-service, marketplace-analytics-service, y sus microservicios internos) serán instrumentados con OpenTelemetry para generar trazas.
+    -	Un OpenTelemetry Collector se desplegará en el cluster para recolectar las trazas y exportarlas a un backend como Jaeger (para visualización y análisis de trazas).
+    -	Esto permitirá seguir una solicitud a través de múltiples microservicios (incluyendo llamadas gRPC y HTTP entre ellos) y ver la latencia de cada salto.
+
+-	**Auditoría y Diagnóstico:** 
+    -	**Elasticsearch:** Proporcionará una interfaz potente para buscar, filtrar y analizar logs estructurados de todos los microservicios, permitiendo una rápida identificación de la causa raíz de problemas.
+    -	AWS CloudTrail: Registra todas las llamadas a la API de AWS realizadas por los roles IAM de los microservicios del marketplace, crucial para auditoría de seguridad y cumplimiento.
+
+**Sistema de Alertas y Notificaciones**
+
+**Monitoreo de Cumplimiento y Seguridad**
+Dado el manejo de datos sensibles y transacciones financieras, el monitoreo de seguridad es una prioridad.
+
+-	**Auditoría de Accesos:**
+    -	**CloudTrail:** Monitorizará todas las llamadas a la API de AWS relacionadas con los recursos utilizados por los microservicios del marketplace (ej., acceso a S3 buckets con datos de logs/analytics, KMS, RDS, EKS).
+    -	El audit-logger-service registrará cada acceso a los datasets y cada acción relevante (ej., pagos completados) que ocurran a través de los microservicios de acceso y pago. Estos logs serán inmutables y almacenados en Elasticsearch para auditorías.
+    -	**Alertas de Acceso Inusual:** Se configurarán alertas sobre patrones de acceso anómalos a datos sensibles o intentos de acceso no autorizado (401/403 respuestas del API Gateway que enruta a los microservicios del marketplace).
+
+-	**Monitoreo de Cifrado:**
+    -	Se verificará que los datos en reposo en el datalake y en bases de datos estén cifrados en KMS. Esto implica monitorear las interacciones de los microservicios que escriben o leen datos sensibles (ej., access-provisioning-service, payment-processor-service, catalog-metadata-sync-service).
+    -	Se monitoreará la tasa de errores de las operaciones de cifrado/descifrado en KMS.
+    -	Se asegurará que los datos en tránsito estén cifrados (TLS/SSL) entre todos los microservicios del marketplace y con el API Gateway.
+
+-	**Monitoreo de Identidad y Acceso:**
+    -	Se auditarán los logs de autenticación del Bioregistro para detectar patrones de ataque de credenciales.
+    -	Se monitoreará el uso de tokens JWT y la gestión de estos por el token-management-service dentro del marketplace-access-service.
+    -	Se activarán alertas sobre cambios en políticas de IAM o roles asociados a los microservicios del marketplace.
+
+**Health Checks y Disponibilidad**
+Cada microservicio implementará liveness y readiness probes de EKS, además de deep health checks.
+
+-	**Liveness Probe:** (ej., HTTP GET a /health) Verifica que el proceso de cada microservicio está corriendo y no está en un estado de deadlock. Si falla, EKS reiniciará el pod.
+-	**Readiness Probe:** (ej., HTTP GET a /ready) Verifica que cada microservicio está listo para recibir tráfico, incluyendo la conectividad con sus dependencias críticas (DB, cache, message brokers, APIs externas). Si falla, EKS no enrutará tráfico al pod hasta que esté listo.
+-	**Deep Health Checks:** Endpoints más exhaustivos que simulan flujos de negocio críticos (ej., una simulación de compra que involucra marketplace-user-service, marketplace-payment-service, marketplace-access-service; una búsqueda de catálogo que involucra marketplace-catalog-service) para validar la funcionalidad end-to-end y la conectividad a todas las dependencias.
+
+**Análisis y Mejora Continua**
+El sistema de monitoreo no solo detectará problemas, sino que también proporcionará inteligencia para la optimización continua.
+
+-	**Análisis de Tendencias:** Identificación de patrones en el tráfico del marketplace, volumen de transacciones, comportamiento del usuario y rendimiento de los datasets para optimizar la asignación de recursos y planificar la capacidad, utilizando datos de todos los microservicios del marketplace recolectados por marketplace-analytics-service.
+-	**Detección de Anomalías:** Uso de capacidades de ML en Grafana o CloudWatch para detectar comportamientos inusuales en las métricas (ej., caída repentina en búsquedas, aumento inusual de pagos fallidos) que pueden indicar problemas subyacentes en cualquier microservicio.
+-	**Reportes de Capacidad:** Proyecciones de crecimiento basadas en el historial de uso de recursos para planificar el escalado de EKS clusters, bases de datos y sistemas de mensajería para todos los microservicios del marketplace.
+-	**Optimización de Costos:** Análisis del uso de recursos de AWS (EKS, RDS, S3, etc.) por cada microservicio para identificar oportunidades de reducción de costos.
+-	**Análisis de Embudos de Conversión:** Usar los datos de marketplace-analytics-service (generados a partir de eventos de user-behavior-tracker-service y payment-processor-service) para identificar dónde los usuarios abandonan el flujo de compra o búsqueda, permitiendo mejoras en la UX del portal.
+-	**Evaluación de Modelos de ML:** Monitorear el rendimiento de los modelos de recomendación (behavioral-ml-service, content-similarity-service, recommendation-engine-service) y detección de fraude (fraud-detection-service) y la efectividad de las recomendaciones servidas.
+
+
+###### Diagrama del Backend 
+
+A continuación, se presenta el diagrama del backend del Marketplace de Datos de Data Pura Vida. En él se evidencia cómo todo el ecosistema de AWS interactúa con los distintos microservicios desplegados en el clúster de Kubernetes provisto por EKS. Se muestra la contenerización de cada microservicio utilizando Docker y cómo el monitoreo interno es gestionado por Prometheus. También se destacan las interacciones con sistemas de terceros como SumSub y Stripe.
+
+![image](img/DiagramaBackendMarketplace.svg)
+
+
+#### Diseño de los datos
+
+##### Topología de Datos
+
+- **Tipo:** OLTP + OLAP + NoSQL + Event-Driven + Motor de búsqueda
+
+- Para el componente Marketplace se va a utilizar un arquitectura híbrida para la separación de responsabilidades entre transacciones, analítica y búsqueda. Las operaciones de compra, gestiones de permisos y accesos se maneja con una base de datos `OLTP` en RDS con PostgreSQl. Las consultas de usuario y logs se maneja en `OLAP` para realizar análisis. Para explorar el catálogo de datasets se usa un motor de búsqueda especializado. 
+
+- Para `OLTP`se usa la misma instancia de RDS que se utiliza en el componente Bioregistro, extendida con nuevas tablas para:
+  - Transacciones de compra de acceso.
+  - Historial de accesos por usuario.
+  - Registro de renovaciones, paquetes y métodos de pago.
+  - Vinculación entre usuarios, organizaciones y datasets adquiridos.
+
+- Para `OLAP`, se usa Amazon Redshift en Serverless, configurado con escalado  automático. Redshift se alimenta por cargas en batch diarias desde Amazon S3 y OpenSearch incluyendo.
+  - logs de acceso
+  - consultas de usuarios
+  - de navegación. 
+  - Redshift también consulta directamente algunas tablas de PostgreSQL mediante Federated Queries.
+
+- Como sección `NoSQL`, Amazon DynamoDB se usa como backend para estado temporal y comportamiento de usuarios:
+
+  - **SessionData:** sesiones activas por usuario.
+  - **UserBehavior:** métricas de navegación en vivo.
+  - **RecommendationCache:** resultados de sistemas de recomendación.
+  - **NotificationQueue:** notificaciones pendientes y estado de lectura.
+
+Estas tablas incluyen políticas de TTL y activan Streams que alimentan pipelines de entrenamiento en SageMaker o acciones via Lambda.
+
+- Para `tareas asincronicas` se utiliza AWS Lambda para tareas como:
+  - Procesamiento de pagos y validación antifraude.
+  - Generación de facturas PDF y almacenamiento en S3.
+  - Activación de renovaciones automáticas o cancelaciones.
+  - Limpieza de sesiones y sincronización de estados en DynamoDB.
+
+- La arquitectura `Event-Driven` se aplica enAmazon EventBridge:
+  - `payment.completed`, `dataset.viewed`, `session.expired`, etc.
+  - Estos eventos disparan Lambdas, envían notificaciones vía SNS/SES o actualizan los índices en OpenSearch.
+
+- Para `mensajería interna` se utiliza RabbitMQ, en donde se coordinan los microservicios desplegados en EKS:
+  - Control de flujo de compra.
+  - Validación cruzada de permisos.
+  - Disparadores para entrenamientos en SageMaker.
+
+- Como `motor de busqueda` se usa OpenSearch que es el motor principal para la exploración de datasets:
+
+  - Indexación de metadatos enriquecidos.
+  - Búsqueda facetada por categoría, colectivo, año, palabras clave.
+  - Exploración semántica usando embeddings y puntuación por relevancia.
+  - También almacena logs de búsqueda (`user-searches`) y métricas de uso (`marketplace-analytics`).
+
+
+
+- **Tecnología Cloud**:
+
+  - Amazon RDS (PostgreSQL)
+  - Amazon Redshift Serverless
+  - Amazon DynamoDB
+  - Amazon OpenSearch
+  - Amazon S3
+  - AWS Lambda
+  - AWS EventBridge
+  - AWS SNS, SES
+  - RabbitMQ (en EKS)
+
+- **Polítcias y Reglas**:
+
+- **Single-region:** Toda la infraestructura estará localizada en `us-east-1`
+- **Backups automáticos:** 
+  - RDS y Redshift con respaldo diario a la 1 a.m. en S3.
+  - DynamoDB habilitado con backups automáticos y TTL por tabla.
+  - S3 tiene versionado y reglas de ciclo de vida para archivar logs.
+- **Backups cruzados:** Replicación semanal a us-west-1 (viernes, 3 a.m.) usando S3 IA.
+- **Failover automático:**
+  - RDS con Multi-AZ.
+  - Redshift con snapshots automáticos.
+  - OpenSearch con replicación de shards entre zonas de disponibilidad.
+  - DynamoDB es multi-AZ por diseño y no requiere configuración adicional.
+
+
+
+- **Beneficios**:
+  - Separación clara entre operaciones transaccionales, analíticas, temporales y de búsqueda.
+  - Uso de múltiples motores optimizados por tipo de dato: PostgreSQL (consistencia), Redshift (consulta masiva), DynamoDB (estado rápido), OpenSearch (búsqueda).
+  - Arquitectura event-driven permite desacoplar procesos complejos como pagos, notificaciones, y ML.
+  - OpenSearch puede integrarse con SageMaker para enriquecer búsquedas con modelos IA.
+  - Redshift permite consultar tablas de RDS directamente:
+```sql
+CREATE EXTERNAL SCHEMA marketplace_schema
+FROM POSTGRES
+DATABASE 'admin_db'
+URI 'dpv-rds-postgres.c8xyzxyz.us-east-1.rds.amazonaws.com'
+PORT 5432
+IAM_ROLE 'arn:aws:iam::123456789012:role/marketplace-query'
+SECRET_ARN 'arn:aws:secretsmanager:us-east-1:123456789012:secret:MarketplaceRDSSecret'
+```
+- Redshift maneja archivos en formato Parquet desde cargas diarias de logs almacenados en S3:
+```sql
+COPY marketplace.analytics_logs
+FROM 's3://dpv-marketplace-logs/diario/'
+IAM_ROLE 'arn:aws:iam::123456789012:role/marketplace-etl'
+FORMAT AS PARQUET;
+```
+
+##### RLS
+
+No se hace uso de RLS al igual que en la bóveda, por las mismas razones.
+
+##### Tenency, Seguridad y Privacidad
+
+- **Modelo**: Single-Access-Point, RBAC, Multi-Tenant 
+
+  - Todo acceso a datos se hace a través del Single Access Point. Solo las clases autorizadas como `MarketplaceRDSRepository`, `MarketplaceSearchRepository`, `MarketplaceAnalyticsRepository`, `MarketplaceDynamoRepository` y `MarketplaceEventBridgeHandler` están habilitadas para interactuar con las fuentes de datos. Esto incluye RDS, Redshift, DynamoDB y OpenSearch. Toda consulta o acción desde APIs, Lambda o dashboards debe pasar por estas clases.
+
+  - Se usará multi-tenant, ya que múltiples colectivos y organizaciones pueden publicar y consumir datasets dentro del Marketplace. El aislamiento se garantiza de dos formas:
+
+    - **Aislamieno físico:** Cada dataset publicado por un colectivo se almacena en su propia tabla en Redshift o RDS. En DynamoDB, todos los ítems llevan un `tenant_id` obligatorio.
+
+    - **Aislaiento lógico:** El acceso a cada dataset se controla por medio de roles IAM asignados dinámicamente tras la compra del recurso, usando LakeFormation para enlazar los permisos a recursos etiquetados.
+
+  - Para hacer el manejo de control de acceso y RBAC se hara lo siguiente:
+    - **LakeFormation + IAM:**
+      - **Rol IAM de Colectivo:** Cada colectivo tiene un rol IAM vinculado a sus datasets. Al publicar un nuevo dataset, se genera un tag LakeFormation `dataset=xyz`, el cual se asigna a la tabla correspondiente. Ese tag se asocia al rol IAM del colectivo.
+
+      - **Rol IAM por Dataset Adquirido:** Cuando un usuario compra un dataset, se le asigna un rol IAM con permisos limitados (`SELECT`, `DESCRIBE`) sobre las tablas asociadas. Esto ocurre mediante backend y EventBridge.
+
+      - **Rol Público por Defecto:** Datasets públicos son accesibles mediante el rol IAM asociado al tag `dataset=public-free`, asignado automáticamente a usuarios autenticados.
+
+    - **OpenSearch:**
+      - El acceso a índices está filtrado por tenant_id y validado desde backend antes de enviar la consulta.
+      - La búsqueda semántica también aplica dataset_access para evitar exposición de recursos no adquiridos.
+
+    - **DynamoDB:**
+      - Cada ítem incluye tenant_id y user_id, lo que permite el uso de condiciones en IAM Policies para evitar lectura cruzada de tenants.
+
+    - **Ejemplo de implementación con LakeFormation**
+    
+      ```py
+      import boto3
+      client = boto3.client('lakeformation')
+      # Creación del tag de acceso a dataset:
+      client.create_lf_tag(
+          TagKey='dataset',
+          TagValues=['marketplace_inclusion_2025']
+      )
+      ```
+
+      ```py
+      # Asignación del tag a la tabla en Redshift:
+      client.assign_lf_tags_to_resource(
+      Resource={
+          'Table': {
+              'CatalogId': 'AWS_ACCOUNT_ID',
+              'DatabaseName': 'marketplace',
+              'Name': 'dataset_inclusion_table'
+          }
+      },
+      LFTags=[
+          {
+              'TagKey': 'dataset',
+              'TagValues': ['marketplace_inclusion_2025']
+          }
+        ]
+      )
+      ```
+
+      ```py
+      # Asignación del tag a un rol IAM de usuario comprador:
+      client.grant_permissions(
+      Principal={
+          'DataLakePrincipalIdentifier': 'arn:aws:iam::ACCOUNT_ID:role/Buyer_Dataset_123'
+      },
+      Resource={
+          'LFTagPolicy': {
+              'ResourceType': 'TABLE',
+              'Expression': [
+                  {
+                      'TagKey': 'dataset',
+                      'TagValues': ['marketplace_inclusion_2025']
+                  }
+              ]
+          }
+        },
+        Permissions=['SELECT', 'DESCRIBE']
+      )
+      ```
+
+- **Cloud**: 
+
+  - AWS RDS para PostgreSQL, esquema por colectivo.
+  - AWS Redshift Serverless, segmentado por tags.
+  - AWS DynamoDB, por tabla con tenant_id y TTL.
+  - AWS LakeFormation, control de acceso a tablas.
+  - AWS IAM, para permisos a roles por dataset o colectivo.
+  - AWS KMS, cifrado de datos sensibles.
+  - Amazon OpenSearch Service, con acceso filtrado por tenant.
+  - AWS Lambda y EventBridge, para eventos y automatización.
+  - AWS SNS/SES, para notificaciones de seguridad y actividad.
+
+- **Beneficios**:
+
+  - Gracias a Single-Access-Point, los accesos a datos del Marketplace (compras, validación de permisos, consultas de visualización) pasan por validadores como `TenantManager` y `MarketplaceRepository`. Esto minimiza el riesgo de acceso directo a las bases de datos sin control lógico o sin trazabilidad.
+
+  - Como cada colectivo tiene su propio esquema en PostgreSQL, y los datasets de pago se asocian a tablas individuales, se elimina el riesgo de filtración de datos entre organizaciones. 
+
+  - Se pueden diferenciar los datasets públicos, privados y pagos, y aplicar diferentes niveles de acceso y visibilidad sin necesidad de duplicar datos usando tags como `dataset=public-free`.
+
+##### Conexión a Base de datos
+
+- **Modelo**: Transaccional vía Statements / ORM / Funciones asincronicas
+
+El componente Marketplace maneja su acceso a datos utilizando una arquitectura híbrida:
+
+  - SQLAlchemy será el ORM principal para la interacción con RDS y Amazon Redshift.
+  - Para NoSQL como DynamoDB y OpenSearch, se usaran SDKs nativos en clases de repositorio independientes (`MarketplaceDynamoRepository`, `MarketplaceSearchRepository`).
+  - Algunas operaciones asincrónicas (actualizaciones post-compra o notificaciones) se manejan mediante AWS Lambda, que consulta directamente las fuentes de datos o lanza eventos de actualización.
+
+- **Patrones de POO**:
+
+Factory: Se aplica el patrón Factory para crear instancias de conexión y repositorios específicos para cada motor de base de datos:       
+
+  - `MarketplaceRDSFactory`, `MarketplaceRDSRepository`
+  - `MarketplaceRedshiftFactory`, `MarketplaceRedshiftRepository`   
+  - `MarketplaceSearchFactory`, `MarketplaceSearchRepository`
+  - `MarketplaceDynamoFactory`, `MarketplaceDynamoRepository`
+
+
+- **Beneficios**:
+
+  - SQLAlchemy permite trabajar con objetos Python sin renunciar a la flexibilidad del SQL cuando es necesario.
+  - Se protege contra vulnerabilidades como SQL Injection.
+  - Se puede garantizar el cumplimiento de las propiedades ACID.
+  - Permite combinar declaraciones ORM con consultas SQL puras dentro del mismo flujo transaccional.
+  - Las funciones Lambda pueden ser probadas y versionadas de forma independiente, ayudando a mantener un sistema robusto.
+
+
+- **Pool de Conexiones:** Usaremos el pool integrado en SQLAlchemy (QueuePool), el cual es dinámico. El tamaño base del pool será de 10 conexiones, y podrá escalar hasta 15 conexiones simultáneas. 
+
+  - Tamaño base del pool: 10 conexiones
+  - Tamaño máximo: 15 conexiones
+  - Tiempo de espera: 30 segundos
+  - Tiempo de vida de conexión inactiva: 60 segundos
+  - **Beneficios**:
+    - La escalabilidad se ajusta bajo demanda.
+    - Proporciona mayor estabilidad en ambientes productivos.
+    - Para DynamoDB y OpenSearch no se usan pools persistentes, ya que los SDKs están optimizados para conexiones breves y asincrónicas (HTTP bajo demanda).
+  
+
+- **Drivers y SDKs:** 
+
+  - **PostgreSQL / Redshift:**
+
+    - Driver nativo `psycopg2` + SQLAlchemy
+    - Soporte para queries directas y federadas desde Redshift hacia RDS
+
+  - **DynamoDB:**
+    - SDK oficial de AWS para Python (`boto3`)
+    - Conexión segura bajo IAM, acceso controlado por políticas y validaciones de `tenant_id`
+
+  - **OpenSearch:**
+    - Cliente oficial de AWS (`opensearch-py`)
+    - Firma de solicitudes con AWS Signature v4
+    - Todas las consultas pasan por `MarketplaceSearchRepository`, que incluye validadores de permisos y filtrado por tenant
+
+  - **AWS Lambda:**
+    - Las Lambdas usan el runtime `python3.11` y acceden mediante SDKs (`boto3`, `sqlalchemy`, `opensearch-py`)
+    - Están conectadas vía EventBridge a eventos como:
+      - payment.completed
+      - dataset.access.revoked
+      - search.query.malicious
+
+##### Diseño para IA
+
+**Implementaciones comunes a todas las tablas**
+
+Con el objetivo de habilitar al componente Marketplace para interoperar con agentes de IA, se implementan las siguientes medidas en los procesos de publicación, consulta y análisis de datasets:
+
+  - Todas las tablas publicadas en Redshift incluirán las siguientes columnas adicionales generadas automáticamente por el sistema de transformación:
+    - `CategoriaSemantica`: Asignada por clasificación automática o proporcionada por el colectivo.
+    - `DescripcionFila`: Texto breve generado automáticamente por modelo ML para describir el contenido de cada fila con lenguaje natural.
+
+- Los documentos indexados en OpenSearchincluirán:
+  - Embeddings semánticos del título, descripción y contenido estructurado, generados por SageMaker.
+
+- Todas las búsquedas y visualizaciones realizadas por los usuarios en el frontend serán:
+  - Registradas en OpenSearch bajo el índice `marketplace-analytics`.
+  - Enviadas a DynamoDB y procesadas vía Streams para alimentar modelos de recomendación en SageMaker.
+
+- Se construye una base de consultas históricas de usuarios en formato vectorial, almacenada en S3 y DynamoDB, utilizada para entrenar modelos de:
+  - Recomendación personalizada.
+  - Generación automática de resúmenes.
+
+- Los modelos de generación de texto y recomendación se entrenan y ejecutan mediante AWS SageMaker en procesos periódicos y orquestados por EventBridge + Lambda.
+
+
+**Justificación**
+
+- Los usuarios podrán explorar el catálogo mediante lenguaje natural. Gracias a los embeddings generados y al uso de metadatos semánticos, los agentes de IA podrán transformar preguntas o intenciones en consultas de búsqueda relevantes y explicables.
+
+- Mediante el análisis de comportamiento histórico (clics, compras, visualizaciones), el sistema puede generar recomendaciones automáticas ajustadas al perfil del usuario, su historial y sus intereses recientes.
+
+- Las descripciones automáticas por fila y por dataset permiten a los agentes generar documentación y contenido explicativo sin intervención humana, incluso para datasets nuevos.
+
+- Cuando un dataset se actualiza o cambia su estructura, los agentes de IA utilizan las columnas semánticas y los históricos de búsqueda para adaptar automáticamente visualizaciones, reportes y modelos entrenados.
+
+##### Diagrama de Base de Datos
+
+El componente Marketplace reutiliza varias tablas del diagrama de La Bóveda, ya que ambos trabajan con usuarios, colectivos y datasets. Esto evita duplicar estructuras y mantiene consistencia entre módulos.
+
+Las tablas que se usan directamente en el Marketplace son:
+
+- **PersonaFisica:** para los usuarios que compran y acceden a datasets.
+- **Dataset:** representa los datasets disponibles para consulta o compra.
+- **Colectivo y TipoDeColectivo:** identifican quién publica cada dataset.
+- **AccesoDataset:** registra qué usuario tiene permiso de acceso a cada dataset.
+- **DatasetDePago y TipoDePago:** definen si el acceso es por suscripción, cuota, etc.
+- **Cuotas:** controla cuántas consultas le quedan a un usuario.
+- Las tablas Representantes y BankAccount no se usan directamente en el Marketplace.
+
+![alt text](img/DiagramaBDBoveda.png)
+
+---
+
+### 4.4 Motor de transformacion
+
+### Diseño del backend
+
+#### Servicios de AWS
+
+**Amazon EKS (Elastic Kubernetes Service)**
+
+El cluster de Kubernetes opera como el núcleo computacional donde residen todos los microservicios del Motor de Transformación, activándose automáticamente cuando el Centro de Carga notifica la disponibilidad de nuevos datasets para procesar.
+
+**Configuración de Hardware:**
+
+- **Versión de Kubernetes**: 1.29 (alineada con el resto del ecosistema)
+- **Tipo de nodos**: Amazon EC2 t3.large (2 vCPU, 8 GB RAM)
+- **Escalado**: 3-15 nodos que se expanden durante picos de carga nocturna cuando los datasets programados se procesan en batch
+- **Almacenamiento**: EBS gp3 con 100 GB por nodo para checkpoints temporales de Spark
+- **Red**: VPC privada que facilita comunicación segura con RDS y Redshift durante las transformaciones
+
+### Amazon RDS PostgreSQL
+
+La misma instancia compartida con Bioregistro y La Bóveda almacena metadatos críticos que guían cada transformación, consultándose antes de iniciar cualquier job ETL para determinar esquemas objetivo y validaciones requeridas.
+
+**Uso durante transformaciones:**
+Las tablas de control se actualizan en tiempo real conforme avanzan los jobs, registrando progreso para permitir recuperación automática en caso de fallos. Los microservicios consultan estas tablas para coordinar dependencias entre datasets relacionados, asegurando que las transformaciones ocurran en el orden correcto cuando un dataset referencia a otro.
+
+**Amazon S3**
+
+Los buckets funcionan como staging areas temporales donde los datos transitan por diferentes estados de transformación, desde su forma cruda hasta su versión final lista para Redshift.
+
+**Configuración por etapas:**
+
+- **`dpv-raw-staging`**: Recibe datos inmediatamente desde el Centro de Carga, manteniéndolos cifrados durante las primeras validaciones
+- **`dpv-transformation-work`**: Almacena resultados intermedios mientras Spark aplica limpieza, deduplicación y enriquecimiento con IA
+- **`dpv-redshift-ready`**: Contiene datos finales en formato Parquet optimizado, listos para carga bulk en La Bóveda
+- **`dpv-spark-checkpoints`**: Preserva estado de jobs largos para recuperación automática durante procesamiento de datasets masivos
+
+Los lifecycle policies mueven automáticamente datos antiguos entre clases de almacenamiento basándose en patrones de acceso, optimizando costos mientras mantienen disponibilidad para auditorías.
+
+**AWS KMS (Key Management Service)**
+
+Las claves se utilizan dinámicamente durante todo el pipeline de transformación, integrándose con el sistema tripartito del Bioregistro para mantener cifrado de datos sensibles incluso durante procesamiento.
+
+**Momentos de uso:**
+Cada vez que Spark lee datos del staging, las claves descifran automáticamente el contenido. Durante las transformaciones con IA, los datos permanecen cifrados en memoria, y al escribir resultados finales, se re-cifran antes del almacenamiento. Esta orchestración asegura que los datos nunca existan en texto plano en ningún punto del pipeline.
+
+**AWS Secrets Manager**
+
+Centraliza el manejo seguro de credenciales utilizadas durante transformaciones, rotándolas automáticamente para mantener seguridad sin interrumpir operaciones ETL.
+
+**Secrets almacenados:**
+
+- **`dpv/motor/redshift-credentials`**: Credenciales de conexión a Redshift utilizadas por microservicios para cargar datos transformados
+- **`dpv/motor/sagemaker-tokens`**: API keys para endpoints de SageMaker que ejecutan modelos de IA durante enriquecimiento de datos
+- **`dpv/motor/rabbitmq-auth`**: Credenciales para publicar/consumir mensajes de coordinación entre componentes
+- **`dpv/motor/s3-access-keys`**: Keys específicas para buckets con diferentes niveles de acceso según sensibilidad de datos
+
+Los microservicios consultan estos secrets automáticamente durante inicialización y los refrescan cada 24 horas sin requerir reinicio de pods.
+
+**AWS Systems Manager Parameter Store**
+
+Almacena configuraciones operacionales que se ajustan dinámicamente según carga de trabajo y ambiente, permitiendo tuning fino sin redespliegues.
+
+**Parámetros por categoría:**
+
+- **`/dpv/motor/spark/memory-config`**: Configuraciones de memoria para executors según tamaño de dataset detectado
+- **`/dpv/motor/airflow/worker-scaling`**: Parámetros de auto-scaling de workers basados en métricas históricas
+- **`/dpv/motor/quality/ml-thresholds`**: Umbrales de confianza para modelos de ML que determinan si datasets requieren validación manual
+- **`/dpv/motor/alerts/sla-targets`**: SLAs específicos por tipo de usuario y dataset que configuran alertas dinámicamente
+
+Los microservicios consultan estos parámetros durante ejecución para adaptar comportamiento según contexto operacional actual.
+
+**VPC Endpoints**
+
+Configurados para eliminar tráfico internet durante transformaciones, manteniendo datos sensibles completamente dentro de la red privada de AWS.
+
+**Endpoints configurados:**
+
+- **S3 Gateway Endpoint**: Todo el tráfico entre Spark jobs y buckets S3 permanece interno, optimizando latencia durante transferencias masivas de datos
+- **KMS Interface Endpoint**: Operaciones de cifrado/descifrado ocurren sin atravesar internet público, cumpliendo requisitos de seguridad gubernamental
+- **Secrets Manager Interface Endpoint**: Consultas de credenciales desde pods EKS se mantienen privadas, reduciendo superficie de ataque
+- **Systems Manager Interface Endpoint**: Acceso a configuraciones dinámicas sin exposición externa
+
+Esta configuración asegura que transformaciones de datos gubernamentales o sensibles nunca transiten por internet público.
+
+#### Monitoreo
+
+**Prometheus en EKS - Recolección Contextual**
+
+Prometheus opera continuamente dentro del cluster, pero intensifica la recolección de métricas durante ventanas de procesamiento activo, adaptando la frecuencia de scraping según la carga operacional.
+
+**Momentos de alta frecuencia:**
+Durante ejecución de jobs Spark masivos, el scrape interval se reduce a 15 segundos para capturar métricas granulares de memory spill, shuffle operations y task failures. Fuera de estas ventanas, vuelve a 60 segundos para optimizar recursos.
+
+**ServiceMonitors adaptativos:**
+
+- **etl-orchestrator**: Intensifica monitoreo cuando coordina múltiples jobs concurrentes, especialmente durante cargas batch nocturnas
+- **airflow-scheduler**: Monitoreo continuo con alertas que se activan cuando la cola de tareas supera umbrales definidos dinámicamente según patrones históricos
+- **spark-jobs**: Métricas se recolectan solo durante ejecución activa, eliminando overhead cuando no hay procesamiento
+
+**AWS CloudWatch - Monitoreo de Servicios Subyacentes**
+
+CloudWatch captura automáticamente métricas de la infraestructura AWS que soporta las transformaciones, correlacionando performance de aplicación con salud de servicios subyacentes.
+
+**RDS durante ETL:**
+Las métricas de conexiones concurrentes y latencia de queries se correlacionan con el número de jobs Spark activos, permitiendo identificar cuando la base de datos se convierte en cuello de botella durante cargas masivas.
+
+**S3 durante Pipeline:**
+Las métricas de PUT/GET operations revelan patrones de uso que informan optimizaciones de lifecycle policies. Picos de escritura en `dpv-redshift-ready` indican completación exitosa de transformaciones.
+
+**EKS Cluster Health:**
+
+- **Node utilization**: CPU y memoria de nodos correlacionada con número de executors Spark activos
+- **Pod startup latency**: Tiempo que toman pods en alcanzar estado Ready durante scaling events
+- **API server response time**: Latencia de Kubernetes API durante operaciones de scaling masivo
+
+**AWS X-Ray - Tracing Distribuido**
+
+X-Ray proporciona visibilidad completa del flujo de requests entre microservicios durante transformaciones, identificando bottlenecks específicos en el pipeline ETL.
+
+**Traces instrumentados:**
+
+- **End-to-end ETL flow**: Desde notificación de RabbitMQ hasta confirmación de carga en Redshift, mostrando latencia de cada paso
+- **Cross-service calls**: Llamadas entre etl-orchestrator y data-quality-service visualizadas con latencia detallada
+- **AWS service interactions**: Latencia de llamadas a Secrets Manager, S3, y KMS durante operaciones críticas
+- **Database query performance**: Tiempo específico de queries a RDS correlacionado con carga concurrente
+
+Los traces permiten identificar rápidamente si lentitud proviene de network latency, database contention, o processing logic.
+
+**AWS Config - Compliance Monitoring**
+
+Config monitorea continuamente configuraciones de seguridad y compliance, alertando sobre desviaciones que podrían violar requisitos de la Ley 8968.
+
+**Rules configuradas:**
+
+- **EKS security groups**: Valida que solo puertos necesarios estén abiertos y que tráfico sea restringido a subnets autorizadas
+- **S3 bucket encryption**: Asegura que todos los buckets del Motor mantengan cifrado habilitado con keys apropiadas
+- **IAM role policies**: Detecta cambios no autorizados en permisos de roles utilizados por microservicios
+- **RDS security configurations**: Monitorea que cifrado en tránsito y en reposo permanezca habilitado
+
+Las violaciones activan automáticamente remediation workflows que revierten cambios no autorizados.
+
+**AWS CloudTrail - Auditoría Completa**
+
+CloudTrail registra todas las API calls realizadas por microservicios del Motor, proporcionando trazabilidad completa para auditorías de compliance e investigación de incidentes.
+
+**Eventos auditados:**
+
+- **S3 data access**: Cada lectura/escritura de datos durante transformaciones, incluyendo IP source y timestamp exacto
+- **KMS key usage**: Operaciones de cifrado/descifrado correlacionadas con datasets específicos para auditorías de acceso a datos sensibles
+- **Secrets access**: Consultas a Secrets Manager registradas con contexto de cuál microservicio accedió a qué credenciales
+- **RDS connections**: Establecimiento de conexiones desde pods EKS hacia RDS con identificación precisa de workload
+
+Los logs se integran con sistemas de SIEM gubernamentales cuando se procesan datasets de entidades públicas.
+
+**Grafana - Visualización Contextual del Pipeline**
+
+**Dashboard "ETL Pipeline Flow":**
+Combina métricas de Prometheus, CloudWatch y trazas de X-Ray en visualización unificada que muestra datasets fluyendo desde Centro de Carga hasta La Bóveda, con drill-down capability hacia traces específicos cuando hay problemas.
+
+**Dashboard "Security & Compliance":**
+Integra datos de Config, CloudTrail y CloudWatch para mostrar postura de seguridad en tiempo real, incluyendo encryption status, access patterns y compliance violations con alertas visuales inmediatas.
+
+**Dashboard "Cost Optimization":**
+Correlaciona métricas de utilización de recursos con costos generados, mostrando cost-per-transformation y sugiriendo optimizaciones automáticas basadas en patterns históricos.
+
+### AWS Cost Explorer + Billing Alerts
+
+Monitoreo proactivo de costos asegura que transformaciones se mantengan dentro de presupuestos definidos, con optimizaciones automáticas cuando se detectan overruns.
+
+**Cost allocation tags:**
+
+- **`Project:MotorTransformacion`**: Agrupa todos los costos relacionados para billing granular
+- **`Environment:production/staging`**: Separa costos por ambiente para optimización específica
+- **`Dataset-Type:government/private`**: Tracking diferenciado para cumplir con requirements de transparencia gubernamental
+- **`User-Tier:premium/standard`**: Cost tracking por tipo de usuario para pricing optimization
+
+**Billing alerts configuradas:**
+
+- **Daily spend > $500**: Alerta temprana para investigar jobs anómalos que consumen recursos excesivos
+- **Monthly projection > $10,000**: Trigger para activar optimizaciones automáticas como uso de Spot instances
+- **Cost per GB processed > $0.50**: Indicador de ineficiencia que activa análisis de performance
+
+**Auto-optimization triggers:**
+Cuando costos superan umbrales, el sistema automáticamente ajusta configuraciones como reducir retention de checkpoints, optimizar Spark configurations, o sugerir alternative processing paths más económicos.
+
+**Sistema de Alertas Integrado**
+
+### AlertManager (Prometheus) + CloudWatch Alarms + SNS
+
+Las alertas se correlacionan automáticamente entre fuentes, evitando alert fatigue mientras aseguran coverage completo de escenarios críticos.
+
+**Escalación inteligente:**
+
+- **Tier 1 (0-15 min)**: Alertas automáticas para on-call engineer con contexto específico del problema
+- **Tier 2 (15-30 min)**: Escalación a team lead con dashboard pre-configurado para troubleshooting
+- **Tier 3 (30+ min)**: Involucra arquitectos de sistema con análisis automatizado de root cause
+
+**Context-aware notifications:**
+Las alertas incluyen automáticamente links a dashboards relevantes, traces de X-Ray relacionados y logs específicos del período del incidente, acelerando resolution time.
+
+
+## 5. Validación de los requerimientos
+
+- Validar que el diseño cubre todos los requerimientos funcionales y no funcionales del sistema
+- Identificar ventajas y desventajas del diseño, proponiendo mitigaciones a los riesgos y limitaciones
+
+
+### Centro de Visualización y Consumo - Generador de Dashboards
+
+#### Construcción Arquitectónica
+
+El Generador de Dashboards es el subcomponente principal encargado de permitir la creación, visualización y personalización de gráficos de análisis sobre los datasets cargados y procesados previamente en el sistema.
+
+Su arquitectura técnica sigue las siguientes capas:
+
+- **Frontend:** Construido en React.js con Vite, estilizado en Tailwind CSS, empleando Plotly.js como librería principal de gráficos.
+- **Backend:** Implementado sobre la API REST general del backend centralizada en FastAPI desplegada en EKS.
+- **Persistencia de datos:** Los dashboards generados se almacenan en PostgreSQL bajo el dominio de usuarios, configuraciones y plantillas personalizadas.
+
+---
+
+#### Flujo Completo de Funcionamiento
+
+1. **Selección y configuración inicial:**
+   - El usuario accede a la interfaz gráfica desde el portal web.
+   - Selecciona los datasets disponibles a los que tiene acceso según los permisos RBAC y RLS ya aplicados por la bóveda de datos.
+
+2. **Definición del gráfico:**
+   - El usuario selecciona el tipo de visualización: barras, líneas, series temporales, pie chart o scatter plot.
+   - La interfaz presenta un formulario dinámico (construido con Formik + Yup) para que el usuario configure los ejes, medidas, filtros y parámetros adicionales de cada gráfico.
+
+3. **Interacción con IA (opcional):**
+   - El usuario puede emplear prompts naturales que son procesados por el backend vía LangChain y OpenAI/SageMaker para autogenerar gráficos sugeridos.
+
+4. **Procesamiento Backend:**
+   - El backend valida los permisos del usuario, ejecuta la consulta al datalake y transforma los datos al formato requerido por Plotly.
+   - El backend responde al frontend con el JSON específico requerido por Plotly.js.
+
+5. **Renderización de gráficos:**
+   - Plotly.js renderiza los gráficos directamente en el navegador en base al dataset recibido.
+
+6. **Persistencia:**
+   - Los dashboards completos (estructura, consultas, configuraciones) se almacenan en PostgreSQL y DynamoDB para permitir recuperación, edición y compartición futura.
+
+7. **Control de consumo:**
+   - Se aplica control de límites en tiempo real (volumen de datos consultados, frecuencia de uso, número de dashboards activos).
+
+---
+
+#### Principios de Diseño Aplicados
+
+- **MVVM:**
+  - `Model:` Las estructuras de dashboards, gráficos y datasets.
+  - `ViewModel:` Custom Hooks como `useDatasetSearch()` o `usePromptVisualization()` gestionan la lógica de negocio desacoplada de la interfaz.
+  - `View:` Componentes React bajo Atomic Design (atoms, molecules, organisms, templates).
+
+- **Atomic Design:**
+  - Átomos: Botones, inputs, selects.
+  - Moléculas: Formularios de configuración de gráficos.
+  - Organismos: Contenedores de dashboards.
+  - Templates: Editor completo de dashboards.
+
+- **SOLID:**
+  - SRP: Cada Hook maneja una responsabilidad única.
+  - OCP: Nuevos tipos de gráficos pueden añadirse sin modificar código existente.
+  - LSP: Cada gráfico implementa la misma interfaz de renderizado.
+  - ISP: Los hooks y APIs exponen solo los parámetros estrictamente necesarios.
+  - DIP: Backend completamente desacoplado de la lógica frontend, interactúan mediante APIs REST y contratos JSON bien definidos.
+
+- **Clean Code & DRY:**
+  - Reutilización máxima de componentes.
+  - Custom Hooks independientes y altamente testeables.
+  - Estricta separación de capas de presentación, lógica y acceso a datos.
+
+- **Separation of Concerns:**
+  - Clarísima división entre vistas (React Components), lógica de negocio (Hooks) y acceso a datos (API Connector).
+
+---
+
+#### Herramientas y Librerías utilizadas
+
+| Capa       | Herramienta |
+|------------|-------------|
+| Frontend   | React.js, Vite, Tailwind CSS, Formik, Yup, React Router, Plotly.js |
+| Backend    | FastAPI, LangChain, OpenAI/SageMaker, PostgreSQL, DynamoDB |
+| Infraestructura | AWS S3, CloudFront, EKS, Cognito, Lambda@Edge, Redis, RabbitMQ |
+| Seguridad  | OAuth2, JWT, MFA, RBAC, RLS, SecretsManager |
+| DevOps     | GitHub Actions, Terraform, Prometheus, Grafana, CloudWatch |
+| Testing    | Jest (Frontend), Pytest (Backend), Postman, Gatling |
+
+---
+
+#### Consideraciones de Seguridad
+
+- Todos los accesos a dashboards pasan por validación OAuth2 + JWT emitidos por Cognito.
+- El acceso a datasets sigue las reglas RBAC y RLS definidas en la bóveda.
+- Los dashboards nunca exportan datos en crudo, sólo visualización interna.
+- Se aplica protección contra abusos de consumo vía throttling, rate-limiting y monitoreo con CloudWatch.
+
+---
+
+#### Observabilidad Específica
+
+- Dashboards de monitoreo propios en Grafana:
+  - Volumen de dashboards generados por usuario
+  - Tiempo promedio de renderización
+  - Fallos en consultas al datalake
+  - Consumo acumulado de datasets por dashboard
+  - Tasa de uso de IA para generación automática
+
+---
+
+#### Esquema Simplificado de Componentes Frontend
+
+```plaintext
+frontend/
+├── src/
+│   ├── api/
+│   │   └── dashboardApiConnector.js
+│   ├── model/
+│   │   └── DashboardModel.js
+│   ├── components/
+│   │   ├── atoms/
+│   │   ├── molecules/
+│   │   ├── organisms/
+│   │   └── templates/
+│   ├── hooks/
+│   │   ├── useDatasetSearch.js
+│   │   ├── usePromptVisualization.js
+│   │   └── useChartConfigurator.js
+│   └── pages/
+│       └── DashboardBuilderPage.jsx
+```
+
+### Backoffice Administrativo
+
+#### Arquitectura de Construcción del Backoffice Administrativo
+
+El módulo de Backoffice Administrativo permite a los operadores internos gestionar todos los aspectos críticos de la operación, seguridad, auditoría y configuración del ecosistema de Data Pura Vida. La arquitectura está diseñada bajo los mismos principios de escalabilidad, modularidad, seguridad avanzada y desacoplamiento que los demás módulos.
+
+#### Flujo funcional principal:
+
+1. El usuario (operador administrativo) accede mediante login protegido por MFA en Cognito.
+2. El frontend permite administrar usuarios, llaves, flujos de trabajo y auditoría mediante distintos paneles desacoplados.
+3. Cada acción del backoffice es enviada al backend mediante API REST protegida.
+4. El backend valida roles RBAC, ejecuta lógica de negocio, actualiza bases de datos (PostgreSQL, DynamoDB, S3) y dispara eventos a EventBridge y RabbitMQ según corresponda.
+5. Se registran logs completos de auditoría y trazabilidad para cada operación sensible.
+6. El frontend permite consultar en tiempo real el estado de las operaciones y extraer reportes auditables.
+
+---
+
+#### Diseño de la arquitectura
+
+- **Frontend**  
+  - Construido en React con Tailwind, siguiendo patrón MVVM.
+  - Atomic Design para la composición de pantallas administrativas.
+  - Integración con React Query para sincronización eficiente con el backend.
+  - Alta separación de lógica de negocio en hooks: `useUserManagement()`, `useAuditLogs()`, `useKeyManagement()`, `usePipelineManager()`.
+
+- **Backend**
+  - Microservicio independiente sobre FastAPI desplegado en EKS.
+  - Capa de seguridad API Gateway → Cognito → RBAC interno.
+  - Persistencia híbrida:
+    - PostgreSQL (metadata administrativa y control de usuarios)
+    - DynamoDB (logs y eventos)
+    - S3 (reportes y backups)
+  - Event-Driven para integraciones: RabbitMQ y EventBridge.
+  - Coordinación con el Bioregistro, La Bóveda y el Motor de Transformación mediante gRPC.
+
+- **Seguridad avanzada**
+  - Todos los accesos requieren autenticación multifactor con Cognito.
+  - Cada acción administrativa produce un evento de auditoría.
+  - Toda interacción sensible es auditada y registrada en OpenSearch.
+
+---
+
+#### Construcción de objetos de negocio
+
+**Tablas principales gestionadas:**
+
+| Tabla | Descripción |
+|-------|--------------|
+| Users | Administración de operadores internos |
+| UserRoles | Roles y permisos RBAC |
+| PipelinesConfig | Gestión de pipelines activos |
+| SecurityKeys | Llaves de cifrado activas, revocadas y expiradas |
+| AuditLogs | Trazabilidad completa de cada operación |
+| Custodians | Custodios de llaves con validación mancomunada |
+| APIIntegrations | Conexiones externas habilitadas |
+
+**Eventos generados en el backend:**
+
+- `user.updated`
+- `pipeline.config.changed`
+- `key.revoked`
+- `audit.logged`
+- `permission.assigned`
+- `external.integration.modified`
+
+---
+
+#### Principios de diseño aplicados
+
+- **MVVM**  
+  El frontend sigue estrictamente MVVM con separación en `models`, `hooks` (ViewModel), `components` (View).
+
+- **SOLID**
+  - **Single Responsibility:** Cada hook gestiona un solo dominio (usuarios, llaves, pipelines, auditoría).
+  - **Open/Closed:** Es sencillo extender nuevos formularios de administración sin romper flujos actuales.
+  - **Liskov Substitution:** Interfaz única para CRUD administrativo de cualquier objeto gestionable.
+  - **Interface Segregation:** Los hooks solo exponen las props mínimas requeridas.
+  - **Dependency Inversion:** El backend está completamente desacoplado de la UI, expone solo APIs REST bien definidas.
+
+- **Separation of Concerns:**  
+  Roles claramente aislados entre visualización, lógica de negocio, persistencia y auditoría.
+
+- **DRY:**  
+  Formularios, validadores y modales reutilizados por cada panel de administración.
+
+---
+
+#### Herramientas utilizadas
+
+| Herramienta | Función |
+|--------------|---------|
+| React + Tailwind | Frontend de la UI administrativa |
+| Plotly.js | Visualización de reportes de uso |
+| React Hook Form | Formularios administrativos |
+| FastAPI | Backend de servicios administrativos |
+| PostgreSQL | Metadata administrativa transaccional |
+| DynamoDB | Logs de auditoría y seguridad |
+| EventBridge + RabbitMQ | Eventos de orquestación |
+| Cognito + MFA | Control de acceso y autenticación |
+| OpenSearch | Auditoría de logs en tiempo real |
+| AWS KMS | Gestión de llaves de cifrado |
+| AWS SES | Notificaciones administrativas |
+| AWS Secrets Manager | Manejo seguro de credenciales internas |
+
+---
+
+#### Estructura de carpetas Frontend
+
+```plaintext
+frontend/
+├── src/
+│   ├── api/
+│   │   └── backofficeApi.ts
+│   ├── models/
+│   │   ├── User.ts
+│   │   ├── Key.ts
+│   │   ├── Pipeline.ts
+│   │   ├── Custodian.ts
+│   │   └── AuditLog.ts
+│   ├── hooks/
+│   │   ├── useUserManagement.ts
+│   │   ├── useKeyManagement.ts
+│   │   ├── usePipelineManager.ts
+│   │   └── useAuditLogs.ts
+│   ├── components/
+│   │   ├── atoms/
+│   │   ├── molecules/
+│   │   ├── organisms/
+│   │   └── templates/
+│   ├── pages/
+│   │   └── AdminDashboardPage.tsx
+│   └── App.tsx
+
+  
+  
+ ### 4.4 Motor De Transformación
 
 Este componente del sistema representa el punto de conexión entre los datasets inteligentes cargados en un sistema altamente eficiente y la data cruda e ineficiente.
 
@@ -5858,6 +7975,3 @@ Se muestra cómo la contenerización de cada microservicio se realizará utiliza
 
 
 ## 5. Validación de los requerimientos
-
-- Validar que el diseño cubre todos los requerimientos funcionales y no funcionales del sistema
-- Identificar ventajas y desventajas del diseño, proponiendo mitigaciones a los riesgos y limitaciones
