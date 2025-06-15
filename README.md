@@ -7070,3 +7070,136 @@ frontend/
 │   └── pages/
 │       └── DashboardBuilderPage.jsx
 ```
+
+### Backoffice Administrativo
+
+#### Arquitectura de Construcción del Backoffice Administrativo
+
+El módulo de Backoffice Administrativo permite a los operadores internos gestionar todos los aspectos críticos de la operación, seguridad, auditoría y configuración del ecosistema de Data Pura Vida. La arquitectura está diseñada bajo los mismos principios de escalabilidad, modularidad, seguridad avanzada y desacoplamiento que los demás módulos.
+
+#### Flujo funcional principal:
+
+1. El usuario (operador administrativo) accede mediante login protegido por MFA en Cognito.
+2. El frontend permite administrar usuarios, llaves, flujos de trabajo y auditoría mediante distintos paneles desacoplados.
+3. Cada acción del backoffice es enviada al backend mediante API REST protegida.
+4. El backend valida roles RBAC, ejecuta lógica de negocio, actualiza bases de datos (PostgreSQL, DynamoDB, S3) y dispara eventos a EventBridge y RabbitMQ según corresponda.
+5. Se registran logs completos de auditoría y trazabilidad para cada operación sensible.
+6. El frontend permite consultar en tiempo real el estado de las operaciones y extraer reportes auditables.
+
+---
+
+#### Diseño de la arquitectura
+
+- **Frontend**  
+  - Construido en React con Tailwind, siguiendo patrón MVVM.
+  - Atomic Design para la composición de pantallas administrativas.
+  - Integración con React Query para sincronización eficiente con el backend.
+  - Alta separación de lógica de negocio en hooks: `useUserManagement()`, `useAuditLogs()`, `useKeyManagement()`, `usePipelineManager()`.
+
+- **Backend**
+  - Microservicio independiente sobre FastAPI desplegado en EKS.
+  - Capa de seguridad API Gateway → Cognito → RBAC interno.
+  - Persistencia híbrida:
+    - PostgreSQL (metadata administrativa y control de usuarios)
+    - DynamoDB (logs y eventos)
+    - S3 (reportes y backups)
+  - Event-Driven para integraciones: RabbitMQ y EventBridge.
+  - Coordinación con el Bioregistro, La Bóveda y el Motor de Transformación mediante gRPC.
+
+- **Seguridad avanzada**
+  - Todos los accesos requieren autenticación multifactor con Cognito.
+  - Cada acción administrativa produce un evento de auditoría.
+  - Toda interacción sensible es auditada y registrada en OpenSearch.
+
+---
+
+#### Construcción de objetos de negocio
+
+**Tablas principales gestionadas:**
+
+| Tabla | Descripción |
+|-------|--------------|
+| Users | Administración de operadores internos |
+| UserRoles | Roles y permisos RBAC |
+| PipelinesConfig | Gestión de pipelines activos |
+| SecurityKeys | Llaves de cifrado activas, revocadas y expiradas |
+| AuditLogs | Trazabilidad completa de cada operación |
+| Custodians | Custodios de llaves con validación mancomunada |
+| APIIntegrations | Conexiones externas habilitadas |
+
+**Eventos generados en el backend:**
+
+- `user.updated`
+- `pipeline.config.changed`
+- `key.revoked`
+- `audit.logged`
+- `permission.assigned`
+- `external.integration.modified`
+
+---
+
+#### Principios de diseño aplicados
+
+- **MVVM**  
+  El frontend sigue estrictamente MVVM con separación en `models`, `hooks` (ViewModel), `components` (View).
+
+- **SOLID**
+  - **Single Responsibility:** Cada hook gestiona un solo dominio (usuarios, llaves, pipelines, auditoría).
+  - **Open/Closed:** Es sencillo extender nuevos formularios de administración sin romper flujos actuales.
+  - **Liskov Substitution:** Interfaz única para CRUD administrativo de cualquier objeto gestionable.
+  - **Interface Segregation:** Los hooks solo exponen las props mínimas requeridas.
+  - **Dependency Inversion:** El backend está completamente desacoplado de la UI, expone solo APIs REST bien definidas.
+
+- **Separation of Concerns:**  
+  Roles claramente aislados entre visualización, lógica de negocio, persistencia y auditoría.
+
+- **DRY:**  
+  Formularios, validadores y modales reutilizados por cada panel de administración.
+
+---
+
+#### Herramientas utilizadas
+
+| Herramienta | Función |
+|--------------|---------|
+| React + Tailwind | Frontend de la UI administrativa |
+| Plotly.js | Visualización de reportes de uso |
+| React Hook Form | Formularios administrativos |
+| FastAPI | Backend de servicios administrativos |
+| PostgreSQL | Metadata administrativa transaccional |
+| DynamoDB | Logs de auditoría y seguridad |
+| EventBridge + RabbitMQ | Eventos de orquestación |
+| Cognito + MFA | Control de acceso y autenticación |
+| OpenSearch | Auditoría de logs en tiempo real |
+| AWS KMS | Gestión de llaves de cifrado |
+| AWS SES | Notificaciones administrativas |
+| AWS Secrets Manager | Manejo seguro de credenciales internas |
+
+---
+
+#### Estructura de carpetas Frontend
+
+```plaintext
+frontend/
+├── src/
+│   ├── api/
+│   │   └── backofficeApi.ts
+│   ├── models/
+│   │   ├── User.ts
+│   │   ├── Key.ts
+│   │   ├── Pipeline.ts
+│   │   ├── Custodian.ts
+│   │   └── AuditLog.ts
+│   ├── hooks/
+│   │   ├── useUserManagement.ts
+│   │   ├── useKeyManagement.ts
+│   │   ├── usePipelineManager.ts
+│   │   └── useAuditLogs.ts
+│   ├── components/
+│   │   ├── atoms/
+│   │   ├── molecules/
+│   │   ├── organisms/
+│   │   └── templates/
+│   ├── pages/
+│   │   └── AdminDashboardPage.tsx
+│   └── App.tsx
