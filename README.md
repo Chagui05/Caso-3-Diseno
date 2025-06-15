@@ -7918,6 +7918,31 @@ frontend/
 │       └── DashboardBuilderPage.jsx
 ```
 
+## Diseño del Backend
+
+### Servicios de AWS
+
+**Amazon EKS**
+
+La API REST principal del Centro de Visualización está desarrollada con FastAPI y desplegada en un clúster de EKS, el cual administra dinámicamente los microservicios responsables del manejo de usuarios, dashboards, procesamiento de solicitudes y exportación de reportes. Este clúster permite escalar horizontalmente ante aumentos de tráfico, especialmente durante jornadas de alta consulta o actualización masiva de visualizaciones.
+
+**AWS S3**
+
+Todos los reportes generados por el sistema, incluyendo gráficos exportados en formatos como PNG, PDF y JSON, son almacenados en buckets de S3 organizados por usuario. También se utiliza como almacenamiento de respaldos programados de dashboards activos y configuraciones personalizadas, los cuales se ejecutan mediante tareas automatizadas desde EKS o AWS Lambda.
+
+**AWS EventBridge**
+
+EventBridge actúa como canal de eventos para integrar al Centro de Visualización con otros módulos del sistema mediante un enfoque event-driven. Funciona en conjunto con RabbitMQ, que opera como cola interna de eventos rápidos, mientras que EventBridge facilita la interoperabilidad con servicios externos o componentes asincrónicos como generación diferida de visualizaciones o triggers de actualización de datos.
+
+**AWS RDS**
+
+La base de datos PostgreSQL desplegada en Amazon RDS contiene la información estructural del sistema de visualización. Aquí se almacenan dashboards personalizados por usuario, configuraciones de filtros, historiales de visualización y metadata asociada a plantillas reutilizables. Esta base está replicada con configuración Multi-AZ para asegurar disponibilidad constante.
+
+**AWS SageMaker**
+
+La plataforma permite a los usuarios generar visualizaciones sugeridas a partir de descripciones en lenguaje natural. Cuando se escribe un prompt, este se procesa mediante LangChain y modelos alojados en SageMaker o OpenAI, dependiendo del contexto. SageMaker genera propuestas de dashboards o configuraciones visuales, las cuales son evaluadas y renderizadas directamente en el frontend según las preferencias del usuario.
+
+
 # 4.7 Backoffice Administrativo
 
 ## Diseño del Frontend 
