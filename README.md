@@ -6369,135 +6369,6 @@ Un sistema centralizado de logs y trazabilidad es crucial para diagnosticar prob
     -	**Elasticsearch:** Proporcionará una interfaz potente para buscar, filtrar y analizar logs estructurados de todos los microservicios, permitiendo una rápida identificación de la causa raíz de problemas.
     -	AWS CloudTrail: Registra todas las llamadas a la API de AWS realizadas por los roles IAM de los microservicios del marketplace, crucial para auditoría de seguridad y cumplimiento.
 
-
-### Centro de Visualización y Consumo - Generador de Dashboards
-
-#### Construcción Arquitectónica
-
-El Generador de Dashboards es el subcomponente principal encargado de permitir la creación, visualización y personalización de gráficos de análisis sobre los datasets cargados y procesados previamente en el sistema.
-
-Su arquitectura técnica sigue las siguientes capas:
-
-- **Frontend:** Construido en React.js con Vite, estilizado en Tailwind CSS, empleando Plotly.js como librería principal de gráficos.
-- **Backend:** Implementado sobre la API REST general del backend centralizada en FastAPI desplegada en EKS.
-- **Persistencia de datos:** Los dashboards generados se almacenan en PostgreSQL bajo el dominio de usuarios, configuraciones y plantillas personalizadas.
-
----
-
-#### Flujo Completo de Funcionamiento
-
-1. **Selección y configuración inicial:**
-   - El usuario accede a la interfaz gráfica desde el portal web.
-   - Selecciona los datasets disponibles a los que tiene acceso según los permisos RBAC y RLS ya aplicados por la bóveda de datos.
-
-2. **Definición del gráfico:**
-   - El usuario selecciona el tipo de visualización: barras, líneas, series temporales, pie chart o scatter plot.
-   - La interfaz presenta un formulario dinámico (construido con Formik + Yup) para que el usuario configure los ejes, medidas, filtros y parámetros adicionales de cada gráfico.
-
-3. **Interacción con IA (opcional):**
-   - El usuario puede emplear prompts naturales que son procesados por el backend vía LangChain y OpenAI/SageMaker para autogenerar gráficos sugeridos.
-
-4. **Procesamiento Backend:**
-   - El backend valida los permisos del usuario, ejecuta la consulta al datalake y transforma los datos al formato requerido por Plotly.
-   - El backend responde al frontend con el JSON específico requerido por Plotly.js.
-
-5. **Renderización de gráficos:**
-   - Plotly.js renderiza los gráficos directamente en el navegador en base al dataset recibido.
-
-6. **Persistencia:**
-   - Los dashboards completos (estructura, consultas, configuraciones) se almacenan en PostgreSQL y DynamoDB para permitir recuperación, edición y compartición futura.
-
-7. **Control de consumo:**
-   - Se aplica control de límites en tiempo real (volumen de datos consultados, frecuencia de uso, número de dashboards activos).
-
----
-
-#### Principios de Diseño Aplicados
-
-- **MVVM:**
-  - `Model:` Las estructuras de dashboards, gráficos y datasets.
-  - `ViewModel:` Custom Hooks como `useDatasetSearch()` o `usePromptVisualization()` gestionan la lógica de negocio desacoplada de la interfaz.
-  - `View:` Componentes React bajo Atomic Design (atoms, molecules, organisms, templates).
-
-- **Atomic Design:**
-  - Átomos: Botones, inputs, selects.
-  - Moléculas: Formularios de configuración de gráficos.
-  - Organismos: Contenedores de dashboards.
-  - Templates: Editor completo de dashboards.
-
-- **SOLID:**
-  - SRP: Cada Hook maneja una responsabilidad única.
-  - OCP: Nuevos tipos de gráficos pueden añadirse sin modificar código existente.
-  - LSP: Cada gráfico implementa la misma interfaz de renderizado.
-  - ISP: Los hooks y APIs exponen solo los parámetros estrictamente necesarios.
-  - DIP: Backend completamente desacoplado de la lógica frontend, interactúan mediante APIs REST y contratos JSON bien definidos.
-
-- **Clean Code & DRY:**
-  - Reutilización máxima de componentes.
-  - Custom Hooks independientes y altamente testeables.
-  - Estricta separación de capas de presentación, lógica y acceso a datos.
-
-- **Separation of Concerns:**
-  - Clarísima división entre vistas (React Components), lógica de negocio (Hooks) y acceso a datos (API Connector).
-
----
-
-#### Herramientas y Librerías utilizadas
-
-| Capa       | Herramienta |
-|------------|-------------|
-| Frontend   | React.js, Vite, Tailwind CSS, Formik, Yup, React Router, Plotly.js |
-| Backend    | FastAPI, LangChain, OpenAI/SageMaker, PostgreSQL, DynamoDB |
-| Infraestructura | AWS S3, CloudFront, EKS, Cognito, Lambda@Edge, Redis, RabbitMQ |
-| Seguridad  | OAuth2, JWT, MFA, RBAC, RLS, SecretsManager |
-| DevOps     | GitHub Actions, Terraform, Prometheus, Grafana, CloudWatch |
-| Testing    | Jest (Frontend), Pytest (Backend), Postman, Gatling |
-
----
-
-#### Consideraciones de Seguridad
-
-- Todos los accesos a dashboards pasan por validación OAuth2 + JWT emitidos por Cognito.
-- El acceso a datasets sigue las reglas RBAC y RLS definidas en la bóveda.
-- Los dashboards nunca exportan datos en crudo, sólo visualización interna.
-- Se aplica protección contra abusos de consumo vía throttling, rate-limiting y monitoreo con CloudWatch.
-
----
-
-#### Observabilidad Específica
-
-- Dashboards de monitoreo propios en Grafana:
-  - Volumen de dashboards generados por usuario
-  - Tiempo promedio de renderización
-  - Fallos en consultas al datalake
-  - Consumo acumulado de datasets por dashboard
-  - Tasa de uso de IA para generación automática
-
----
-
-#### Esquema Simplificado de Componentes Frontend
-
-```plaintext
-frontend/
-├── src/
-│   ├── api/
-│   │   └── dashboardApiConnector.js
-│   ├── model/
-│   │   └── DashboardModel.js
-│   ├── components/
-│   │   ├── atoms/
-│   │   ├── molecules/
-│   │   ├── organisms/
-│   │   └── templates/
-│   ├── hooks/
-│   │   ├── useDatasetSearch.js
-│   │   ├── usePromptVisualization.js
-│   │   └── useChartConfigurator.js
-│   └── pages/
-│       └── DashboardBuilderPage.jsx
-```
-
-
 **Sistema de Alertas y Notificaciones**
 
 **Monitoreo de Cumplimiento y Seguridad**
@@ -7071,3 +6942,131 @@ Las alertas incluyen automáticamente links a dashboards relevantes, traces de X
 
 - Validar que el diseño cubre todos los requerimientos funcionales y no funcionales del sistema
 - Identificar ventajas y desventajas del diseño, proponiendo mitigaciones a los riesgos y limitaciones
+
+
+### Centro de Visualización y Consumo - Generador de Dashboards
+
+#### Construcción Arquitectónica
+
+El Generador de Dashboards es el subcomponente principal encargado de permitir la creación, visualización y personalización de gráficos de análisis sobre los datasets cargados y procesados previamente en el sistema.
+
+Su arquitectura técnica sigue las siguientes capas:
+
+- **Frontend:** Construido en React.js con Vite, estilizado en Tailwind CSS, empleando Plotly.js como librería principal de gráficos.
+- **Backend:** Implementado sobre la API REST general del backend centralizada en FastAPI desplegada en EKS.
+- **Persistencia de datos:** Los dashboards generados se almacenan en PostgreSQL bajo el dominio de usuarios, configuraciones y plantillas personalizadas.
+
+---
+
+#### Flujo Completo de Funcionamiento
+
+1. **Selección y configuración inicial:**
+   - El usuario accede a la interfaz gráfica desde el portal web.
+   - Selecciona los datasets disponibles a los que tiene acceso según los permisos RBAC y RLS ya aplicados por la bóveda de datos.
+
+2. **Definición del gráfico:**
+   - El usuario selecciona el tipo de visualización: barras, líneas, series temporales, pie chart o scatter plot.
+   - La interfaz presenta un formulario dinámico (construido con Formik + Yup) para que el usuario configure los ejes, medidas, filtros y parámetros adicionales de cada gráfico.
+
+3. **Interacción con IA (opcional):**
+   - El usuario puede emplear prompts naturales que son procesados por el backend vía LangChain y OpenAI/SageMaker para autogenerar gráficos sugeridos.
+
+4. **Procesamiento Backend:**
+   - El backend valida los permisos del usuario, ejecuta la consulta al datalake y transforma los datos al formato requerido por Plotly.
+   - El backend responde al frontend con el JSON específico requerido por Plotly.js.
+
+5. **Renderización de gráficos:**
+   - Plotly.js renderiza los gráficos directamente en el navegador en base al dataset recibido.
+
+6. **Persistencia:**
+   - Los dashboards completos (estructura, consultas, configuraciones) se almacenan en PostgreSQL y DynamoDB para permitir recuperación, edición y compartición futura.
+
+7. **Control de consumo:**
+   - Se aplica control de límites en tiempo real (volumen de datos consultados, frecuencia de uso, número de dashboards activos).
+
+---
+
+#### Principios de Diseño Aplicados
+
+- **MVVM:**
+  - `Model:` Las estructuras de dashboards, gráficos y datasets.
+  - `ViewModel:` Custom Hooks como `useDatasetSearch()` o `usePromptVisualization()` gestionan la lógica de negocio desacoplada de la interfaz.
+  - `View:` Componentes React bajo Atomic Design (atoms, molecules, organisms, templates).
+
+- **Atomic Design:**
+  - Átomos: Botones, inputs, selects.
+  - Moléculas: Formularios de configuración de gráficos.
+  - Organismos: Contenedores de dashboards.
+  - Templates: Editor completo de dashboards.
+
+- **SOLID:**
+  - SRP: Cada Hook maneja una responsabilidad única.
+  - OCP: Nuevos tipos de gráficos pueden añadirse sin modificar código existente.
+  - LSP: Cada gráfico implementa la misma interfaz de renderizado.
+  - ISP: Los hooks y APIs exponen solo los parámetros estrictamente necesarios.
+  - DIP: Backend completamente desacoplado de la lógica frontend, interactúan mediante APIs REST y contratos JSON bien definidos.
+
+- **Clean Code & DRY:**
+  - Reutilización máxima de componentes.
+  - Custom Hooks independientes y altamente testeables.
+  - Estricta separación de capas de presentación, lógica y acceso a datos.
+
+- **Separation of Concerns:**
+  - Clarísima división entre vistas (React Components), lógica de negocio (Hooks) y acceso a datos (API Connector).
+
+---
+
+#### Herramientas y Librerías utilizadas
+
+| Capa       | Herramienta |
+|------------|-------------|
+| Frontend   | React.js, Vite, Tailwind CSS, Formik, Yup, React Router, Plotly.js |
+| Backend    | FastAPI, LangChain, OpenAI/SageMaker, PostgreSQL, DynamoDB |
+| Infraestructura | AWS S3, CloudFront, EKS, Cognito, Lambda@Edge, Redis, RabbitMQ |
+| Seguridad  | OAuth2, JWT, MFA, RBAC, RLS, SecretsManager |
+| DevOps     | GitHub Actions, Terraform, Prometheus, Grafana, CloudWatch |
+| Testing    | Jest (Frontend), Pytest (Backend), Postman, Gatling |
+
+---
+
+#### Consideraciones de Seguridad
+
+- Todos los accesos a dashboards pasan por validación OAuth2 + JWT emitidos por Cognito.
+- El acceso a datasets sigue las reglas RBAC y RLS definidas en la bóveda.
+- Los dashboards nunca exportan datos en crudo, sólo visualización interna.
+- Se aplica protección contra abusos de consumo vía throttling, rate-limiting y monitoreo con CloudWatch.
+
+---
+
+#### Observabilidad Específica
+
+- Dashboards de monitoreo propios en Grafana:
+  - Volumen de dashboards generados por usuario
+  - Tiempo promedio de renderización
+  - Fallos en consultas al datalake
+  - Consumo acumulado de datasets por dashboard
+  - Tasa de uso de IA para generación automática
+
+---
+
+#### Esquema Simplificado de Componentes Frontend
+
+```plaintext
+frontend/
+├── src/
+│   ├── api/
+│   │   └── dashboardApiConnector.js
+│   ├── model/
+│   │   └── DashboardModel.js
+│   ├── components/
+│   │   ├── atoms/
+│   │   ├── molecules/
+│   │   ├── organisms/
+│   │   └── templates/
+│   ├── hooks/
+│   │   ├── useDatasetSearch.js
+│   │   ├── usePromptVisualization.js
+│   │   └── useChartConfigurator.js
+│   └── pages/
+│       └── DashboardBuilderPage.jsx
+```
