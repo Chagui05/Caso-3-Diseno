@@ -5963,6 +5963,91 @@ Ejecuta continuamente con dos modes: real-time para dashboards operacionales y b
 - Analytics endpoints: Restricted to authorized users only
 - Data access endpoints: Based on purchased access levels
 
+
+###### Diagrama de clases
+
+**marketplace-catalog-service**
+Este microservicio se encarga de la gestión del catálogo de datasets, incluyendo la metadata, calidad, y la sincronización con el Datalake.
+
+**Patrones de Diseño Utilizados:**
+-	Morado: Facade
+-	Amarillo: Observer
+-	Celeste: Factory
+-	Café: Singleton
+-	Verde: Strategy
+
+**Organización de Clases:**
+El punto de entrada principal es el CatalogController, que actúa como Facade para las APIs externas del Marketplace (ej., /api/v1/catalog/datasets, /api/v1/catalog/categories). Este controlador delega las operaciones a un Observer central, el CatalogEventManager, encargado de notificar a los módulos de lógica de negocio relevantes.
+Dentro de la lógica de negocio, se encuentran:
+
+-	**DatasetManager:** Responsable de la creación, actualización y eliminación de datasets y su metadata. Recibe FileHandler y MetadataValidator como dependencias inyectadas.
+-	**QualityAggregator:** Escucha eventos de calidad (quality.metrics.updated) y calcula un score consolidado para cada dataset.
+-	**SearchIndexer:** Escucha eventos de actualización de datasets (dataset.updated) y coordina la indexación de los datos en OpenSearch.
+Estos módulos de lógica de negocio reciben como dependencias los servicios de la segunda capa de Facade:
+-	**MetadataFileHandler:** Se encarga de interactuar con AWS S3 para almacenar y recuperar archivos de metadata asociados a los datasets.
+-	**OpenSearchIndexer:** Abstrae la comunicación con OpenSearch para indexar y actualizar documentos de datasets. Utiliza un patrón Strategy para manejar diferentes tipos de indexación (ej., delta vs. completa).
+-	**DataQualityService:** Se comunica con el dataset-quality-service (asumido microservicio externo o interno) para obtener métricas de calidad de los datos.
+
+Finalmente, existe una capa de repositorios para la persistencia de datos (PostgreSQL, DynamoDB). Los repositorios son gestionados mediante un patrón Factory, como RepositoryFactory, que provee instancias de DatasetRepository, MetadataRepository, QualityMetricsRepository, etc. Cada conexión a la base de datos es manejada utilizando el patrón Singleton para optimizar los recursos.
+
+![image](img/ClasesMarketplace1.png)
+
+**marketplace-payment-service**
+Este microservicio gestiona todo el flujo de pagos y suscripciones en el Marketplace.
+
+**Patrones de Diseño Utilizados:**
+-	Morado: Facade
+-	Amarillo: Observer
+-	Verde: Strategy
+-	Celeste: Factory
+-	Café: Singleton
+
+**Organización de Clases:**
+El punto de entrada es el PaymentController, que actúa como Facade para las APIs de pago (/api/v1/payments/initiate, /api/v1/payments/webhook). Este controlador delega las llamadas a un Observer principal, el PaymentEventManager, encargado de notificar a la lógica de negocio según el evento de pago o webhook.
+Dentro de la lógica de negocio, se encuentran:
+
+-	**PaymentProcessor:** Orquesta el proceso de pago, interactuando con pasarelas de pago externas. Recibe StripeGateway y BACGateway como dependencias.
+-	**SubscriptionManager:** Gestiona la creación, renovación y cancelación de suscripciones.
+-	**FraudDetector:** Escucha eventos de pago (payment.initiated, payment.completed) y utiliza un patrón Strategy para aplicar diferentes algoritmos de detección de fraude.
+-	**InvoiceGenerator:** Genera facturas a partir de transacciones de pago completadas.
+Estos módulos de lógica de negocio reciben como dependencias los servicios de la segunda capa de Facade:
+-	**StripeGateway:** Abstrae la comunicación con la API de Stripe.
+-	**BACGateway:** Abstrae la comunicación con la API del BAC Credomatic.
+-	**NotificationSender:** Se comunica con el notification-service para enviar confirmaciones de pago o alertas.
+-	**AccessProvisioner:** Se comunica con el marketplace-access-service para habilitar el acceso a los datasets tras un pago exitoso.
+
+Finalmente, existe una capa de repositorios para la persistencia de datos (PostgreSQL, DynamoDB, Redis). Los repositorios son gestionados mediante un patrón Factory, como RepositoryFactory, que provee instancias de TransactionRepository, SubscriptionRepository, InvoiceRepository, etc. Las conexiones a la base de datos y al cache Redis se manejan utilizando el patrón Singleton.
+
+![image](img/ClasesMarketplace2.png)
+
+
+**marketplace-access-service**
+Este microservicio se encarga de gestionar los permisos de acceso a los datasets y la generación de tokens de acceso para los usuarios.
+
+**Patrones de Diseño Utilizados:**
+-	Morado: Facade
+-	Amarillo: Observer
+-	Naranja: Dependency Injection
+-	Celeste: Factory
+-	Café: Singleton
+
+**Organización de Clases:**
+El punto de entrada es el AccessController, que actúa como Facade para las APIs de acceso (/api/v1/access/grant, /api/v1/access/token). Este controlador delega las llamadas a un Observer principal, el AccessEventManager, encargado de notificar a la lógica de negocio según el tipo de solicitud.
+Dentro de la lógica de negocio, se encuentran:
+
+-	**PermissionHandler:** Otorga y revoca permisos a los datasets basados en eventos de compra o suscripción.
+-	**TokenManager:** Genera, valida y revoca tokens de acceso JWT.
+-	**UsageTracker:** Escucha eventos de acceso (dataset.accessed) y registra el uso de los datasets.
+Estos módulos de lógica de negocio reciben como dependencias los servicios de la segunda capa de Facade:
+-	**AuthServiceRequester:** Se comunica con el security-service para validar tokens y autenticar usuarios.
+-	**DataLakeAccessManager:** Se comunica con el Datalake (La Bóveda) para provisionar o revocar el acceso real a los datos en S3.
+-	**NotificationSender:** Se comunica con el notification-service para enviar notificaciones de concesión de acceso o revocación.
+-	**AuditLogger:** Se comunica con el audit-logger-service (si es un microservicio separado) para registrar eventos de auditoría de acceso.
+
+Finalmente, existe una capa de repositorios para la persistencia de datos (PostgreSQL, Redis). Los repositorios son gestionados mediante un patrón Factory, como RepositoryFactory, que provee instancias de PermissionRepository. Las conexiones a la base de datos y al cache Redis se manejan utilizando el patrón Singleton.
+
+![image](img/ClasesMarketplace3.png)
+
 ### Servicios de AWS - Componente Marketplace (Backend)
 
 #### Amazon EKS (Elastic Kubernetes Service)
@@ -6237,6 +6322,101 @@ Configuración de endpoints privados que mantiene todo el tráfico sensible del 
 - **Secrets Manager Interface Endpoint:**
   - Acceso seguro a credenciales desde pods en EKS
   - Eliminación de dependencies en internet para operaciones críticas
+
+###### Sistema de Monitoreo
+El monitoreo del componente Marketplace de Datos de Data Pura Vida será utilizado para lograr que todo funcione bien, sea seguro y esté siempre disponible.
+
+**Métricas y Rendimiento**
+Utilizaremos distintas herramientas para recopilar métricas. Estas métricas se implementarán en puntos clave dentro de los microservicios, con el fin de tener una visión del comportamiento del sistema.
+
+**Métricas de Negocio:**
+Las métricas de negocio nos darán una visión de cómo el marketplace está funcionando desde una perspectiva de usuario y valor. Por ejemplo, es crucial saber cuántas veces los usuarios buscan datasets o si los pagos se están procesando correctamente.
+
+-	**Número de búsquedas realizadas:** Esta métrica es fundamental para entender la actividad del catálogo. Esta será recopilada dentro del catalog-search-engine-service, ya que este microservicio gestiona las búsquedas avanzadas en Elasticsearch. Cada vez que el endpoint /api/v1/catalog/search es invocado a través del API Gateway, el catalog-search-engine-service incrementará un contador que reflejará la cantidad de búsquedas.
+
+-	**Transacciones de pago iniciadas y completadas/fallidas:** El seguimiento de las financias es crucial para el componente de marketplace. Esta métrica se rastreará directamente en el payment-processor-service. Este servicio es el encargado de manejar el procesamiento de pagos únicos y emitirá eventos como payment.initiated, payment.completed y payment.failed, que serán contabilizados para obtener esta métrica.
+
+-	**Volumen de datos consultados:** Permite entender el consumo real de los datasets. Esta métrica se capturará en el usage-tracking-service. Este consume eventos dataset.accessed generados por el Datalake o La Bóveda cada vez que un usuario accede a un dataset.
+
+
+
+**Métricas de Infraestructura:**
+Las métricas de infraestructura nos ayudad a verificar nuestra plataforma, asegurando que los recursos estén disponibles y funcionando de manera eficiente.
+-	**Latencia de consultas a bases de datos:** Esta métrica se medirá en cada microservicio que interactúa con una base de datos. Por ejemplo, el user-profile-manager-service (que usa PostgreSQL) y el catalog-metadata-sync-service (que usa PostgreSQL). Estos servicios expondrán un contador o histograma de latencia para las operaciones de base de datos que realizan, como lectura y escritura.
+
+-	**Tamaño de las colas y lag de consumidores:** Estas métricas son importantes en el monitoreo del sistema de mensajería asíncronos. Se obtendrán directamente de los brokers de mensajes y los consumidores. Por ejemplo, el notification-dispatcher-service que consume eventos de RabbitMQ. Los exporters de Prometheus para RabbitMQ se encargarán de recolectar esta información de las colas y los grupos de consumidores.
+
+**Herramientas de Monitoreo**
+Estas métricas se utilizarán en las siguientes herramientas:
+-	**Prometheus:** Recopilará métricas directamente desde los endpoints /metrics expuestos por cada microservicio. Los exporters de Prometheus para bases de datos (PostgreSQL), Redis y RabbitMQ se usarán para métricas de infraestructura.
+
+-	**AWS CloudWatch:** Para métricas a nivel de infraestructura de AWS (EKS, RDS, S3, KMS) y para métricas de logs.
+
+-	**Grafana:** Será la plataforma de visualización principal, integrando datos de Prometheus y CloudWatch para crear dashboards interactivos y personalizados.
+
+
+**Logs y Trazabilidad**
+Un sistema centralizado de logs y trazabilidad es crucial para diagnosticar problemas en un entorno de microservicios.
+
+-	Centralización de Logs: 
+    - 	Todos los microservicios configurarán sus aplicaciones para emitir logs estructurados (JSON) a stdout.
+    -	También se pueden enviar logs a CloudWatch Logs para integrarse con otras herramientas de AWS y facilitar la consulta con CloudWatch Logs Insights.
+
+-	**Trazabilidad Distribuida:**
+    -	Todos los microservicios (ej., marketplace-catalog-service, marketplace-user-service, marketplace-payment-service, marketplace-access-service, marketplace-recommendation-service, marketplace-notification-service, marketplace-analytics-service, y sus microservicios internos) serán instrumentados con OpenTelemetry para generar trazas.
+    -	Un OpenTelemetry Collector se desplegará en el cluster para recolectar las trazas y exportarlas a un backend como Jaeger (para visualización y análisis de trazas).
+    -	Esto permitirá seguir una solicitud a través de múltiples microservicios (incluyendo llamadas gRPC y HTTP entre ellos) y ver la latencia de cada salto.
+
+-	**Auditoría y Diagnóstico:** 
+    -	**Elasticsearch:** Proporcionará una interfaz potente para buscar, filtrar y analizar logs estructurados de todos los microservicios, permitiendo una rápida identificación de la causa raíz de problemas.
+    -	AWS CloudTrail: Registra todas las llamadas a la API de AWS realizadas por los roles IAM de los microservicios del marketplace, crucial para auditoría de seguridad y cumplimiento.
+
+
+
+**Sistema de Alertas y Notificaciones**
+
+**Monitoreo de Cumplimiento y Seguridad**
+Dado el manejo de datos sensibles y transacciones financieras, el monitoreo de seguridad es una prioridad.
+
+-	**Auditoría de Accesos:**
+    -	**CloudTrail:** Monitorizará todas las llamadas a la API de AWS relacionadas con los recursos utilizados por los microservicios del marketplace (ej., acceso a S3 buckets con datos de logs/analytics, KMS, RDS, EKS).
+    -	El audit-logger-service registrará cada acceso a los datasets y cada acción relevante (ej., pagos completados) que ocurran a través de los microservicios de acceso y pago. Estos logs serán inmutables y almacenados en Elasticsearch para auditorías.
+    -	**Alertas de Acceso Inusual:** Se configurarán alertas sobre patrones de acceso anómalos a datos sensibles o intentos de acceso no autorizado (401/403 respuestas del API Gateway que enruta a los microservicios del marketplace).
+
+-	**Monitoreo de Cifrado:**
+    -	Se verificará que los datos en reposo en el datalake y en bases de datos estén cifrados en KMS. Esto implica monitorear las interacciones de los microservicios que escriben o leen datos sensibles (ej., access-provisioning-service, payment-processor-service, catalog-metadata-sync-service).
+    -	Se monitoreará la tasa de errores de las operaciones de cifrado/descifrado en KMS.
+    -	Se asegurará que los datos en tránsito estén cifrados (TLS/SSL) entre todos los microservicios del marketplace y con el API Gateway.
+
+-	**Monitoreo de Identidad y Acceso:**
+    -	Se auditarán los logs de autenticación del Bioregistro para detectar patrones de ataque de credenciales.
+    -	Se monitoreará el uso de tokens JWT y la gestión de estos por el token-management-service dentro del marketplace-access-service.
+    -	Se activarán alertas sobre cambios en políticas de IAM o roles asociados a los microservicios del marketplace.
+
+**Health Checks y Disponibilidad**
+Cada microservicio implementará liveness y readiness probes de EKS, además de deep health checks.
+
+-	**Liveness Probe:** (ej., HTTP GET a /health) Verifica que el proceso de cada microservicio está corriendo y no está en un estado de deadlock. Si falla, EKS reiniciará el pod.
+-	**Readiness Probe:** (ej., HTTP GET a /ready) Verifica que cada microservicio está listo para recibir tráfico, incluyendo la conectividad con sus dependencias críticas (DB, cache, message brokers, APIs externas). Si falla, EKS no enrutará tráfico al pod hasta que esté listo.
+-	**Deep Health Checks:** Endpoints más exhaustivos que simulan flujos de negocio críticos (ej., una simulación de compra que involucra marketplace-user-service, marketplace-payment-service, marketplace-access-service; una búsqueda de catálogo que involucra marketplace-catalog-service) para validar la funcionalidad end-to-end y la conectividad a todas las dependencias.
+
+**Análisis y Mejora Continua**
+El sistema de monitoreo no solo detectará problemas, sino que también proporcionará inteligencia para la optimización continua.
+
+-	**Análisis de Tendencias:** Identificación de patrones en el tráfico del marketplace, volumen de transacciones, comportamiento del usuario y rendimiento de los datasets para optimizar la asignación de recursos y planificar la capacidad, utilizando datos de todos los microservicios del marketplace recolectados por marketplace-analytics-service.
+-	**Detección de Anomalías:** Uso de capacidades de ML en Grafana o CloudWatch para detectar comportamientos inusuales en las métricas (ej., caída repentina en búsquedas, aumento inusual de pagos fallidos) que pueden indicar problemas subyacentes en cualquier microservicio.
+-	**Reportes de Capacidad:** Proyecciones de crecimiento basadas en el historial de uso de recursos para planificar el escalado de EKS clusters, bases de datos y sistemas de mensajería para todos los microservicios del marketplace.
+-	**Optimización de Costos:** Análisis del uso de recursos de AWS (EKS, RDS, S3, etc.) por cada microservicio para identificar oportunidades de reducción de costos.
+-	**Análisis de Embudos de Conversión:** Usar los datos de marketplace-analytics-service (generados a partir de eventos de user-behavior-tracker-service y payment-processor-service) para identificar dónde los usuarios abandonan el flujo de compra o búsqueda, permitiendo mejoras en la UX del portal.
+-	**Evaluación de Modelos de ML:** Monitorear el rendimiento de los modelos de recomendación (behavioral-ml-service, content-similarity-service, recommendation-engine-service) y detección de fraude (fraud-detection-service) y la efectividad de las recomendaciones servidas.
+
+
+###### Diagrama del Backend 
+
+A continuación, se presenta el diagrama del backend del Marketplace de Datos de Data Pura Vida. En él se evidencia cómo todo el ecosistema de AWS interactúa con los distintos microservicios desplegados en el clúster de Kubernetes provisto por EKS. Se muestra la contenerización de cada microservicio utilizando Docker y cómo el monitoreo interno es gestionado por Prometheus. También se destacan las interacciones con sistemas de terceros como SumSub y Stripe.
+
+![image](img/DiagramaBackendMarketplace.svg)
+
 
 #### Diseño de los datos
 
