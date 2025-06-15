@@ -5550,6 +5550,43 @@ El frontend del componente Marketplace sigue una arquitectura moderna basada en 
 - Tailwind/Nativewind: Framework principal de estilos responsivos.
 - Amplify: Maneja la integración continua, despliegue en AWS y conexión con Cognito.
 
+### Centro de Visualización y Consumo - Generador de Dashboards
+
+Este módulo permite a los usuarios crear dashboards personalizados de forma manual o inteligente mediante el uso de IA. El flujo de trabajo implementado es el siguiente:
+
+#### Flujo funcional:
+
+1. **Selección del tipo de gráfico**  
+   El usuario selecciona el tipo de gráfico que desea construir (barras, líneas, etc.) desde el frontend.
+
+2. **Ingreso de prompt inteligente**  
+   Luego de seleccionar el tipo de gráfico, el usuario escribe un prompt en lenguaje natural indicando qué desea visualizar (por ejemplo: "Ventas por categoría durante el último trimestre").
+
+3. **Envío al backend**  
+   El frontend envía el prompt junto al tipo de gráfico al backend mediante un API REST.
+
+4. **Procesamiento IA**  
+   El backend utiliza un modelo de IA (LangChain + OpenAI o SageMaker, según configuración) para interpretar el prompt y generar la consulta de datos correspondiente.
+
+5. **Obtención de datos**  
+   El backend ejecuta la consulta, obtiene los datos del datalake o servicios de datos autorizados, y los transforma al formato requerido para la visualización.
+
+6. **Visualización con Plotly**  
+   Los datos son devueltos al frontend, donde se procesan y renderizan dinámicamente utilizando la librería Plotly.
+
+#### Funcionalidades adicionales:
+
+- Control de consumo de prompts: se muestra en el frontend la cantidad de prompts disponibles para el usuario.
+- Se deja habilitada la estructura para la futura funcionalidad de entrenamiento de IA para mejorar las respuestas del modelo.
+
+#### Servicios involucrados:
+
+- React + Tailwind (Frontend)
+- Plotly (Visualización de gráficos)
+- FastAPI (API Backend)
+- LangChain + OpenAI/SageMaker (Procesamiento de IA)
+- AWS Cognito (Autenticación de usuarios)
+- Datalake (Origen de datos)
 
 
 #### Diseño del Backend
