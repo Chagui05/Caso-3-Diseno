@@ -7630,6 +7630,145 @@ La base de datos PostgreSQL desplegada en Amazon RDS contiene la información es
 
 La plataforma permite a los usuarios generar visualizaciones sugeridas a partir de descripciones en lenguaje natural. Cuando se escribe un prompt, este se procesa mediante LangChain y modelos alojados en SageMaker o OpenAI, dependiendo del contexto. SageMaker genera propuestas de dashboards o configuraciones visuales, las cuales son evaluadas y renderizadas directamente en el frontend según las preferencias del usuario.
 
+### Sistema de Monitoreo
+
+El monitoreo del Centro de Visualización y Consumo se enfoca en la observabilidad en tiempo real del uso de datos, el rendimiento de las visualizaciones y la seguridad. Es clave para el acceso fluido a la información, la gestión de consumo de datos pagos y la detección rápida de anomalías.
+
+- **Métricas y Rendimiento**
+
+AWS CloudWatch herramienta principal para recopilar métricas operacionales.
+
+  - **Métricas de Negocio:**
+      - **Cantidad de consultas por usuario y dataset:** Sirve para entender el nivel de interés y uso de nuestros datos, el Módulo de Gestión de Consumo las usará para seguimiento. El Servicio de Analítica de Uso las analizará para tendencias y popularidad de datasets.
+      - **Volumen de datos consultados (MB/GB) por usuario y dataset:** Se usan para facturar a los usuarios por el consumo de datos pagos, el Módulo de Interfaz de Usuario las mostrará en tiempo real. El Servicio de Facturación las usará para cálculos.
+      - **Tiempo promedio de carga de dashboards y ejecución de consultas:**  Se usan para facturar a los usuarios por el consumo de datos pagos los Servicio de Visualización de Datos y el Servicio de Consultas las monitorearán para optimización de rendimiento.
+      - **Tasa de éxito en la construcción de dashboards:** Utilizadas para evaluar si nuestras herramientas de visualización son efectivas El Módulo de Diseño de Dashboards las analizará para mejorar la experiencia de usuario.
+      - **Métricas de consumo de datos pagados:** Se usan para gestionar las suscripciones, servicios como la Gestión de Licencias y Suscripciones las gestionará en tiempo real. El Módulo de Notificaciones alertará a los usuarios.
+
+  - **Métricas de Infraestructura:**
+      - **EKS:** Esta métrica se usan para garantizar que los microservicios tengan suficientes recursos (CPU, memoria) y para detectar problemas de rendimiento o errores (latencia, errores 4xx/5xx) que puedan afectar la disponibilidad de la visualización.
+      - **PostgreSQL/DynamoDB:** Usada para asegurar que las bases de datos respondan rápido (latencia, IOPS) y no estén sobrecargadas (utilización de CPU/memoria). Esto es vital para la operativa y el acceso a la información de los usuarios y de los dashboards.
+      - **AWS S3:** Utilizada para confirmar que los datos están siempre disponibles sin problema de latencia de GetObject, PutObject; tasa de errores. 
+      - **OpenSearch:** Utilizada para asegurar que las búsquedas y la exploración de datos sean rápidas y eficientes.
+
+`Prometheus` complementará `CloudWatch`, recopilando métricas granulares del Microservicio de Visualización (ej., query_execution_total, dashboard_rendering_duration_seconds). 
+El Microservicio de Visualización generará estas métricas para optimización.
+
+- **Visualización y Dashboards**
+
+Grafana integrará métricas de CloudWatch y Prometheus para crear dashboards:
+
+  -	**Dashboard Operacional de Visualización:** Vista en tiempo real del estado general (volumen de consultas, usuarios activos, estado de pods). El Módulo de Operaciones/SRE lo usará para supervisión proactiva.
+  - **Dashboard de Rendimiento:** Monitoreo de latencias de carga de dashboards y consultas, consumo de recursos. El Servicio de Consultas y el Servicio de Visualización lo usarán para identificar cuellos de botella.
+  - **Dashboard de Consumo y Seguridad:** Seguimiento de métricas de consumo de datos pagados y eventos de seguridad. El Servicio de Gestión de Licencias y Suscripciones y el Servicio de Seguridad lo usarán.
+
+- **Logs y Trazabilidad**
+
+CloudWatch Logs centralizará los registros del Centro de Visualización.
+
+  -	**Trazabilidad con AWS X-Ray:** Cada interacción tendrá un ID de traza único para seguir su flujo desde el Módulo de Interfaz de Usuario (Frontend), pasando por los Microservicios del Backend, consultas al Servicio de Acceso al Datalake, e interacciones con los Servicios de Seguridad.
+
+- **Auditoría y Diagnóstico**
+  -	**CloudWatch Logs Insights:** Permite consulta interactiva de logs para identificar la causa raíz de incidentes. Los Microservicios del Backend y el Servicio de Visualización generarán logs para diagnóstico.
+  -	**AWS CloudTrail:** Registrará todas las llamadas a la API de AWS (ej., s3:GetObject, dynamoDB:Query). El Módulo de Auditoría de Acceso a Datos lo usará para seguimiento y seguridad.
+
+- **Sistema de Alertas y Notificaciones**
+CloudWatch Alarms notificará al equipo de operaciones sobre anomalías:
+
+  -	**Alertas Críticas:**
+      - **Fallo del Microservicio de Visualización:** Impacto directo en la disponibilidad. Generada por el Sistema de Orquestación de Contenedores (EKS).
+      - **Tasa de error (HTTP 5xx) > 5%:** Degradación severa del servicio. Generada por el Servicio de Balanceo de Carga (ALB).
+      - **Intentos de descarga/exportación bloqueados:** Violación de políticas. El Servicio de Seguridad la generará.
+
+  -	**Alertas de Advertencia: **
+      - **Degradación del rendimiento (latencias > 10s/5s):** Experiencia de usuario comprometida. El Servicio de Visualización y Servicio de Consultas las generarán.
+      - **Uso de recursos (CPU, memoria) > 80%:** Riesgo de saturación. El Sistema de Orquestación de Contenedores (EKS) las generará.
+      - **Incremento inusual:** Oportunidad de negocio. El Servicio de Gestión de Licencias y Suscripciones la generará.
+
+  - **Alertas Informativas:**
+      - Resumen diario/semanal de métricas operacionales. El Módulo de Reportes las generará.
+
+- **Monitoreo de Cumplimiento y Seguridad**
+  -	**Auditoría de Accesos a Datos:** Registro detallado con CloudTrail y CloudWatch Logs de operaciones de consulta (ej., s3:GetObject). El Módulo de Auditoría de Acceso a Datos las generará y gestionará.
+
+  -	**Monitoreo de Intentos de Exportación/Descarga Bloqueados:** Seguimiento de cualquier intento de eludir restricciones, registrando el evento. El Servicio de Seguridad y el Módulo de Interfaz de Usuario (Frontend) las registrarán.
+
+- **Health Checks y Disponibilidad**
+
+Los microservicios del Centro de Visualización usarán health checks monitoreados por Kubernetes:
+
+  -	**Liveness Probe:** Verifica que el microservicio esté activo. Kubernetes (EKS) lo usará para autorecuperación.
+  -	**Readiness Probe:** Verifica que el microservicio pueda procesar solicitudes (conectividad con S3, OpenSearch, DBs). Kubernetes (EKS) lo usará para gestionar el tráfico.
+  -	**Deep Health Checks:** Verificaciones exhaustivas de integridad de configuraciones y flujo de consultas simuladas. El Módulo de Diagnóstico del Servicio de Visualización las ejecutará.
+
+- **Análisis y Mejora Continua**
+El sistema de monitoreo proporcionará insights para la mejora continua:
+  -	**Análisis de Tendencias:** Identificación de patrones de volumen y tipo de consultas para optimizar recursos y predecir necesidades. El Servicio de Analítica de Uso las analizará.
+  -	**Detección de Anomalías:** Identificación de comportamientos inusuales. Las Alertas de CloudWatch y el Servicio de Monitoreo las detectarán.
+  -	**Reportes de Capacidad:** Proyecciones de crecimiento de infraestructura. El Servicio de Planificación de Recursos las generará.
+  -	**Optimización de Costos:** Análisis de uso de recursos para identificar oportunidades de optimización. El Módulo de Gestión de Costos las realizará.
+
+
+### Modelo de Seguridad Detallado
+El modelo de seguridad es robusto y multicapa, asegurando confidencialidad, integridad y disponibilidad, con énfasis en trazabilidad y cumplimiento.
+
+- **Control de Acceso Granular**
+Fundamental para la confidencialidad e integridad de los datos, garantizando que solo los usuarios autorizados realicen acciones específicas.
+
+  - **Roles de Usuario y Permisos:**
+
+| Rol              | Permisos principales                                                                                   |
+|------------------|------------------------------------------------------------------------------------------------------|
+| **Carga:viewer**   | Visualiza historial, configuración, esquema y metadatos                                              |
+| **Carga:editor**   | Crea cargas, define esquema, asocia metadata, configura deltas                                       |
+| **Carga:approver** | Aprueba configuraciones, valida transformaciones, confirma integridad                                |
+| **Carga:admin**    | Modifica permisos, elimina configuraciones, visualiza trazabilidad, fuerza cargas                    |
+
+---
+
+**Flujo de Autorización (ejemplo PostgreSQL):**
+
+| Paso                   | Descripción                                                                                 |
+|------------------------|---------------------------------------------------------------------------------------------|
+| Validación de rol      | El Microservicio de Gestión de Cargas valida el rol del usuario (ej. Carga:editor)          |
+| Mecanismo              | Utiliza una función almacenada en PostgreSQL que consulta la tabla `rolUsuario`             |
+| Resultado si falla     | Se bloquea la operación y el Módulo de Auditoría
+
+- **Cifrado de Información**
+
+Pilar fundamental para la confidencialidad, tanto en movimiento como en almacenamiento.
+
+  -	**Cifrado en Tránsito:** Todas las comunicaciones usan HTTPS con TLS 1.3. EKS y AWS Certificate Manager fuerzan el uso de TLS con certificados actualizados.
+  -	**Cifrado en Reposo:**
+    -	**Amazon S3:** Archivos de datasets y metadata se cifran con AWS KMS. Las políticas del bucket rechazan cargas no cifradas.
+    -	**Amazon RDS:** Configuraciones estructurales tienen cifrado de disco automático con claves KMS.
+    -	**Amazon DynamoDB:** Estados de carga e historial de ejecución tienen cifrado nativo automático.
+  -	**Adicionalmente:** El Servicio de Validación de Datos escanea y valida archivos antes de almacenarlos. Solo si cumplen los requisitos, se escriben cifrados en S3; de lo contrario, se descartan y se registran.
+
+- **Auditoría y Trazabilidad**
+
+Esenciales para la responsabilidad y el cumplimiento normativo, permitiendo reconstruir eventos.
+
+  -	**Elementos Auditados:** Creación, modificación, eliminación de configuraciones; validaciones, aprobaciones, errores, consultas.
+  -	**Origen y Estructura del Registro:** Incluye identificador de usuario/rol, timestamp, tipo de operación, IP/microservicio de origen, resultado.
+  -	**Tecnologías: **
+    -	**Amazon CloudWatch Logs:** Registro estructurado en tiempo real.
+    -	**Amazon DynamoDB Streams:** Replicación de eventos sensibles a una tabla de auditoría.
+  -	**Acceso y Resguardo:** Restringido a roles con privilegios de auditoría vía IAM. Almacenamiento cifrado con retención mínima de 12 meses.
+
+- **Monitoreo y Gestión de Incidentes**
+
+Diseñado para identificar y responder rápidamente ante eventos que comprometan la integridad o seguridad de los datos.
+
+  - **Monitoreo en Tiempo Real:**
+    -	**Prometheus:** Recolecta métricas personalizadas (ej., tiempo de validación, tasa de éxito). El Microservicio de Gestión de Cargas las genera.
+    -	**AWS CloudWatch:** Monitorea logs de microservicios, alertando sobre patrones anómalos (ej., fallos recurrentes). Los Microservicios de Backend y el Servicio de Monitoreo de Infraestructura envían logs.
+ -	**Gestión de Incidentes:**
+    -	**Detección:** Reglas de alerta en CloudWatch detectan errores de carga, archivos rechazados, caídas de servicios. El Servicio de Monitoreo de Infraestructura y el Microservicio de Gestión de Cargas envían los eventos.
+    -	**Clasificación:** Se evalúa la gravedad (Crítico, Medio, Bajo). El Módulo de Gestión de Incidentes (parte del backend) la realiza.
+    -	**Respuesta Automática:** AWS Lambda ejecuta funciones para mitigar el impacto (ej., reintentar cargas). El Módulo de Resiliencia del backend usa AWS Lambda.
+    -	**Notificación:** AWS SNS envía notificaciones a administradores para incidentes críticos. El Módulo de Notificaciones del backend se integra con AWS SNS.
+
 
 # 4.7 Backoffice Administrativo
 
