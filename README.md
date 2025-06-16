@@ -7680,7 +7680,7 @@ CloudWatch Alarms notificará al equipo de operaciones sobre anomalías:
       - **Tasa de error (HTTP 5xx) > 5%:** Degradación severa del servicio. Generada por el Servicio de Balanceo de Carga (ALB).
       - **Intentos de descarga/exportación bloqueados:** Violación de políticas. El Servicio de Seguridad la generará.
 
-  -	**Alertas de Advertencia: **
+  -	**Alertas de Advertencia:**
       - **Degradación del rendimiento (latencias > 10s/5s):** Experiencia de usuario comprometida. El Servicio de Visualización y Servicio de Consultas las generarán.
       - **Uso de recursos (CPU, memoria) > 80%:** Riesgo de saturación. El Sistema de Orquestación de Contenedores (EKS) las generará.
       - **Incremento inusual:** Oportunidad de negocio. El Servicio de Gestión de Licencias y Suscripciones la generará.
@@ -7724,9 +7724,8 @@ Fundamental para la confidencialidad e integridad de los datos, garantizando que
 | **Carga:approver** | Aprueba configuraciones, valida transformaciones, confirma integridad                                |
 | **Carga:admin**    | Modifica permisos, elimina configuraciones, visualiza trazabilidad, fuerza cargas                    |
 
----
 
-**Flujo de Autorización (ejemplo PostgreSQL):**
+  - **Flujo de Autorización:**
 
 | Paso                   | Descripción                                                                                 |
 |------------------------|---------------------------------------------------------------------------------------------|
