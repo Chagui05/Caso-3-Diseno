@@ -6746,10 +6746,6 @@ GET /api/v1/catalog/recommendations/{user_id} - Recomendaciones personalizadas
 Activo constantemente con picos durante búsquedas matutinas (8-10 AM) y sincronizaciones nocturnas (2-4 AM). Opera en EKS con pods distribuidos en availability zones para alta disponibilidad.
 
 
-<<<<<<< HEAD
-=======
-#### **Rate Limiting Strategy**
->>>>>>> 04ac9380ea682ca41cd916a95868d97a1230affb
 
 ### marketplace-payment-service
 
@@ -6965,7 +6961,6 @@ Finalmente, existe una capa de repositorios para la persistencia de datos (Postg
 
 ![image](img/ClasesMarketplace3.png)
 
-<<<<<<< HEAD
 # Servicios AWS 
 
 ## Amazon EKS (Elastic Kubernetes Service)
@@ -7102,284 +7097,6 @@ Finalmente, existe una capa de repositorios para la persistencia de datos (Postg
 - Rotación automática anual
 - Políticas de acceso por servicio
 ###### Sistema de Monitoreo
-=======
-### Servicios de AWS
-
-#### Amazon EKS (Elastic Kubernetes Service)
-
-El cluster de Kubernetes funciona como la plataforma central de orquestación para todos los microservicios del marketplace, proporcionando escalabilidad automática y alta disponibilidad. Durante horarios de alta actividad comercial (8-10 AM) y finales de mes cuando ocurren renovaciones masivas, el cluster escala dinámicamente desde 2 nodos base hasta 12 nodos distribuidos estratégicamente en múltiples zonas de disponibilidad.
-
-Los pods especializados operan según la naturaleza de cada microservicio: marketplace-recommendation-service ejecuta en nodos t3.xlarge optimizados para inferencia de machine learning, mientras que servicios transaccionales como marketplace-payment-service utilizan nodos t3.large para alta concurrencia. El service mesh implementa circuit breakers y health checks que detectan degradaciones de performance automáticamente, manteniendo la experiencia de usuario fluida durante picos de tráfico.
-
-**Configuración de Hardware:**
-
-- **Versión de Kubernetes:** 1.29 (alineada con ecosistema Data Pura Vida)
-- **Tipo de nodos base:** t3.large (2 vCPU, 8 GB RAM)
-- **Nodos especializados ML:** t3.xlarge (4 vCPU, 16 GB RAM)
-- **Auto Scaling:** 2-12 nodos con métricas CPU/memoria >70% por 5 minutos
-- **Almacenamiento:** EBS gp3 50GB por nodo para cache local y logs
-- **Red:** VPC privada compartida con networking optimizado para ML
-
-#### Amazon RDS PostgreSQL
-
-Utiliza la misma instancia compartida establecida por Bioregistro y La Bóveda, extendiendo el esquema de base de datos con tablas específicas para operaciones comerciales del marketplace. Las transacciones de pago se procesan con integridad ACID completa, mientras que las suscripciones se sincronizan continuamente con Stripe para mantener consistencia entre sistemas.
-
-La configuración Multi-AZ garantiza failover automático en menos de 60 segundos durante operaciones críticas como confirmaciones de pago y activación de accesos a datasets. El motor procesa concurrentemente consultas intensivas de catálogo durante búsquedas de usuarios y escrituras de alta frecuencia generadas por tracking de comportamiento.
-
-**Tablas específicas del Marketplace:**
-
-- **MarketplaceOrder:** Órdenes de compra con estados y timestamps
-- **Subscription:** Suscripciones activas con calendarios de renovación
-- **PaymentTransaction:** Historial completo de transacciones
-- **DatasetPricing:** Configuraciones de precios por dataset
-- **UserPurchaseHistory:** Historial de compras por usuario
-
-#### Amazon DynamoDB
-
-Maneja datos de alta velocidad que requieren latencia ultra-baja, especialmente durante interacciones en tiempo real como navegación de catálogo, seguimiento de comportamiento y cache de recomendaciones. El modo On-Demand se adapta automáticamente a picos impredecibles de tráfico durante launches de datasets premium o campañas de marketing.
-
-Las tablas utilizan TTL automático para optimizar costos y performance, eliminando datos temporales como sesiones expiradas y cache obsoleto. DynamoDB Streams replica automáticamente cambios a pipelines de analytics y ML para mantener modelos de recomendación actualizados.
-
-**Configuración de Tablas:**
-
-- **UserBehavior:** Tracking de clics, búsquedas y tiempo en página
-  - Partition Key: user_id, Sort Key: timestamp
-  - TTL: 90 días para analytics históricos
-- **SessionData:** Sesiones distribuidas cross-device
-  - Partition Key: session_id, TTL: 8 horas
-- **RecommendationCache:** Cache personalizado de recomendaciones
-  - Partition Key: user_id, TTL: 4 horas
-- **NotificationQueue:** Cola de notificaciones pendientes
-  - Partition Key: user_id, Sort Key: notification_id
-
-#### Amazon OpenSearch
-
-Motor de búsqueda especializado que indexa metadatos de todos los datasets del marketplace, proporcionando capacidades avanzadas de búsqueda full-text, filtrado facetado y análisis semántico. Los analyzers personalizados para español optimizan resultados para usuarios costarricenses, mientras que la funcionalidad de auto-complete mejora la experiencia de búsqueda.
-
-El cluster procesa consultas complejas con agregaciones en tiempo real para generar facets dinámicos (por categoría, precio, popularidad) y analytics de búsqueda que alimentan el motor de recomendaciones. Los índices se actualizan automáticamente cuando La Bóveda notifica cambios en datasets.
-
-**Configuración del Dominio:**
-
-- **Versión:** OpenSearch 2.3
-- **Cluster:** 3 nodos t3.medium.search para alta disponibilidad
-- **Almacenamiento:** 100GB EBS gp3 por nodo con auto-scaling habilitado
-- **Índices principales:**
-  - `datasets-catalog`: Metadatos completos con embeddings semánticos
-  - `user-searches`: Historial de búsquedas para analytics y recomendaciones
-  - `marketplace-analytics`: Métricas de tiempo real del marketplace
-- **Seguridad:** VPC privada, HTTPS obligatorio, fine-grained access control
-
-#### Amazon S3
-
-Proporciona almacenamiento escalable para diferentes tipos de contenido del marketplace, desde assets visuales hasta documentación generada automáticamente. Las políticas de lifecycle management optimizan costos moviendo automáticamente contenido antiguo a clases de almacenamiento más económicas según patrones de acceso.
-
-**Buckets especializados:**
-
-- **`dpv-marketplace-assets`:**
-  - Thumbnails y previews de datasets generados automáticamente
-  - Configuración: Versionado habilitado, CDN optimizado
-- **`dpv-marketplace-reports`:**
-  - Facturas PDF, reportes de analytics, documentos legales
-  - Configuración: Cifrado SSE-KMS, retención 7 años
-- **`dpv-marketplace-backups`:**
-  - Respaldos de configuraciones críticas y datos de recovery
-  - Configuración: Cross-region replication a us-west-1
-- **`dpv-marketplace-logs`:**
-  - Logs de auditoría extendida para compliance
-  - Configuración: Lifecycle a Glacier después de 90 días
-
-#### AWS KMS (Key Management Service)
-
-Gestiona claves de cifrado específicas para diferentes tipos de datos del marketplace, proporcionando separación de responsabilidades y cumplimiento de normativas de seguridad. La rotación automática anual mantiene la postura de seguridad actualizada sin interrumpir operaciones.
-
-**Claves especializadas:**
-
-- **`dpv-marketplace-payments`:**
-  - Cifrado de datos de transacciones, tokens de pago y información financiera
-  - Política: Acceso restringido solo a payment-service
-- **`dpv-marketplace-analytics`:**
-  - Protección de datos de comportamiento y preferencias de usuarios
-  - Política: Acceso para analytics y recommendation services
-- **`dpv-marketplace-reports`:**
-  - Cifrado de facturas, reportes financieros y documentos sensibles
-  - Política: Acceso para generación automática y backoffice
-- **`dpv-marketplace-recommendations`:**
-  - Protección de algoritmos ML y datos de entrenamiento
-  - Política: Acceso exclusivo para SageMaker endpoints
-
-#### AWS Secrets Manager
-
-Centraliza el manejo seguro de credenciales y API keys utilizadas por microservicios del marketplace, implementando rotación automática donde sea posible y alertas para credenciales próximas a expirar. La integración con IAM garantiza que cada microservicio acceda únicamente a los secrets necesarios para su función.
-
-**Secrets del Marketplace:**
-
-- **`dpv/marketplace/stripe-keys`:**
-  - API keys públicas y privadas de Stripe
-  - Rotación: Manual coordinada con Stripe
-- **`dpv/marketplace/local-payment-providers`:**
-  - Credenciales para BAC Credomatic y otros procesadores locales
-  - Configuración: Cifrado adicional para compliance local
-- **`dpv/marketplace/recommendation-ml-tokens`:**
-  - Tokens de acceso para endpoints de SageMaker
-  - Rotación: Automática cada 30 días
-- **`dpv/marketplace/analytics-db-credentials`:**
-  - Credenciales específicas para acceso de solo lectura a analytics
-  - Configuración: Least privilege access
-
-#### Amazon SageMaker
-
-Plataforma de machine learning que potencia el motor de recomendaciones del marketplace mediante modelos especializados que analizan comportamiento de usuarios, similitud de datasets y patrones de compra. Los endpoints en tiempo real proporcionan recomendaciones personalizadas con latencia <100ms, mientras que jobs de entrenamiento nocturnos mantienen modelos actualizados con datos del día anterior.
-
-El sistema implementa A/B testing automático para evaluar efectividad de diferentes algoritmos de recomendación, optimizando continuamente para métricas de negocio como click-through rate y conversion rate.
-
-**Configuración para Recomendaciones:**
-
-- **Endpoints en tiempo real:**
-  - 2 instancias ml.t3.medium con auto-scaling hasta 6 instancias
-  - Latencia objetivo: <100ms para inference
-- **Modelos desplegados:**
-  - Collaborative filtering: Usuarios con preferencias similares
-  - Content-based filtering: Similitud de metadatos de datasets
-  - Hybrid ensemble: Combinación weighted de ambos enfoques
-- **Training Jobs:**
-  - Frecuencia: Semanal con datos agregados de comportamiento
-  - Instancias: ml.m5.xlarge para processing distribuido
-  - Feature engineering: Apache Spark integration para ETL de features
-
-#### Amazon RabbitMQ (Amazon MQ)
-
-Message broker que coordina comunicación asíncrona entre microservicios del marketplace, garantizando delivery confiable de eventos críticos como confirmaciones de pago, actualizaciones de suscripciones y triggers de notificaciones. La configuración active/standby en múltiples AZ elimina single points of failure en el sistema de messaging.
-
-Los dead letter queues capturan mensajes que fallan el procesamiento inicial, permitiendo retry logic sofisticado y análisis de fallos para mejorar la robustez del sistema.
-
-**Configuración:**
-
-- **Tipo:** RabbitMQ 3.11.x para compatibilidad con ecosystem existente
-- **Instancias:** mq.m5.large en producción, mq.t3.micro para desarrollo
-- **Alta disponibilidad:** Configuración active/standby en múltiples AZ
-- **Durabilidad:** Queues persistentes para eventos críticos de pago
-
-**Exchanges y Queues principales:**
-
-- **`marketplace.events`:** Exchange principal para routing de eventos
-- **`payment.processing`:** Cola específica para procesamiento de pagos
-- **`notification.delivery`:** Delivery de notificaciones con retry logic
-- **`recommendation.updates`:** Actualización de cache de recomendaciones
-- **`analytics.tracking`:** Streaming de eventos para analytics en tiempo real
-
-#### Amazon SES (Simple Email Service)
-
-Gestiona el envío confiable de notificaciones transaccionales del marketplace, desde confirmaciones de compra hasta alertas de límites de uso. Los templates personalizables mantienen consistencia de marca mientras que el tracking de engagement proporciona insights sobre efectividad de comunicaciones.
-
-La configuración de bounce y complaint handling protege la reputación del dominio, mientras que la integración con SNS permite procesamiento automatizado de eventos de email.
-
-**Configuración:**
-
-- **Región:** us-east-1 para consistencia con otros servicios
-- **Dominio verificado:** marketplace.datapuravida.cr con DKIM/SPF
-- **Templates de email:**
-  - Confirmación de compra con detalles de dataset adquirido
-  - Facturas y recibos con PDF adjunto
-  - Notificaciones de renovación de suscripción
-  - Alertas de límites de uso próximos a agotarse
-- **Bounce handling:** Automático con SNS integration
-- **Sending limits:** Configurados según volumen proyectado de usuarios
-
-#### AWS Lambda
-
-Funciones serverless que manejan procesamiento específico y respuesta a eventos sin mantener infraestructura dedicada. Las funciones se activan automáticamente en respuesta a webhooks de payment providers, schedules de renovación, y eventos de fraude detection, proporcionando respuesta rápida y costos optimizados.
-
-**Funciones principales:**
-
-- **`marketplace-webhook-processor`:**
-  - Procesa webhooks de Stripe y otros payment providers
-  - Timeout: 30 segundos, Memory: 512MB
-  - Integración: SQS para reliable processing
-- **`marketplace-invoice-generator`:**
-  - Genera PDFs de facturas automáticamente post-pago
-  - Timeout: 5 minutos, Memory: 1024MB
-  - Storage: S3 para archivos generados
-- **`marketplace-subscription-renewal`:**
-  - Procesa renovaciones automáticas y notificaciones
-  - Trigger: EventBridge schedule
-  - Integration: RDS para subscription state management
-- **`marketplace-fraud-detector`:**
-  - Análisis en tiempo real de patrones sospechosos
-  - Timeout: 15 segundos, Memory: 512MB
-  - ML Integration: SageMaker endpoint para scoring
-
-#### Amazon CloudFront
-
-Red de distribución de contenido que acelera la entrega de assets del marketplace a usuarios globales, aunque se enfoca principalmente en usuarios de Costa Rica. El cache inteligente diferencia entre contenido estático (thumbnails, assets) y dinámico (APIs, datos en tiempo real) para optimizar performance y reducir latencia.
-
-**Configuración de distribución:**
-
-- **Orígenes múltiples:**
-  - S3 bucket para assets estáticos del marketplace
-  - Application Load Balancer del EKS para contenido dinámico
-- **Behaviors de cache:**
-  - Assets estáticos: TTL 24 horas con compression habilitada
-  - APIs del marketplace: Sin cache, pass-through al backend
-  - Thumbnails de datasets: TTL 4 horas con invalidation automática
-- **Seguridad:** WAF integrado para protección contra ataques DDoS y bot traffic
-
-#### AWS Systems Manager Parameter Store
-
-Almacena configuraciones operacionales y feature flags que se ajustan dinámicamente sin requerir redespliegue de aplicaciones. Los parámetros se organizan jerárquicamente para facilitar management y se versionan para permitir rollback rápido de cambios problemáticos.
-
-**Parámetros organizados por categoría:**
-
-- **`/dpv/marketplace/pricing/`:**
-  - Configuraciones de precios dinámicos por región
-  - Descuentos automáticos basados en volumen
-- **`/dpv/marketplace/features/`:**
-  - Feature flags para rollout gradual de funcionalidades
-  - A/B testing configuration para UI experiments
-- **`/dpv/marketplace/limits/`:**
-  - Rate limiting específico por tipo de usuario
-  - Quotas de API calls y bandwidth por tier
-- **`/dpv/marketplace/ml/`:**
-  - Hyperparámetros para modelos de recomendación
-  - Thresholds para triggers de reentrenamiento
-
-#### Amazon EventBridge
-
-Servicio de eventos que orquesta integraciones complejas entre microservicios del marketplace y sistemas externos, permitiendo arquitectura event-driven que escala automáticamente. Las reglas configurables enrutan eventos específicos a targets apropiados, mientras que el retry automático garantiza delivery confiable.
-
-**Reglas principales:**
-
-- **Payment events:** Routing de confirmaciones de pago a múltiples servicios
-- **Subscription renewals:** Trigger automático de procesos de renovación
-- **Dataset updates:** Coordinación con La Bóveda para actualizar catálogo
-- **Analytics aggregation:** Scheduling de jobs de agregación de métricas
-
-**Targets integrados:**
-
-- Lambda functions para procesamiento inmediato de eventos críticos
-- SQS queues para procesamiento diferido y batching
-- SNS topics para notificaciones de sistema y alertas
-
-#### VPC Endpoints
-
-Configuración de endpoints privados que mantiene todo el tráfico sensible del marketplace dentro de la red privada de AWS, eliminando exposición a internet público y optimizando seguridad. Los endpoints se configuran específicamente para servicios utilizados frecuentemente por microservicios del marketplace.
-
-**Endpoints configurados:**
-
-- **S3 Gateway Endpoint:**
-  - Acceso directo a buckets de assets sin tráfico internet
-  - Optimización de latencia para operaciones de upload/download
-- **SES Interface Endpoint:**
-  - Envío de emails transaccionales desde VPC privada
-  - Compliance con políticas de seguridad gubernamentales
-- **SageMaker Interface Endpoint:**
-  - ML inference sin exposición de datos a internet público
-  - Protección de modelos propietarios y datos de entrenamiento
-- **Secrets Manager Interface Endpoint:**
-  - Acceso seguro a credenciales desde pods en EKS
-  - Eliminación de dependencies en internet para operaciones críticas
-
-### Sistema de Monitoreo
->>>>>>> 04ac9380ea682ca41cd916a95868d97a1230affb
 El monitoreo del componente Marketplace de Datos de Data Pura Vida será utilizado para lograr que todo funcione bien, sea seguro y esté siempre disponible.
 
 **Métricas y Rendimiento**
@@ -7463,6 +7180,233 @@ El sistema de monitoreo no solo detectará problemas, sino que también proporci
 -	**Optimización de Costos:** Análisis del uso de recursos de AWS (EKS, RDS, S3, etc.) por cada microservicio para identificar oportunidades de reducción de costos.
 -	**Análisis de Embudos de Conversión:** Usar los datos de marketplace-analytics-service (generados a partir de eventos de user-behavior-tracker-service y payment-processor-service) para identificar dónde los usuarios abandonan el flujo de compra o búsqueda, permitiendo mejoras en la UX del portal.
 -	**Evaluación de Modelos de ML:** Monitorear el rendimiento de los modelos de recomendación (behavioral-ml-service, content-similarity-service, recommendation-engine-service) y detección de fraude (fraud-detection-service) y la efectividad de las recomendaciones servidas.
+
+### Modelo de Seguridad Detallado - Marketplace
+
+El módulo de Marketplace maneja transacciones financieras, datos de comportamiento de usuarios y acceso a datasets premium. Su backend implementa un modelo de seguridad robusto que previene accesos no autorizados, garantiza integridad financiera y mantiene confidencialidad de transacciones.
+
+#### 1. Control de Acceso Granular
+
+##### RBAC para Marketplace
+
+El sistema valida roles específicos en tiempo real durante cada interacción mediante middleware FastAPI que intercepta requests antes de llegar a endpoints de negocio. Los roles se almacenan cifrados en DynamoDB y se cachean en Redis durante sesiones activas.
+
+| Rol | Descripción | Permisos |
+|-----|-------------|----------|
+| `marketplace:viewer` | Acceso de solo lectura | Búsqueda, visualización de precios, recomendaciones |
+| `marketplace:buyer` | Usuario autorizado para compras | Todo lo anterior + pagos, suscripciones, datasets comprados |
+| `marketplace:seller` | Representante de colectivo vendedor | Configurar precios, gestionar ventas, analytics |
+| `marketplace:admin` | Administrador completo | Acceso total: pagos, reportes financieros, gestión de fraude |
+
+##### Flujo de Autorización de Transacciones
+
+La autorización se ejecuta síncronamente al iniciar pagos, evaluando eligibilidad de acceso, límites de gasto y scoring de fraude antes del procesamiento con providers externos. El sistema valida:
+
+- **Elegibilidad del dataset:** Verificación de que el usuario puede acceder al dataset solicitado
+- **Límites de gasto:** Validación contra límites configurados por usuario y tipo de cuenta
+- **Scoring de fraude:** Evaluación en tiempo real usando modelos ML desplegados en SageMaker
+- **Logging de seguridad:** Registro asíncrono de eventos sospechosos sin impactar rendimiento
+
+##### Políticas IAM para Recursos AWS
+
+Las políticas se configuran con principio de menor privilegio, otorgando a cada microservicio únicamente permisos específicos necesarios. Las condiciones IAM se evalúan dinámicamente durante operaciones de base de datos, restringiendo acceso a registros del usuario autenticado mediante `LeadingKeys` correspondientes al identificador único obtenido desde tokens Cognito.
+
+### 2. Cifrado de Datos
+
+#### Cifrado en Tránsito
+TLS 1.3 obligatorio para todas las comunicaciones, con certificate pinning para payment providers validado antes de establecer conexiones SSL:
+
+- **Frontend ↔ API Gateway:** HTTPS con certificados AWS Certificate Manager auto-renovables
+- **Payment providers:** Certificate pinning que bloquea certificados fraudulentos automáticamente
+- **Microservicios internos:** mTLS en EKS service mesh autenticando ambos extremos
+
+#### Cifrado en Reposo
+Estrategia diferenciada por sensibilidad de datos con claves KMS específicas y rotación automática:
+
+| Tipo de Dato | Ubicación | Cifrado | Clave KMS | Rotación |
+|--------------|-----------|---------|-----------|----------|
+| Transacciones | DynamoDB | Nativo KMS | `dpv-marketplace-payments` | 12 meses |
+| Suscripciones | PostgreSQL | TDE | `dpv-marketplace-subscriptions` | 12 meses |
+| Facturas | S3 | SSE-KMS | `dpv-marketplace-documents` | 12 meses |
+| Cache | Redis | Aplicación | `dpv-marketplace-cache` | 30 días |
+
+#### Cifrado de Campo PII
+Para datos personalmente identificables, se implementa cifrado a nivel de campo que se ejecuta antes del almacenamiento utilizando contexto específico de transacción. La clave de cifrado se genera dinámicamente para cada operación utilizando AWS KMS con contexto de encriptación específico, nunca almacenándose en texto plano.
+
+### 3. Auditoría y Logging
+
+#### Eventos Auditados
+Sistema de captura en tiempo real con doble escritura en OpenSearch (búsquedas inmediatas) y DynamoDB (almacenamiento largo plazo):
+
+- **Transacciones:** Pagos iniciados/completados/fallidos, reembolsos
+- **Acceso:** Datasets comprados/acceso otorgado/revocado
+- **Seguridad:** Fraude detectado, comportamiento anómalo, límites excedidos
+- **Administrativos:** Suscripciones creadas/canceladas, precios actualizados
+
+#### Implementación de Auditoría
+Middleware automático captura eventos mediante decoradores aplicados a funciones críticas, registrando:
+
+- **Parámetros de entrada:** Sanitizados para eliminar información sensible
+- **Resultado de operación:** Estado final y datos relevantes
+- **Tiempo de ejecución:** Para análisis de rendimiento y detección de anomalías
+- **Errores:** Captura completa de excepciones para diagnóstico
+- **Contexto de sesión:** IP, user agent, trace ID para trazabilidad completa
+
+Los eventos de alto riesgo disparan alertas inmediatas al equipo de seguridad mediante SNS y SES.
+
+#### Retención Automatizada
+Políticas ejecutadas durante ventanas nocturnas moviendo datos históricos a S3 Glacier según regulaciones:
+
+- **Pagos:** 7 años (regulaciones financieras)
+- **Comportamiento:** 2 años (protección datos personales)
+- **Fraude:** 5 años (investigaciones seguridad)
+- **Accesos:** 3 años (auditorías)
+
+### 4. Protección contra Fraude
+
+#### Detección en Tiempo Real
+Motor híbrido ML + reglas de negocio ejecutándose en <200ms durante cada transacción:
+
+**Modelo de Machine Learning:**
+- Entrenamiento semanal con datos históricos etiquetados
+- Deployment en SageMaker endpoints para inference en tiempo real
+- Features incluyen: patrones de gasto, velocidad transaccional, geolocalización, comportamiento histórico
+
+**Reglas de Negocio:**
+- **Velocidad transaccional:** >5 transacciones en 1 hora aumenta score en 0.3
+- **Montos inusuales:** Transacciones >10x promedio del usuario aumenta score en 0.4
+- **Anomalías de comportamiento:** Cambios súbitos en patrones de compra
+- **Geolocalización:** Detección de ubicaciones inusuales basada en historial
+
+**Scoring Combinado:** 70% ML + 30% reglas de negocio, con umbral configurable para bloqueo automático.
+
+#### Rate Limiting
+Protección granular por usuario e IP utilizando ventanas deslizantes Redis:
+
+| Operación | Límite Usuario | Límite IP | Ventana |
+|-----------|----------------|-----------|---------|
+| Búsqueda datasets | 100/minuto | 300/minuto | 60 segundos |
+| Iniciar pago | 5/minuto | 15/minuto | 60 segundos |
+| Ver dataset | 50/minuto | 150/minuto | 60 segundos |
+| Generar recomendación | 20/minuto | 60/minuto | 60 segundos |
+
+El sistema aplica el límite más restrictivo entre usuario e IP, registrando violaciones para análisis de patrones de ataque.
+
+### 5. Gestión de Secretos
+
+#### Credenciales de Payment Providers
+AWS Secrets Manager con validación de integridad automática detectando compromisos:
+
+**Funcionalidades:**
+- **Validación de integridad:** Verificación de checksums y patrones esperados antes de cada uso
+- **Auditoría de acceso:** Registro de qué servicio accedió a qué credencial en qué momento
+- **Detección de compromisos:** Alertas automáticas ante modificaciones no autorizadas
+- **Acceso controlado:** Solo microservicios autorizados pueden acceder a credenciales específicas
+
+#### Rotación Automática
+Calendario Terraform con funciones Lambda especializadas coordinando con providers durante ventanas de mantenimiento:
+
+- **Stripe:** Rotación cada 30 días con coordinación automática para generar nuevas claves antes de invalidar anteriores
+- **BAC Credomatic:** Rotación cada 60 días con notificación previa al provider
+- **Claves internas:** Rotación cada 90 días para claves de sesión y cache
+
+### 6. Monitoreo de Seguridad
+
+### Detección de Anomalías
+Queries predefinidas ejecutándose contra OpenSearch con frecuencias diferenciadas:
+
+**Alta Criticidad (cada 30 segundos):**
+- Múltiples pagos fallidos (>10 en 5 minutos)
+- Intentos de fraude detectados (score >0.8)
+- Violaciones masivas de rate limiting (>50 en 1 minuto)
+
+**Criticidad Media (cada 5 minutos):**
+- Patrones de gasto inusuales (>$1000 en transacciones individuales)
+- Accesos anómalos a datasets premium
+- Cambios en configuraciones de precios
+
+Los umbrales se ajustan automáticamente basándose en patrones históricos para reducir falsos positivos.
+
+### Alertas Críticas
+Escalación automática con notificaciones inmediatas:
+
+| Alerta | Umbral | Duración | Acción |
+|--------|--------|----------|--------|
+| Pico de fraude | >10 scores altos | 5 minutos | Notificar equipo seguridad |
+| Sistema de pagos caído | >50 fallos | 2 minutos | Llamar ingeniero de guardia |
+| Acceso masivo no autorizado | >100 intentos | 1 minuto | Activar contención automática |
+
+### 7. Compliance PCI DSS
+
+#### Validación Automática
+Verificación antes de procesar operaciones de pago, bloqueando automáticamente operaciones no conformes:
+
+**Controles Verificados:**
+- **Cifrado de datos:** Validación de que campos sensibles estén cifrados
+- **Control de acceso:** Verificación de permisos para la operación solicitada
+- **Seguridad de red:** Confirmación de conexiones TLS válidas
+- **Monitoreo:** Validación de que logs de auditoría se estén generando correctamente
+
+#### Reportes Automatizados
+Generación mensual con firmas digitales y distribución automática a stakeholders:
+
+**Contenido de Reportes:**
+- Volumen total de transacciones procesadas
+- Intentos de fraude bloqueados exitosamente
+- Score de cumplimiento PCI DSS
+- Incidentes de seguridad y su resolución
+- Métricas de disponibilidad del sistema de pagos
+
+Los reportes se firman digitalmente para garantizar integridad y se cifran antes del almacenamiento y distribución.
+
+### 8. Respuesta a Incidentes
+
+#### Clasificación y Escalación Automática
+Algoritmos ML determinando severidad y disparando respuestas según tipo de incidente:
+
+**Niveles de Severidad:**
+- **CRÍTICO:** Brecha de datos, fraude masivo, sistema de pagos comprometido
+- **ALTO:** Múltiples intentos de fraude, acceso no autorizado detectado
+- **MEDIO:** Anomalías de comportamiento, violaciones de límites
+- **BAJO:** Eventos informativos, mantenimiento programado
+
+#### Contención Automatizada
+Medidas automáticas reversibles activándose según tipo de amenaza:
+
+**Fraude de Pagos:**
+- Suspensión temporal de procesamiento para usuarios afectados
+- Incremento automático de umbrales de detección de fraude
+- Notificación inmediata a procesadores de pago
+
+**Ataques Brute Force:**
+- Rate limiting agresivo para IPs sospechosas
+- Bloqueo temporal automático de direcciones IP atacantes
+- Escalación a sistemas de protección DDoS
+
+**Anomalías de Acceso:**
+- Re-autenticación forzada para usuarios afectados
+- Invalidación de tokens de sesión sospechosos
+- Auditoría intensiva de accesos recientes
+
+### 9. Testing de Seguridad
+
+#### Pruebas Automatizadas
+Suite de pruebas ejecutándose en pipeline CI/CD verificando controles de seguridad antes de despliegues:
+
+- **Tests de cifrado:** Validación de que datos sensibles estén protegidos
+- **Tests de autenticación:** Verificación de controles de acceso
+- **Tests de detección de fraude:** Simulación de transacciones fraudulentas conocidas
+- **Tests de rate limiting:** Validación de límites configurados
+- **Tests de compliance PCI:** Verificación de cumplimiento de controles
+
+#### Penetration Testing
+Pruebas semanales automatizadas simulando vectores de ataque reales:
+
+- **Inyección SQL:** Resistencia a ataques de base de datos
+- **Bypass de autenticación:** Intentos de evasión de controles de acceso
+- **Manipulación de pagos:** Pruebas de integridad en transacciones
+- **Escalación de privilegios:** Validación de controles RBAC
+- **Exposición de datos:** Verificación de que información sensible no sea accesible
 
 
 ### Diagrama del Backend 
