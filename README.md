@@ -6600,7 +6600,7 @@ Finalmente, existe una capa de repositorios para la persistencia de datos (Postg
 
 ![image](img/ClasesMarketplace3.png)
 
-# Servicios AWS 
+# Servicios AWS
 
 ## Amazon EKS (Elastic Kubernetes Service)
 **Propósito**: Orquestación de microservicios del marketplace
@@ -6674,13 +6674,13 @@ Finalmente, existe una capa de repositorios para la persistencia de datos (Postg
 **Propósito**: Funciones serverless
 
 **Funciones**:
-- **`marketplace-webhook-processor`**: 
+- **`marketplace-webhook-processor`**:
   - Procesa webhooks de Stripe
   - Memoria: 512MB, Timeout: 30s
-- **`marketplace-invoice-generator`**: 
+- **`marketplace-invoice-generator`**:
   - Genera PDFs de facturas
   - Memoria: 1GB, Timeout: 5min
-- **`marketplace-search-indexer`**: 
+- **`marketplace-search-indexer`**:
   - Actualiza índices de OpenSearch
   - Memoria: 256MB, Timeout: 1min
 
@@ -7047,7 +7047,7 @@ Pruebas semanales automatizadas simulando vectores de ataque reales:
 - **Escalación de privilegios:** Validación de controles RBAC
 - **Exposición de datos:** Verificación de que información sensible no sea accesible
 
-## Elementos de Alta Disponibilidad 
+## Elementos de Alta Disponibilidad
 
 ###### 1. Replicación de Base de Datos
 
@@ -7065,7 +7065,7 @@ Pruebas semanales automatizadas simulando vectores de ataque reales:
 
 #### Application Load Balancer delante del cluster EKS
 - **Ubicación**: Entrada al cluster EKS del marketplace
-- **Aplicación**: 
+- **Aplicación**:
   - Weighted round-robin distribuye tráfico entre pods de microservicios
   - Least connections durante picos en marketplace-catalog-service (búsquedas matutinas)
   - Sticky sessions para marketplace-payment-service durante checkout
@@ -7075,11 +7075,11 @@ Pruebas semanales automatizadas simulando vectores de ataque reales:
 
 #### EKS Horizontal Pod Autoscaler aplicado a todos los microservicios
 - **Ubicación**: Microservicios desplegados en cluster EKS (nodos t3.large: 2 vCPU, 8 GB RAM)
-- **Aplicación**: 
+- **Aplicación**:
   - Monitoreo en marketplace-catalog-service, marketplace-payment-service, marketplace-access-service
   - Rango: 3-15 nodos que se expanden automáticamente
   - Métricas: CPU >70%, memoria >80% por 5 minutos
-- **Activación**: 
+- **Activación**:
   - Scale-up durante picos de búsquedas en catalog-search-engine-service
   - Capacity reservada para marketplace-payment-service durante finales de mes
 
@@ -7100,7 +7100,7 @@ Pruebas semanales automatizadas simulando vectores de ataque reales:
 
 #### OpenSearch Multi-Nodo para catalog-search-engine-service
 - **Ubicación**: 2 nodos t3.small.search distribuidos entre AZs con 50GB EBS por nodo
-- **Aplicación**: 
+- **Aplicación**:
   - Índices `datasets-marketplace-catalog` y `user-marketplace-searches`
   - Dual-write pattern con índice shadow
 - **Activación**: Circuit breaker en marketplace-catalog-service desvía a Redis cuando latencia >500ms
@@ -7108,7 +7108,7 @@ Pruebas semanales automatizadas simulando vectores de ataque reales:
 #### 6. Cache Distribuido
 
 #### Redis Cluster compartido entre microservicios
-- **Ubicación**: Amazon ElastiCache para Redis en modo cluster distribuido entre AZs  
+- **Ubicación**: Amazon ElastiCache para Redis en modo cluster distribuido entre AZs
 - **Aplicación**:
   - **marketplace-recommendation-service**: cache de recomendaciones personalizadas (TTL: 4h)
   - **marketplace-user-service**: datos de sesión en user-session-manager-service (TTL: 8h)
@@ -7121,7 +7121,7 @@ Pruebas semanales automatizadas simulando vectores de ataque reales:
 - **Ubicación**: Endpoints críticos monitoreados cada 30 segundos
 - **Aplicación**:
   - `/api/v1/catalog/search` (marketplace-catalog-service)
-  - `/api/v1/payments/initiate` (marketplace-payment-service)  
+  - `/api/v1/payments/initiate` (marketplace-payment-service)
   - `/api/v1/access/my-datasets` (marketplace-access-service)
 - **Activación**:
   - Error rate >5%: escalado inmediato
@@ -7158,9 +7158,9 @@ Pruebas semanales automatizadas simulando vectores de ataque reales:
   - Anti-affinity rules previenen concentración de marketplace-payment-service en un solo nodo
 - **Activación**:
   - **Liveness probes**: detectan pods hung en fraud-detection-service
-  - **Readiness probes**: validan conectividad a Stripe en subscription-billing-service  
+  - **Readiness probes**: validan conectividad a Stripe en subscription-billing-service
   - **Startup probes**: optimizan carga de modelos ML en behavioral-ml-service
-  
+
 
 ### Diagrama del Backend
 
@@ -7641,8 +7641,8 @@ Los componentes principales son
   - `/query/consult-bar-chart`
   - `/query/consult-pie-chart`
 - **SemanticAnalizer**: Se encarga de analizar el dataset en Redshift junto con sus campos de CategoríaSemántica y Descipciones.
-- **sql-creator**: Se encarga de crear las consultas sql.
-- **query-executor**: Se encarga de ejecutar el query sql y devolver el resultado al frontend.
+- **sqlCreator**: Se encarga de crear las consultas sql.
+- **QueryExecutor**: Se encarga de ejecutar el query sql y devolver el resultado al frontend.
 
 El flujo principal sería el siguiente:
 
@@ -7704,7 +7704,7 @@ Los componentes principales son
 - **DashboardSharer**: Da la funcionalidad para compartir dashboards.
 
 - El componente DashboardSaver se encarga exclusivamente de guardar dashboards en la tabla "Dashboards" de DynamoDB, utilizando el formato previamente definido.
-- Por su parte, el DashboardLoader busca un dashboard por su nombre dentro de DynamoDB, valida que el usuario sea el propietario, y en caso afirmativo, lo recupera para que se puedan ejecutar las consultas asociadas.
+- Por su parte, el DashboardLoader busca un dashboard por su nombre dentro de DynamoDB, valida que el usuario tenga permisos de accederlo en AccesoDashboard de RDS, y en caso afirmativo, lo recupera para que se puedan ejecutar las consultas asociadas.
 
 Sin embargo el proceso de compartir un dashboard es un tanto más largo:
 
@@ -7787,6 +7787,96 @@ Este es el flujo principal:
 
 ### Diagramas de Clases
 
+**1. query-creator**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Amarillo: Representa un observer.
+- Naranja: Representa un dependency injection.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el QueryCreatorController, que actúa como facade para que el API general del backend se comunique con este microservicio. Este controlador delega las llamadas a un observer mediante el EventManager, encargado de notificar a la lógica de negocio correspondiente según el tipo de llamada realizada al QueryCreatorController.
+
+Dentro de esa lógica se encuentran el SemanticAnalizer, SqlCreatory QueryExecutor, que reciben como dependencias los servicios de la segunda capa de facade.
+
+En esta segunda capa se encuentran:
+
+- DatasetManager: Actua como un facade encima de los datasets, haciendo consultas en RDS o Redshift segun sea necesario.
+- SemanticConsultor: Se encarga de generar recomendaciones segun el tipo de chart y el contenido del dataset.
+- SQLConsultor: Se encarga de crear el query de SQL según lo que haya sido acordado.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesCvC1.png)
+
+
+**2. dashboard-manager**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Amarillo: Representa un observer.
+- Naranja: Representa un dependency injection.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el DashboardController, que actúa como facade para que el API general del backend se comunique con este microservicio. Este controlador delega las llamadas a un observer mediante el EventManager, encargado de notificar a la lógica de negocio correspondiente según el tipo de llamada realizada al DashboardController.
+
+Dentro de esa lógica se encuentran el DashboardSaver, DashboardLoader y DashboardSharer, que reciben como dependencias los servicios de la segunda capa de facade.
+
+En esta segunda capa se encuentran:
+
+- DashboardManager: abstrae toda la lógica sobre Dashboards, como salvarlos, traerlos, crear accesos.
+- DashboardToken: Se encarga de crear los links con tokens y asociarlos a un registro en redis.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesCvC2.png)
+
+**3. metrics-manager**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el MetricsController, que actúa como facade para que el API general del backend se comunique con este microservicio. Este controlador delega la llamada al QuotaGetter para qeu abstraiga la lógica sobre las cuotas restantes de Consultas y de consumo de IA en dicho dataset.
+
+En esta segunda capa se encuentran:
+
+- RDSMetrics: abstrae la lógica para obtener las métricas de RDS.
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesCvC3.png)
+
+**4. ai-ingester**
+
+Primeramente, los patrones de diseño orientados a objetos utilizados son los siguientes:
+
+- Morado: Representa un facade.
+- Amarillo: Representa un observer.
+- Naranja: Representa un dependency injection.
+- Verde: Representa un strategy.
+- Celeste: Muestra un factory.
+- Café: Representa un singleton.
+
+Ahora bien, las clases están organizadas de la siguiente manera:
+
+El punto de entrada es el AiIngestController, que actúa como facade para que el API general del backend se comunique con este microservicio. Este controlador delega las llamadas al AIOrchestrator para que se encarga de coordinar el proceso de traida de datos, embedding de los mismos, y envío a la fuente. Para eso usa DatasetManager, Embedder y DataSender respectivamente
+
+Finalmente, existe una capa de repositorios gestionada mediante el patrón Factory. Además, cada conexión se maneja utilizando el patrón Singleton.
+
+![identity clases](img/ClasesCvC4.png)
 
 ### Servicios de AWS
 
@@ -7814,7 +7904,7 @@ AWS CloudWatch herramienta principal para recopilar métricas operacionales.
       - **EKS:** Esta métrica se usan para garantizar que los microservicios tengan suficientes recursos (CPU, memoria) y para detectar problemas de rendimiento o errores (latencia, errores 4xx/5xx) que puedan afectar la disponibilidad de la visualización.
       - **PostgreSQL/DynamoDB:** Usada para asegurar que las bases de datos respondan rápido (latencia, IOPS) y no estén sobrecargadas (utilización de CPU/memoria). Esto es vital para la operativa y el acceso a la información de los usuarios y de los dashboards.
 
-`Prometheus` complementará `CloudWatch`, recopilando métricas granulares de cada uno de los microservicios. 
+`Prometheus` complementará `CloudWatch`, recopilando métricas granulares de cada uno de los microservicios.
 
 - **Visualización y Dashboards**
 
@@ -7889,6 +7979,12 @@ Todo lo que el usuario genera—gráficos, reportes, configuraciones—se guarda
 
 Cada noche, un job dentro del clúster de EKS lanza respaldos de las visualizaciones, plantillas y configuraciones. Estos respaldos se almacenan tanto en RDS como en S3, y se validan después para asegurar que estén completos y correctos.
 
+
+### Diagrama del Backend
+
+El diagrama a continuación muestra como en este componente cada microservicio tiene funciones tan separadas que no se deben comunicar entre sí, tan solo el API General del Backend es la que acceder a ellos. Además se evidencia la interacción con distintos servicios de AWS como ElasticCache y cloudwatch. Junto a ellos también se ve como algunas partes de la ejecución ocurren fuera de AWS, por ejemplo la consulta a modelos de hugging face por medio del api, o la carga de datasets vectorizados a personas externas.
+
+![image](img/DiagramaBackendCvC.svg)
 
 
 ## Diseño de los Datos
@@ -8173,7 +8269,7 @@ Gestión centralizada de configuraciones con versionado y rollback. Feature flag
 
 **SLAs de Integraciones**:
 - Stripe API: timeout 10s, retry 3 veces
-- SumSub API: timeout 30s, retry 2 veces  
+- SumSub API: timeout 30s, retry 2 veces
 - Banco Central: timeout 60s, retry 1 vez
 
 **Eventos**:
@@ -8209,7 +8305,7 @@ Punto único para todas las operaciones de IA del Backoffice. Usa modelos Huggin
 
 ---
 
-### Servicios AWS 
+### Servicios AWS
 
 #### Compute Services
 
@@ -8304,7 +8400,7 @@ Punto único para todas las operaciones de IA del Backoffice. Usa modelos Huggin
 
 **Identity Pool Roles**:
 - **backoffice_junior_admin**: Lectura de auditoría, validación de documentos
-- **backoffice_senior_admin**: Gestión de pipelines, configuración de sistema  
+- **backoffice_senior_admin**: Gestión de pipelines, configuración de sistema
 - **backoffice_super_admin**: Gestión de llaves, acceso de emergencia
 
 ##### AWS KMS
@@ -8467,7 +8563,7 @@ Eventos que registramos siempre:
 - **Accesos a configuraciones sensibles:** Cada consulta o modificación queda anotada.
 - **Altas y bajas de usuarios:** Todo el historial queda disponible para consulta.
 
-**Grafana** 
+**Grafana**
 
 - **BackOffice Overview:** Muestra cómo está funcionando el sistema en general: errores, tiempos de respuesta, cantidad de peticiones, etc.
 - **Security & Access Logs:** Junta información de CloudTrail y Prometheus para detectar accesos sospechosos o cambios críticos.
@@ -8804,7 +8900,7 @@ Algoritmos ML del ai-analysis-service especializados para detectar comportamient
 - Para `OLTP` utilizaremos `RDS` como la base de datos principal para la gestión. Esta base de datos es ideal para operaciones transaccionales. Se usarán tablas para:
 
    - **Usuarios:** Mantenimiento de usuarios, roles, perfiles.
-   - **RolEntidad:** Definición de roles y su asignación a usuarios a través de la tabla `UsuarioEntidad`. 
+   - **RolEntidad:** Definición de roles y su asignación a usuarios a través de la tabla `UsuarioEntidad`.
    - **Entidad:** Representa las organizaciones que se registran en la plataforma.
    - **CargaDatos:** Registro de los procesos de carga de datos, incluyendo su estado y origen.
    - **Dataset:** Mantenimiento de los datasets publicados, incluyendo si son públicos/privados o pagados y sus permisos de acceso.
@@ -8871,7 +8967,7 @@ Algoritmos ML del ai-analysis-service especializados para detectar comportamient
 
 - Esto incluye `AWS RDS`, `DynamoDB` y `OpenSearch`. Toda consulta o acción desde APIs, Lambda o dashboards debe pasar por estas clases.
 
-- Se usará `Single-Tenant`, ya que el Backoffice es una aplicación interna para la gestión y administración de la plataforma. 
+- Se usará `Single-Tenant`, ya que el Backoffice es una aplicación interna para la gestión y administración de la plataforma.
 
 - Para hacer el manejo de control de acceso y RBAC se hará lo siguiente:
 
@@ -8928,8 +9024,8 @@ Aplicamos el Patrón `Repositorio` para manejar el acceso a cada tipo de dato, l
    -	**ConfigurationRepository:** Para reglas y configuraciones en PostgreSQL.
    -	**AuditRepository:** Para registros de auditoría en OpenSearch y S3.
    -	**DynamicMetadataRepository:** Para metadatos en DynamoDB.
-   
-- **Beneficios:** 
+
+- **Beneficios:**
    - Protección contra inyecciones SQL.
    -Abstracción para pruebas automatizadas.
    -Flexibilidad para escalar vertical u horizontalmente.
@@ -8989,7 +9085,7 @@ Para que el Backoffice apoye los sistemas de IA, hacemos lo siguiente:
 
   - **Monitoreo y Auditoría para IA:**
       - Las interacciones con los modelos de IA se registran en OpenSearch para monitorear.
-      
+
 - **Justificación:**
 Al centralizar la gestión de los elementos de IA en el Backoffice:
 
