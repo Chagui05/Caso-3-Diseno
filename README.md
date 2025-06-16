@@ -7771,22 +7771,10 @@ frontend/
 
 - Para el Backoffice, se empleará una arquitectura de datos híbrida que combine `OLTP` para transacciones y mantenimiento de registros principales, `NoSQL` para metadatos dinámicos y de alto rendimiento, `OLAP` para auditorías y reportes, búsqueda para la supervisión y extracción de información, y almacenamiento de objetos para grandes volúmenes de datos no estructurados como las reglas de carga o las evidencias legales.
 
-- Para `OLTP` utilizaremos `RDS` como la base de datos principal para la gestión. Esta base de datos es ideal para operaciones transaccionales. Se usarán tablas para:
+- Para `OLTP` utilizaremos `RDS` como la base de datos principal para la gestión. Esta base de datos es ideal para operaciones transaccionales.
 
-   - **Usuarios:** Mantenimiento de usuarios, roles, perfiles.
-   - **RolEntidad:** Definición de roles y su asignación a usuarios a través de la tabla `UsuarioEntidad`. 
-   - **Entidad:** Representa las organizaciones que se registran en la plataforma.
-   - **CargaDatos:** Registro de los procesos de carga de datos, incluyendo su estado y origen.
-   - **Dataset:** Mantenimiento de los datasets publicados, incluyendo si son públicos/privados o pagados y sus permisos de acceso.
-   - **LlaveSeguridad y LlaveTripartita :** Almacenamiento y gestión de llaves criptográficas.
-   - **CustodioLlave:** Gestión de los custodios de llaves.
-   - **Sesion:** Gestión de sesiones activas de los usuarios del Backoffice.
-   - **DatasetPermisos:** Define los permisos específicos que una entidad o usuario sobre datos.
-   - **UsuarioEntidad:** Tabla intermedia que vincula a los usuarios con una entidad.
-   - **Auditoria:** Registra todas las acciones relevantes realizadas.
-
-- Para el `NoSQL` utilizaremos `DynamoDB` ya que este almacena metadatos dinámicos y de alto rendimiento. Ejemplos de uso:
-   - Estado operativo.
+- Para el `NoSQL` utilizaremos `DynamoDB` ya que este almacena metadatos dinámicos y de alto rendimiento. Ofreciendo:
+   - Estado operativo de servicios.
    - Historial de cambios de `Dataset`.
    - Logs de ejecución.
    - Configuraciones de conectividad.
@@ -7967,9 +7955,23 @@ Al centralizar la gestión de los elementos de IA en el Backoffice:
   -  **Garantizamos la Gobernanza:** Tenemos un control centralizado para supervisar y auditar los modelos de IA y el uso de sus datos en todo momento.
   -  **Facilitamos la Innovación:** Agilizamos el desarrollo y la mejora de soluciones de IA para todo Data Pura Vida continuamente.
 
-- **Diagrama de Base de Datos**
-A continuación, se describen las tablas principales para PostgreSQL, así como una mención de cómo se relacionan con DynamoDB y OpenSearch para sus propósitos específicos
+- **Diagrama de Base de Datos:** 
 
+A continuación, se presenta la estructura de datos relacional para el sistema de backoffice administrativo.
+
+Las tablas que se usan directamente son:
+
+   - **Usuarios:** Mantenimiento de usuarios, roles, perfiles.
+   - **RolEntidad:** Definición de roles y su asignación a usuarios a través de la tabla `UsuarioEntidad`. 
+   - **Entidad:** Representa las organizaciones que se registran en la plataforma.
+   - **CargaDatos:** Registro de los procesos de carga de datos, incluyendo su estado y origen.
+   - **Dataset:** Mantenimiento de los datasets publicados, incluyendo si son públicos/privados o pagados y sus permisos de acceso.
+   - **LlaveSeguridad y LlaveTripartita :** Almacenamiento y gestión de llaves criptográficas.
+   - **CustodioLlave:** Gestión de los custodios de llaves.
+   - **Sesion:** Gestión de sesiones activas de los usuarios del Backoffice.
+   - **DatasetPermisos:** Define los permisos específicos que una entidad o usuario sobre datos.
+   - **UsuarioEntidad:** Tabla intermedia que vincula a los usuarios con una entidad.
+   - **Auditoria:** Registra todas las acciones relevantes realizadas.
 
 ![image](img/DiagramaBDBackoffice.png)
 
