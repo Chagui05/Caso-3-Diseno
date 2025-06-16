@@ -8451,6 +8451,326 @@ Eventos que registramos siempre:
 - **Security & Access Logs:** Junta información de CloudTrail y Prometheus para detectar accesos sospechosos o cambios críticos.
 - **Performance & Latency:** Señala los endpoints más cargados y ayuda a identificar qué podría optimizarse.
 
+
+### Modelo de Seguridad Detallado
+
+El módulo de Backoffice Administrativo maneja operaciones críticas del sistema incluyendo validación de registros, gestión de llaves tripartitas, configuración de pipelines y auditoría completa. Su backend implementa un modelo de seguridad robusto que protege operaciones administrativas y mantiene trazabilidad completa.
+
+#### 1. Control de Acceso Granular
+
+##### RBAC Específico para Administración con Cognito
+
+El sistema valida roles administrativos **en cada petición HTTP** mediante middleware FastAPI (capa de software que intercepta peticiones) **desplegado en el cluster EKS del backoffice**. La validación ocurre **antes de que cualquier operación llegue a los endpoints críticos** (puntos de acceso de la API) mediante **verificación de tokens JWT contra AWS Cognito User Pool** (servicio de autenticación de usuarios). Los roles validados se almacenan **temporalmente en los 4 clusters Redis especializados** (sistemas de almacenamiento temporal rápido) **durante las sesiones activas de 4-8 horas** según el nivel de clearance.
+
+| Rol Cognito | Clearance Level | Permisos |
+|-------------|-----------------|----------|
+| `backoffice_junior_admin` | standard | Lectura de auditoría, validación de documentos básicos |
+| `backoffice_senior_admin` | elevated | Todo lo anterior + gestión de pipelines, configuración de sistema |
+| `backoffice_super_admin` | maximum | Acceso total: gestión de llaves, acceso de emergencia, custodios |
+
+##### Flujo de Autorización de Operaciones Críticas
+
+La autorización se ejecuta **síncronamente al recibir cada request administrativo**, evaluando clearance level, contexto de operación y scoring de riesgo **antes de ejecutar cambios críticos en cualquiera de las 6 bases de datos especializadas**:
+
+```python
+@router.post("/admin/approve-registration", 
+            dependencies=[Depends(requires_cognito_role("backoffice_senior_admin"))])
+async def approve_registration(request: ApprovalRequest, user: dict = Depends(get_current_admin)):
+    # Validación ejecutada DONDE: en el pod del admin-validation-service
+    # CUANDO: antes de cada operación de aprobación
+    # CÓMO: verificación de clearance level contra el request
+    if request.risk_level == "HIGH" and user.get("clearance_level") != "maximum":
+        raise HTTPException(status_code=403, detail="Insufficient clearance level")
+    
+    # Log ejecutado DONDE: audit_cases_db + OpenSearch + S3
+    # CUANDO: inmediatamente antes de la operación principal
+    # CÓMO: escritura simultánea en 3 ubicaciones para trazabilidad
+    await audit_logger.log_operation("registration_approval", user["sub"], request.dict())
+```
+
+#### 2. Cifrado de Datos Administrativos
+
+##### Cifrado en Tránsito
+Todas las comunicaciones administrativas utilizan TLS 1.3 (protocolo de seguridad para conexiones web) **activado permanentemente en API Gateway y ALB** con certificate pinning (validación estricta de certificados de seguridad) **ejecutado durante el handshake SSL**:
+
+- **Frontend ↔ API Gateway:** HTTPS **implementado en CloudFront y ALB** con certificados AWS Certificate Manager **renovados automáticamente cada 60 días**
+- **Microservicios internos:** mTLS **configurado en Istio service mesh dentro del cluster EKS** (red segura entre servicios) con certificados **rotados cada 30 días mediante cert-manager**
+- **APIs externas:** Certificate pinning **validado al establecer conexiones** con SumSub, Stripe y Banco Central
+
+##### Cifrado en Reposo Especializado por Base de Datos
+
+Estrategia específica por cada una de las 6 bases de datos especializadas:
+
+| Base de Datos | Ubicación | Cifrado | Clave KMS | Rotación |
+|---------------|-----------|---------|-----------|----------|
+| admin_validation_db | PostgreSQL | TDE | `backoffice-validation-key` | 6 meses |
+| security_keys_metadata_db | PostgreSQL | Campo-específico | `tripartite-orchestration-key` | 3 meses |
+| audit_cases_db | PostgreSQL | TDE | `backoffice-audit-evidence-key` | Manual |
+| pipeline_management_db | PostgreSQL | TDE | `backoffice-config-key` | 3 meses |
+| system_configuration_db | PostgreSQL | TDE | `backoffice-config-key` | 3 meses |
+| shared_reference_db | PostgreSQL | TDE | `backoffice-config-key` | 6 meses |
+
+#### 3. Auditoría y Trazabilidad Administrativa
+
+##### Eventos Auditados por Microservicio
+
+Sistema de captura **ejecutándose 24/7 en cada microservicio** con triple escritura (almacenamiento simultáneo en tres ubicaciones) **realizada asincrónicamente** hacia PostgreSQL especializada, OpenSearch, y S3:
+
+**admin-validation-service:**
+- Aprobaciones/rechazos de registros del Bio Registro **registradas en admin_validation_db al momento de la decisión**
+- Revisiones documentales con IA **logueadas en OpenSearch durante el procesamiento en tiempo real**
+- Cambios de estados de validación **almacenados inmediatamente en las 3 ubicaciones mediante event streaming**
+
+**security-key-orchestrator-service:**
+- Generación de metadatos de llaves tripartitas
+- Coordinación con custodios distribuidos
+- Rotaciones programadas y de emergencia
+
+**pipeline-operations-service:**
+- Intervenciones manuales en pipelines Airflow
+- Optimizaciones de recursos Spark
+- Reintentos y escalaciones
+
+**audit-intelligence-service:**
+- Correlación de eventos distribuidos
+- Detección de anomalías con ML
+- Generación de reportes de compliance
+
+**system-configuration-service:**
+- Cambios en feature flags
+- Modificaciones de configuración global
+- Gestión de integraciones externas
+
+**ai-analysis-service:**
+- Clasificación de documentos
+- Scoring de riesgo
+- Detección de anomalías
+
+#### 4. Protección de Operaciones Críticas
+
+##### Validación Multi-Factor para Operaciones Sensibles
+Operaciones críticas requieren **re-autenticación MFA ejecutada en el momento de la operación** más allá del login inicial **mediante TOTP o SMS enviado por AWS SNS**:
+
+**Operaciones que requieren re-autenticación MFA:**
+- Revocación de llaves tripartitas **ejecutada en security-key-orchestrator-service con confirmación de 3 custodios**
+- Aprobación masiva de registros >10 simultáneos **procesada en admin-validation-service durante horarios laborales**
+- Cambios en configuración de custodios **aplicados inmediatamente en security_keys_metadata_db tras validación**
+- Activación de protocolos de emergencia **disparada desde system-configuration-service con notificación a CERT**
+
+##### Rate Limiting por Rol Cognito
+
+| Operación | junior_admin | senior_admin | super_admin | Escalación |
+|-----------|-------------|-------------|-------------|------------|
+| Aprobar registros | 10/hora | 50/hora | 100/hora | Super admin notificado |
+| Gestionar pipelines | No permitido | 20/hora | 50/hora | Revisión obligatoria |
+| Configurar sistema | No permitido | 10/hora | 30/hora | Auditoría inmediata |
+| Acceso emergencia | No permitido | No permitido | 1/día | CERT notificado |
+
+#### 5. Gestión de Secretos Administrativos
+
+##### AWS Secrets Manager por Microservicio
+
+Gestión especializada según el patrón definido en el README:
+
+```python
+# Secretos por categoría según README
+EXTERNAL_API_CREDENTIALS = {
+    "sumsub-api-key": "external-api-credentials/sumsub",
+    "stripe-keys": "external-api-credentials/stripe", 
+    "banco-central-cert": "external-api-credentials/banco-central"
+}
+
+DATABASE_CREDENTIALS = {
+    "admin_validation_db": "database-credentials/validation",
+    "pipeline_management_db": "database-credentials/pipeline",
+    "audit_cases_db": "database-credentials/audit"  # Rotación cada 15 días
+}
+
+INTEGRATION_CERTIFICATES = {
+    "pki-gubernamental": "integration-certificates/gov-pki",
+    "servicios-internos": "integration-certificates/internal"
+}
+```
+
+#### 6. Monitoreo de Seguridad Administrativa
+
+##### Detección de Anomalías por Microservicio
+
+Algoritmos ML del ai-analysis-service especializados para detectar comportamientos administrativos sospechosos:
+
+- **admin-validation-service:** Patrones de aprobación inusuales fuera de horario laboral
+- **security-key-orchestrator-service:** Intentos de acceso a custodios sin clearance máximo
+- **pipeline-operations-service:** Intervenciones masivas que podrían indicar compromiso
+- **system-configuration-service:** Cambios de configuración desde ubicaciones geográficas inusuales
+
+---
+
+### Elementos de Alta Disponibilidad 
+
+#### 1. Replicación de Bases de Datos Especializadas
+
+##### PostgreSQL Multi-AZ por Base de Datos Crítica
+
+**Configuración por Base:**
+- **security_keys_metadata_db**: Instancia principal **desplegada en us-east-1a**, réplica **sincronizada en us-east-1b**, failover (cambio automático de servidor principal) **ejecutado mediante AWS RDS automatic failover**
+- **audit_cases_db**: Instancia principal **ubicada en us-east-1a**, réplica **replicada síncronamente en us-east-1b**, failover **activado automáticamente durante fallos detectados por health checks**  
+- **admin_validation_db**: Instancia principal **operando en us-east-1a**, réplica **mantenida en us-east-1b con replicación continua**, failover **disparado cuando primary instance falla**
+- **audit_cases_db**: Instancia principal us-east-1a, réplica us-east-1b, failover <15 segundos  
+- **admin_validation_db**: Instancia principal us-east-1a, réplica us-east-1b, failover <20 segundos
+- **pipeline_management_db**: Instancia principal us-east-1b, réplica us-east-1c, failover <30 segundos
+- **system_configuration_db**: Instancia principal us-east-1c, réplica us-east-1a, failover <30 segundos
+- **shared_reference_db**: Instancia principal us-east-1a, réplica us-east-1b, failover <30 segundos
+
+#### 2. Clusters Redis Especializados con Alta Disponibilidad
+
+##### Amazon ElastiCache Redis - 4 Clusters Especializados
+
+**session_cache:**
+- **Configuración**: 2 nodos cache.t3.micro **distribuidos entre us-east-1a y us-east-1b**
+- **Aplicación**: Sesiones de administradores **almacenadas durante 8 horas con TTL automático**
+- **Failover**: Automático **ejecutado mediante Redis Sentinel**
+
+**permission_cache:**
+- **Configuración**: 3 nodos cache.t3.small **balanceados entre las 3 AZs**  
+- **Aplicación**: Cache de permisos RBAC **actualizado cada hora con invalidación inteligente activada por cambios de rol**
+- **Failover**: Automático **completado en 10 segundos usando consistent hashing para redistribución**
+
+**ai_model_cache:**
+- **Configuración**: 2 nodos cache.t3.medium distribuidos entre AZs
+- **Aplicación**: Cache de modelos Hugging Face (TTL: 24 horas)
+- **Failover**: Automático en 20 segundos
+
+**integration_status_cache:**
+- **Configuración**: 2 nodos cache.t3.micro distribuidos entre AZs
+- **Aplicación**: Estado de APIs externas (TTL: 5 minutos)
+- **Failover**: Automático en 15 segundos
+
+#### 3. Auto-Scaling por Microservicio
+
+##### EKS Horizontal Pod Autoscaler Especializado
+
+**Configuración del Cluster:**
+- **Nodos**: t3.medium (2 vCPU, 8 GB RAM) **desplegados en us-east-1a, us-east-1b, us-east-1c** (zonas de disponibilidad para redundancia)
+- **Auto-scaling**: **Activado cuando** CPU >70%, memoria >80% **sostenido durante 5 minutos consecutivos**
+- **Networking**: VPC privada (red virtual privada) **10.0.100.0/24 dedicada exclusivamente para backoffice**
+
+**Escalado por Microservicio:**
+
+| Microservicio | Pods Min | Pods Max | Trigger | **Cuándo se Activa** | **Dónde se Ejecuta** |
+|---------------|----------|----------|---------|----------------------|----------------------|
+| security-key-orchestrator | 3 | 6 | CPU >60% | **Durante operaciones de custodios** | **Nodos con taints security=critical** |
+| admin-validation | 2 | 8 | CPU >70% | **En picos de validaciones matutinas** | **Distribuido entre las 3 AZs** |
+| audit-intelligence | 2 | 10 | Memory >80% | **Al procesar eventos masivos** | **Nodos optimizados para memoria** |
+
+#### 4. Almacenamiento Resiliente Especializado
+
+##### Amazon S3 - 4 Buckets Especializados con Políticas Diferenciadas
+
+**backoffice-audit-evidence:**
+- **Configuración**: Cifrado SSE-KMS, versionado con MFA delete
+- **Replicación**: Cross-region a us-west-2 inmediata
+- **Lifecycle**: Migración a Glacier después de 90 días, retención permanente
+- **Aplicación**: Evidencia forense inmutable del audit-intelligence-service
+
+**backoffice-compliance-reports:**
+- **Configuración**: Cifrado SSE-S3, versionado habilitado
+- **Replicación**: Cross-region a us-west-2 después de 24 horas
+- **Lifecycle**: IA después de 30 días, Glacier después de 365 días
+- **Aplicación**: Reportes regulatorios con retención mínima 7 años
+
+**backoffice-system-backups:**
+- **Configuración**: Cifrado SSE-KMS, replicación inmediata
+- **Replicación**: Cross-region a us-west-2 sincronizada
+- **Lifecycle**: Glacier después de 30 días
+- **Aplicación**: Respaldos de configuraciones del system-configuration-service
+
+**backoffice-ai-models:**
+- **Configuración**: Cifrado SSE-S3, sin versionado (regenerable)
+- **Replicación**: No requerida (cache temporal)
+- **Lifecycle**: Eliminación automática después de 90 días
+- **Aplicación**: Modelos Hugging Face cacheados del ai-analysis-service
+
+#### 5. Monitoreo Proactivo Especializado
+
+##### CloudWatch Alarms por Microservicio
+
+**security-key-orchestrator-service:**
+- **Monitoreo**: Cada 10 segundos
+- **Alertas**: Error rate >1%, latencia >200ms
+- **Escalación**: Notificación inmediata a super admins
+
+**admin-validation-service:**
+- **Monitoreo**: Cada 30 segundos  
+- **Alertas**: Error rate >2%, validaciones fallidas >5%
+- **Escalación**: Auto-restart de pods, escalado inmediato
+
+**audit-intelligence-service:**
+- **Monitoreo**: Cada 60 segundos
+- **Alertas**: Pérdida de eventos, correlación fallida
+- **Escalación**: Backup a storage alternativo
+
+#### 6. Recuperación de Desastres por Criticidad
+
+##### Estrategia RTO/RPO Diferenciada
+
+| Microservicio | RTO | RPO | Base de Datos | Estrategia |
+|---------------|-----|-----|---------------|------------|
+| **security-key-orchestrator** | 5 min | 30 seg | security_keys_metadata_db | Replicación síncrona, custodios distribuidos |
+| **admin-validation** | 15 min | 2 min | admin_validation_db | Backup incremental cada 4 horas |
+| **audit-intelligence** | 30 min | 5 min | audit_cases_db | Point-in-Time Recovery habilitado |
+| **pipeline-operations** | 1 hora | 15 min | pipeline_management_db | Backup diario, logs en OpenSearch |
+| **system-configuration** | 2 horas | 30 min | system_configuration_db | Backup semanal, config en S3 |
+| **ai-analysis** | 4 horas | 2 horas | No persistente | Regeneración desde modelos base |
+
+#### 7. Kubernetes Self-Healing Especializado
+
+##### EKS Configuration para Backoffice
+
+**Configuración del Cluster:**
+- **Cluster dedicado**: backoffice-admin-cluster
+- **Node groups**: Anti-affinity entre microservicios críticos
+- **Taints**: Nodos especializados para security-key-orchestrator
+
+**Health Checks Especializados:**
+
+**Liveness Probes:** (verificaciones de que el servicio está funcionando)
+- security-key-orchestrator: **ejecutado cada 5 segundos en endpoint /health/live**
+- admin-validation: **verificado cada 10 segundos mediante HTTP GET a /status**  
+- audit-intelligence: **monitoreado cada 15 segundos con timeout de 3 segundos**
+- Otros microservicios: **checkeados cada 30 segundos por Kubernetes**
+
+**Readiness Probes:** (verificaciones de que el servicio está listo para recibir tráfico)
+- Validación completa de conectividad con custodios **ejecutada antes de recibir requests** (security-key-orchestrator)
+- Verificación de conectividad SumSub **realizada cada 30 segundos con retry automático** (admin-validation)
+- Validación de escritura en OpenSearch **probada al startup y cada 2 minutos** (audit-intelligence)
+- Check de APIs externas **validado durante el readiness check con circuit breaker** (pipeline-operations, system-configuration)
+
+**PodDisruptionBudgets:**
+- security-key-orchestrator: mínimo 75% pods operacionales
+- admin-validation: mínimo 70% pods operacionales
+- audit-intelligence: mínimo 65% pods operacionales
+- Otros microservicios: mínimo 60% pods operacionales
+
+#### 8. Conectividad Redundante Administrativa
+
+##### Network Architecture Especializada
+
+**VPC Dedicada para Backoffice:**
+- **Subnets privadas**: Una por AZ para cada microservicio crítico
+- **NAT Gateways**: Múltiples para conectividad externa a custodios
+- **VPN Site-to-Site**: Para acceso seguro de administradores remotos
+- **Direct Connect**: Como backup para conexiones críticas con entidades gubernamentales
+
+**Security Groups Especializados:**
+- security-key-orchestrator: Acceso solo desde custodios autorizados
+- admin-validation: Conectividad con SumSub y Bio Registro
+- audit-intelligence: Acceso amplio para recolección de eventos
+- pipeline-operations: Conectividad con Airflow y Spark clusters
+
+
+
+
+
 ## Diseño de los datos
 
 ### Topología de Datos
