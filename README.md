@@ -8140,6 +8140,60 @@ Punto único para todas las operaciones de IA del Backoffice. Usa modelos Huggin
 
 **Notification**: SNS topic backoffice-health-alerts con lista de email admin-team@datapuravida.cr
 
+### Monitoreo
+
+**Prometheus en EKS**
+
+Prometheus está siempre activo dentro del clúster EKS, recolectando métricas del BackOffice. Se adapta la cantidad de recolección según el ritmo de uso; por ejemplo cambios masivos en usuarios o configuraciones. El sistema baja el intervalo de recolección a 20 segundos para captar todo al detalle. En momentos más tranquilos, como fuera del horario laboral, lo sube a 60 segundos para no gastar recursos innecesarios.
+
+**Monitoreo por servicio:**
+
+- `auth-service`: Se pone más atento cuando detecta muchos inicios de sesión o cambios de roles y lanza alertas si hay muchos errores 401 o 403.
+- `config-manager`: Siempre activo, especialmente cuando se cambian parámetros que afectan a más de un módulo del sistema.
+- `log-service`: Solo activa el monitoreo cuando el volumen de logs por minuto se dispara, ideal para detectar incidentes.
+
+
+**CloudWatch**
+
+CloudWatch se encarga de vigilar todo lo que pasa a nivel de servidores, discos y base de datos. Nos ayuda a ver si algo en el fondo está afectando la experiencia del BackOffice.
+
+- **Nodos en EKS:** Uso de CPU y RAM, sobre todo cuando hay varias tareas administrativas corriendo al mismo tiempo.
+- **RDS**: Se trackea cuántas conexiones hay, especialmente cuando alguien lanza consultas pesadas o saca reportes grandes.
+
+**X-Ray**
+
+Con AWS X-Ray podemos seguir el camino de cada acción dentro del BackOffice. Por ejemplo, si un admin cambia permisos o configura algo, vemos todo el recorrido: desde el clic en la interfaz hasta el cambio en la base de datos.
+
+- **Gestión de usuarios**: Desde que alguien edita un usuario hasta que se actualiza el sistema y se reflejan los permisos nuevos.
+- **Cambios en configuración**: Vemos cómo el cambio se propaga al resto del ecosistema y si tarda más de lo esperado.
+- **Problemas de lentitud**: Cuando una petición tarda más de 1 segundo, se activa un trace automáticamente para ver qué la está frenando.
+
+
+**AWS Config**
+
+AWS Config revisa todo el tiempo si el BackOffice está cumpliendo con las reglas de seguridad y configuración. Si algo se sale de lo permitido, lo detecta y lo revierte si es necesario.
+
+Algunas reglas clave:
+
+- **Security Groups:** Solo permiten acceso desde las redes que se definieron como seguras.
+- **Logs cifrados:** Todos los registros tienen que estar cifrados tanto al guardarse como al moverse.
+- **Cambios importantes:** Si alguien cambia un parámetro sensible, se dispara una corrección automática.
+
+**CloudTrail**
+
+CloudTrail deja un rastro de todo lo que pasa: quién hizo qué, desde dónde, y cuándo. Sirve tanto para auditorías como para investigar si algo salió mal.
+
+Eventos que registramos siempre:
+
+- **Cambios en roles y permisos:** Se guarda el detalle completo: usuario, acción, IP y hora.
+- **Accesos a configuraciones sensibles:** Cada consulta o modificación queda anotada.
+- **Altas y bajas de usuarios:** Todo el historial queda disponible para consulta.
+
+**Grafana** 
+
+- **BackOffice Overview:** Muestra cómo está funcionando el sistema en general: errores, tiempos de respuesta, cantidad de peticiones, etc.
+- **Security & Access Logs:** Junta información de CloudTrail y Prometheus para detectar accesos sospechosos o cambios críticos.
+- **Performance & Latency:** Señala los endpoints más cargados y ayuda a identificar qué podría optimizarse.
 
 ## Diseño de los datos
 
