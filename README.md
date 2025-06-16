@@ -7867,6 +7867,28 @@ Diseñado para identificar y responder rápidamente ante eventos que comprometan
     -	**Respuesta Automática:** AWS Lambda ejecuta funciones para mitigar el impacto (ej., reintentar cargas). El Módulo de Resiliencia del backend usa AWS Lambda.
     -	**Notificación:** AWS SNS envía notificaciones a administradores para incidentes críticos. El Módulo de Notificaciones del backend se integra con AWS SNS.
 
+### Elementos de alta disponibilidad
+
+**1. PostgreSQL en modo Multi-AZ**
+
+La base de datos principal corre sobre Amazon RDS con replicación activa entre dos zonas de disponibilidad (`us-east-1a` y `us-east-1b`). Esto permite que, si ocurre una falla en la zona primaria, el sistema haga failover automático en menos de 30 segundos, sin afectar el acceso a dashboards ni a configuraciones de usuario.
+
+**2. Balanceador de carga con ALB**
+
+El tráfico hacia el backend (FastAPI en EKS) entra a través de un Application Load Balancer. Este balanceador distribuye las solicitudes entre los pods disponibles, y revisa cada 10 segundos que todos estén sanos mediante health checks. Si uno falla, lo saca de rotación sin afectar a los demás.
+
+**3. Escalamiento automático**
+
+Cuando hay muchos usuarios conectados o se generan muchos dashboards al mismo tiempo, el sistema escala automáticamente la cantidad de pods en EKS. Si la CPU o la memoria de los servicios sube más de lo normal (ej. CPU >75% por 5 minutos), se activan más instancias para atender la demanda.
+
+**4. Almacenamiento seguro y replicado**
+
+Todo lo que el usuario genera—gráficos, reportes, configuraciones—se guarda en S3. Estos buckets tienen versionado habilitado y replicación a otra región, por si alguna zona falla. Además, se aplican políticas de retención que envían archivos antiguos a Glacier después de 90 días.
+
+**5. Respaldos automáticos diarios**
+
+Cada noche, un job dentro del clúster de EKS lanza respaldos de las visualizaciones, plantillas y configuraciones. Estos respaldos se almacenan tanto en RDS como en S3, y se validan después para asegurar que estén completos y correctos.
+
 
 
 ## Diseño de los Datos
