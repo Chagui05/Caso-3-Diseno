@@ -1,0 +1,54 @@
+{{ if .Values.config.kek_sender.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.config.kek_sender.name }}
+  labels:
+    app: {{ .Values.config.kek_sender.name }}
+spec:
+  replicas: {{ .Values.config.kek_sender.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.config.kek_sender.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.config.kek_sender.name }}
+    spec:
+      containers:
+      - name: {{ .Values.config.kek_sender.name }}
+        image: {{ .Values.config.kek_sender.image }}
+        env:
+            - name: RABBITMQ_HOST
+              value: {{ .Values.config.rabbitmq.host }}
+            - name: RABBITMQ_PORT
+              value: "{{ .Values.config.rabbitmq.port }}"
+            - name: RABBITMQ_USER
+              value: {{ .Values.config.rabbitmq.user }}
+            - name: RABBITMQ_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.config.rabbitmq.passName }}
+                  key: {{ .Values.config.rabbitmq.passKey }}
+            - name: RABBITMQ_QUEUE
+              value: {{ .Values.config.rabbitmq.queue_name }}
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.config.kek_sender.name }}
+  labels:
+    app: {{ .Values.config.kek_sender.name }}
+spec:
+  selector:
+    app: {{ .Values.config.kek_sender.name }}
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: {{ .Values.config.kek_sender.port }}
+      nodePort: {{ .Values.config.kek_sender.nodeport }}
+      name: http
+
+{{ end }}
