@@ -7171,20 +7171,6 @@ A continuación, se presenta el diagrama del backend del Marketplace de Datos de
 
 ## Diseño de los datos
 
-La influencia de este componente sobre la base de datos es mínima, ya que reutiliza la misma instancia de RDS compartida con La Bóveda, el Bioregistro y todas las que tengan control sobre contenido administrativo. Del mismo modo, las configuraciones para DynamoDB se mantienen idénticas a las de esos componentes.
-
-El único aporte nuevo se encuentra reflejado en el diagrama de base de datos que se presenta a continuación.
-
-### Diagrama de Base de Datos
-
-A continuación se presenta el diagrama de base de datos correspondiente al módulo del Centro de Carga. Este diagrama incluye las tablas clave que componen el componente, entre ellas:
-
-- **AccessoDashboard**: Es una tabla que guarda quien tiene acceso a la visualización de un dashboard
-- **Dashboard**: Almacena los dashboards, como tal la meta data de cada uno es guardada en Dynamo en la tabla de "Dashboards", pero también se ocupa llevar control de accesos y relacional, por lo que se tiene una copia en RDS también.
-- **AICuota**: Lleva la cuenta de cuantos usos le quedan a un usuario para hacer consumo de IA sobre un dataset.
-
-![image](img/DiagramaBDCvC.png)
-
 ### Topología de Datos
 
 - **Tipo:** OLTP + OLAP + NoSQL + Motor de búsqueda
@@ -7804,6 +7790,19 @@ Este es el flujo principal:
 
 ## Diseño de los Datos
 
+La influencia de este componente sobre la base de datos es mínima, ya que reutiliza la misma instancia de RDS compartida con La Bóveda, el Bioregistro y todas las que tengan control sobre contenido administrativo. Del mismo modo, las configuraciones para DynamoDB se mantienen idénticas a las de esos componentes.
+
+El único aporte nuevo se encuentra reflejado en el diagrama de base de datos que se presenta a continuación.
+
+### Diagrama de Base de Datos
+
+A continuación se presenta el diagrama de base de datos correspondiente al módulo del Centro de Carga. Este diagrama incluye las tablas clave que componen el componente, entre ellas:
+
+- **AccessoDashboard**: Es una tabla que guarda quien tiene acceso a la visualización de un dashboard
+- **Dashboard**: Almacena los dashboards, como tal la meta data de cada uno es guardada en Dynamo en la tabla de "Dashboards", pero también se ocupa llevar control de accesos y relacional, por lo que se tiene una copia en RDS también.
+- **AICuota**: Lleva la cuenta de cuantos usos le quedan a un usuario para hacer consumo de IA sobre un dataset.
+
+![image](img/DiagramaBDCvC.png)
 
 ### Servicios de AWS
 
