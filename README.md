@@ -7408,6 +7408,120 @@ Pruebas semanales automatizadas simulando vectores de ataque reales:
 - **Escalación de privilegios:** Validación de controles RBAC
 - **Exposición de datos:** Verificación de que información sensible no sea accesible
 
+## Elementos de Alta Disponibilidad 
+
+###### 1. Replicación de Base de Datos
+
+#### PostgreSQL Multi-AZ en marketplace-payment-service y marketplace-catalog-service
+- **Ubicación**: Instancia principal en us-east-1a, réplica en us-east-1b
+- **Aplicación**: Replicación síncrona de transacciones críticas (`MarketplaceOrder`, `PaymentTransaction`, `Subscription`)
+- **Activación**: Failover automático en <30 segundos durante fallas del payment-processor-service
+
+#### DynamoDB en marketplace-user-service y marketplace-analytics-service
+- **Ubicación**: Replicación automática entre 3 AZs
+- **Aplicación**: `UserBehaviorMarketplace`, `MarketplaceSessionData`, `DatasetRecommendationCache` gestionadas por user-behavior-tracker-service
+- **Activación**: Sincronización en milisegundos, Point-in-Time Recovery (35 días) en event-ingestion-service
+
+#### 2. Balanceador de Carga
+
+#### Application Load Balancer delante del cluster EKS
+- **Ubicación**: Entrada al cluster EKS del marketplace
+- **Aplicación**: 
+  - Weighted round-robin distribuye tráfico entre pods de microservicios
+  - Least connections durante picos en marketplace-catalog-service (búsquedas matutinas)
+  - Sticky sessions para marketplace-payment-service durante checkout
+- **Activación**: Health checks cada 10 segundos en endpoints `/health` de cada microservicio
+
+#### 3. Auto-Scaling
+
+#### EKS Horizontal Pod Autoscaler aplicado a todos los microservicios
+- **Ubicación**: Microservicios desplegados en cluster EKS (nodos t3.large: 2 vCPU, 8 GB RAM)
+- **Aplicación**: 
+  - Monitoreo en marketplace-catalog-service, marketplace-payment-service, marketplace-access-service
+  - Rango: 3-15 nodos que se expanden automáticamente
+  - Métricas: CPU >70%, memoria >80% por 5 minutos
+- **Activación**: 
+  - Scale-up durante picos de búsquedas en catalog-search-engine-service
+  - Capacity reservada para marketplace-payment-service durante finales de mes
+
+#### 4. Almacenamiento Resiliente
+
+#### Amazon S3 utilizado por marketplace-analytics-service
+- **Ubicación**: Buckets `dpv-marketplace-assets` y `dpv-marketplace-invoices` replicados cross-region a us-west-1
+- **Aplicación**:
+  - Thumbnails y previews gestionados por catalog-metadata-sync-service
+  - Facturas PDF generadas por invoice-generator-service
+- **Activación**: Versionado automático, lifecycle policies a Glacier después de 90 días
+
+#### Backups de microservicios críticos
+- **marketplace-payment-service**: cada 6 horas (horarios laborales)
+- **marketplace-access-service**: cada 24 horas (fines de semana)
+
+#### 5. Motor de Búsqueda
+
+#### OpenSearch Multi-Nodo para catalog-search-engine-service
+- **Ubicación**: 2 nodos t3.small.search distribuidos entre AZs con 50GB EBS por nodo
+- **Aplicación**: 
+  - Índices `datasets-marketplace-catalog` y `user-marketplace-searches`
+  - Dual-write pattern con índice shadow
+- **Activación**: Circuit breaker en marketplace-catalog-service desvía a Redis cuando latencia >500ms
+
+#### 6. Cache Distribuido
+
+#### Redis Cluster compartido entre microservicios
+- **Ubicación**: Amazon ElastiCache para Redis en modo cluster distribuido entre AZs  
+- **Aplicación**:
+  - **marketplace-recommendation-service**: cache de recomendaciones personalizadas (TTL: 4h)
+  - **marketplace-user-service**: datos de sesión en user-session-manager-service (TTL: 8h)
+  - **marketplace-catalog-service**: resultados de búsquedas frecuentes (TTL: 5 min)
+- **Activación**: Failover automático en 30 segundos, consistent hashing para redistribución
+
+#### 7. Monitoreo y Auto-Remediación
+
+#### CloudWatch Alarms monitoreando endpoints de microservicios
+- **Ubicación**: Endpoints críticos monitoreados cada 30 segundos
+- **Aplicación**:
+  - `/api/v1/catalog/search` (marketplace-catalog-service)
+  - `/api/v1/payments/initiate` (marketplace-payment-service)  
+  - `/api/v1/access/my-datasets` (marketplace-access-service)
+- **Activación**:
+  - Error rate >5%: escalado inmediato
+  - Latencia >1s: cache warming
+  - Auto-restart de pods en fraud-detection-service
+
+#### 8. Recuperación de Desastres
+
+#### Estrategia aplicada por criticidad de microservicio
+
+| Microservicio | RTO | RPO | Aplicación |
+|---------------|-----|-----|------------|
+| **marketplace-payment-service** | 15 min | 5 min | payment-processor-service con replicación síncrona cross-region |
+| **marketplace-user-service** | 2 horas | 4 horas | user-behavior-tracker-service con backup asíncrono |
+| **marketplace-analytics-service** | 24 horas | 24 horas | business-metrics-calculator-service con backup diario |
+
+#### 9. Conectividad Redundante
+
+##### Network Architecture en cluster EKS
+- **Ubicación**: Pods distribuidos en 3 AZs con route tables independientes
+- **Aplicación**:
+  - marketplace-payment-service con múltiples rutas a Stripe API
+  - API Gateway balanceando entre instancias de marketplace-catalog-service
+  - Múltiples NAT Gateways distribuidos geográficamente
+- **Activación**: Certificate rotation automática en webhook-handler-service, DNS-based load balancing
+
+#### 10. Kubernetes Self-Healing
+
+##### EKS Configuration aplicada a todos los microservicios del marketplace
+- **Ubicación**: Cluster EKS con distribución anti-affinity entre nodos y zones
+- **Aplicación**:
+  - Resource quotas garantizadas en catalog-search-engine-service y payment-processor-service
+  - PodDisruptionBudgets: mínimo 60% pods operacionales durante updates
+  - Anti-affinity rules previenen concentración de marketplace-payment-service en un solo nodo
+- **Activación**:
+  - **Liveness probes**: detectan pods hung en fraud-detection-service
+  - **Readiness probes**: validan conectividad a Stripe en subscription-billing-service  
+  - **Startup probes**: optimizan carga de modelos ML en behavioral-ml-service
+  
 
 ### Diagrama del Backend 
 
