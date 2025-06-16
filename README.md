@@ -7870,14 +7870,146 @@ Dashboards centralizados del estado completo de infraestructura. Configuraciones
 - *Consume*: `service.health.degraded`, `integration.external.failed`
 - *Produce*: `config.updated`, `backup.completed`, `feature.toggle.changed`
 
+### Servicios AWS para Backoffice Administrativo
+
+#### Compute Services
+
+##### Amazon EKS
+**Propósito**: Orquestación de los 5 microservicios del backoffice con escalabilidad automática
+- **Configuración**: Cluster multi-AZ con node groups optimizados para cargas administrativas
+- **Auto Scaling**: HPA basado en CPU/memoria para manejar picos durante validaciones masivas
+- **Networking**: VPC privada con subnets aisladas para mayor seguridad
+- **Uso**: Despliega admin-user-management, data-pipeline-manager, security-key-manager, audit-monitoring y system-configuration services
+
+##### AWS Lambda
+**Propósito**: Funciones serverless para operaciones críticas y automatización
+- **Key Rotation Functions**: Rotación automática de llaves tripartitas programada
+- **Audit Processing**: Procesamiento en tiempo real de eventos de auditoría
+- **Health Checks**: Verificaciones automatizadas de salud de integraciones externas
+- **Backup Validation**: Verificación de integridad de respaldos automáticos
+
+#### Storage & Database
+
+##### Amazon RDS PostgreSQL
+**Propósito**: Base de datos principal para cada microservicio siguiendo patrón Database per Service
+- **Configuración**: Multi-AZ con encrypted storage, automated backups
+- **Databases**:
+  - `admin_users_db`: Usuarios, roles, permisos, historial de validaciones
+  - `pipelines_db`: Configuraciones de pipelines, logs de intervenciones
+  - `security_keys_db`: Metadata de llaves, custodios (datos cifrados)
+  - `audit_db`: Casos de investigación, reportes de cumplimiento
+  - `system_config_db`: Configuraciones globales, estado de integraciones
+
+##### Amazon ElastiCache Redis
+**Propósito**: Cache distribuido para optimización de rendimiento
+- **Session Cache**: Sesiones activas de administradores
+- **Permission Cache**: Permisos RBAC para validación rápida
+- **Pipeline Status**: Estado en tiempo real de pipelines de transformación
+- **Integration Health**: Estado actual de APIs externas (Stripe, SumSub)
+
+##### Amazon S3
+**Propósito**: Almacenamiento de documentos y respaldos
+- **Buckets**:
+  - `backoffice-audit-logs`: Logs de auditoría con retention automático
+  - `compliance-reports`: Reportes regulatorios con cifrado
+  - `user-documents`: Documentos de validación con acceso controlado
+  - `system-backups`: Respaldos automáticos de configuraciones
+
+#### Security & Identity
+
+##### AWS Cognito
+**Propósito**: Autenticación y autorización de administradores del backoffice
+- **User Pool**: Gestión de identidades de operadores administrativos
+- **Identity Pool**: Control de acceso granular por rol administrativo
+- **MFA**: Autenticación multifactor obligatoria para operaciones críticas
+- **Integration**: SSO con Active Directory corporativo si aplica
+
+##### AWS KMS
+**Propósito**: Gestión de llaves maestras para cifrado de datos sensibles
+- **Master Keys**: Protección de llaves tripartitas del security-key-manager
+- **Database Encryption**: Cifrado de bases de datos RDS
+- **S3 Encryption**: Cifrado de documentos y reportes almacenados
+- **Secrets Encryption**: Protección adicional de credenciales en Secrets Manager
+
+##### AWS Secrets Manager
+**Propósito**: Almacenamiento seguro de credenciales y llaves distribuidas
+- **API Credentials**: Credenciales para SumSub, Stripe, servicios externos
+- **Database Connections**: Strings de conexión a bases de datos
+- **Tripartite Key Portions**: Porciones de llaves distribuidas entre custodios
+- **Auto Rotation**: Rotación automática de credenciales según políticas
 
 
-## Arquitectura de Comunicación
+#### Integration & Communication
 
-**Event-Driven**: Amazon EventBridge como bus central de eventos asíncronos
-**Síncrona**: API Gateway interno con Service Discovery y Circuit Breakers
-**Persistencia**: Database per Service con PostgreSQL, Redis, OpenSearch, S3
-**Observabilidad**: AWS X-Ray, CloudWatch, Grafana con alertas inteligentes
+##### Amazon EventBridge
+**Propósito**: Bus de eventos central para comunicación asíncrona entre microservicios
+- **Custom Event Bus**: Eventos específicos del backoffice separados del bus principal
+- **Event Rules**: Routing automático de eventos entre microservicios
+- **Dead Letter Queues**: Manejo de eventos fallidos con reintentos
+- **Event Replay**: Capacidad de replay para debugging y recovery
+
+##### Amazon API Gateway
+**Propósito**: Gateway unificado para APIs del backoffice con seguridad integrada
+- **Rate Limiting**: Control de carga por usuario y endpoint
+- **Authentication**: Integración con Cognito para validación de tokens
+- **Request Validation**: Validación automática de schemas de entrada
+- **Usage Plans**: Planes diferenciados por tipo de administrador
+
+##### Amazon SES
+**Propósito**: Servicio de email para notificaciones críticas
+- **Transactional Emails**: Notificaciones de aprobación/rechazo de usuarios
+- **Security Alerts**: Alertas inmediatas de incidentes de seguridad
+- **Compliance Notifications**: Notificaciones regulatorias automáticas
+- **Custodian Communications**: Emails cifrados para custodios de llaves
+
+#### AI & Analytics
+
+##### Amazon SageMaker
+**Propósito**: Modelos de machine learning para análisis de seguridad y detección de anomalías
+- **Anomaly Detection**: Modelos para detectar patrones sospechosos en audit logs
+- **Risk Scoring**: Scoring automático de usuarios durante validaciones
+- **Threat Classification**: Clasificación automática de amenazas de seguridad
+- **Model Endpoints**: APIs en tiempo real para análisis durante operaciones
+
+##### AWS Comprehend
+**Propósito**: Análisis de texto para documentos de validación
+- **Document Analysis**: Análisis automático de documentos subidos por usuarios
+- **Sentiment Analysis**: Análisis de comunicaciones en casos de investigación
+- **Entity Recognition**: Extracción automática de entidades relevantes
+- **Custom Models**: Modelos específicos para documentos costarricenses
+
+#### Backup & Disaster Recovery
+
+##### AWS Backup
+**Propósito**: Respaldos centralizados y automatizados
+- **RDS Backups**: Respaldos automáticos de todas las bases de datos
+- **S3 Cross-Region**: Replicación de documentos críticos entre regiones
+- **Point-in-Time Recovery**: Capacidad de restauración granular
+- **Compliance Retention**: Retención según requerimientos regulatorios
+
+##### AWS CloudFormation
+**Propósito**: Infraestructura como código para disaster recovery
+- **Template Versioning**: Versionado de infraestructura para rollbacks rápidos
+- **Multi-Region Deployment**: Capacidad de despliegue en región secundaria
+- **Automated Recovery**: Scripts de recuperación automática ante desastres
+- **Configuration Drift**: Detección de cambios no autorizados en infraestructura
+
+#### Configuration & Compliance
+
+##### AWS Systems Manager
+**Propósito**: Gestión centralizada de configuraciones y patches
+- **Parameter Store**: Configuraciones encriptadas versionadas por microservicio
+- **Patch Manager**: Actualizaciones automáticas de seguridad en EKS nodes
+- **Session Manager**: Acceso seguro a instancias sin SSH keys
+- **Compliance Scanning**: Verificación automática de compliance de infraestructura
+
+##### AWS Config
+**Propósito**: Monitoreo de compliance y cambios de configuración
+- **Resource Compliance**: Verificación continua de configuraciones según políticas
+- **Change Tracking**: Historial completo de cambios en recursos AWS
+- **Compliance Rules**: Reglas automáticas para Ley 8968 y GDPR
+- **Remediation**: Corrección automática de configuraciones no conformes
+
 
 ## Diseño de los datos
 
