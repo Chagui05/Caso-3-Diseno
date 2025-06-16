@@ -7765,250 +7765,380 @@ frontend/
 
 ### Microservicios del Backoffice Administrativo
 
-#### 1. admin-user-management-service
+#### 1. admin-validation-service
 
-Controla el acceso al ecosistema gestionando usuarios desde registro hasta permisos operacionales.
+**Responsabilidad**: Validación y aprobación de registros pendientes del Bio Registro, sin duplicar datos primarios.
 
-##### Componentes Clave
-- **AdminUserController**: APIs REST para gestión de usuarios y organizaciones
-- **UserValidator**: Validación automática con IA y integración SumSub para KYC
-- **RoleManager**: Sistema RBAC con permisos granulares por tipo de entidad
-- **PermissionEngine**: Evaluación en tiempo real con cache Redis
-- **ProfileManager**: Sincronización de perfiles entre Bio Registro y ecosistema
-
-##### Operación
-Los administradores validan registros pendientes usando scoring automático de IA y SumSub. Las aprobaciones activan creación automática de cuentas Cognito y notificaciones por email. Los cambios de permisos se propagan inmediatamente via eventos.
-
-**Tecnologías**: FastAPI, PostgreSQL, Redis, SumSub API, AWS SES
-
-**Eventos**:
-- *Consume*: `user.registration.completed`, `user.kyc.verified`
-- *Produce*: `user.approved`, `role.assigned`, `permission.updated`
-
-
-#### 2. data-pipeline-manager-service
-
-Centro de control para pipelines de transformación con supervisión y gestión operacional completa.
-
-##### Componentes Clave
-- **PipelineController**: Dashboard y controles de pipelines en tiempo real
-- **AirflowManager**: Gestión directa de DAGs con logs e intervención manual
-- **SparkMonitor**: Métricas de rendimiento y detección de cuellos de botella
-- **QualityAssurance**: Validación automática antes de carga a Redshift
-- **ResourceManager**: Optimización de clusters Spark basada en patrones históricos
+#### Componentes Clave
+- **ValidationController**: APIs REST para gestión de validaciones pendientes
+- **DocumentAnalyzer**: Validación automatizada con IA usando modelos unificados de Hugging Face
+- **ApprovalWorkflow**: Sistema de flujo de aprobación con múltiples niveles
+- **ValidationStatusManager**: Gestión de estados de validación (pendiente, aprobado, rechazado)
+- **BioRegistroConnector**: Cliente para consultar datos primarios del Bio Registro
 
 ##### Operación
-Monitoreo continuo durante ventanas nocturnas de procesamiento batch. Los operadores intervienen en fallos, analizan logs de Spark y deciden reintentos o escalación. Las intervenciones manuales quedan auditadas para análisis de patrones.
+Los administradores revisan registros pendientes consultando datos del Bio Registro via API. Las validaciones usan scoring automático de IA con modelos de Hugging Face unificados. Las aprobaciones disparan eventos para crear cuentas y notificar usuarios. No almacena datos de usuario, solo estados de validación.
 
-**Tecnologías**: Apache Airflow API, Spark History Server, OpenSearch, PostgreSQL, Grafana API
+**Tecnologías**: FastAPI, PostgreSQL (solo estados), Hugging Face, Bio Registro API
 
-**Eventos**:
-- *Consume*: `pipeline.execution.failed`, `data.quality.issue.detected`
-- *Produce*: `pipeline.manually.paused`, `data.processing.intervention.required`
-
-
-#### 3. security-key-manager-service
-
-Gestiona llaves tripartitas que protegen datasets sensibles con custodios distribuidos.
-
-##### Componentes Clave
-- **KeyManagementController**: Administración completa de llaves criptográficas
-- **CustodianManager**: Red de custodios con validación mancomunada
-- **KeyRotator**: Rotación automática y de emergencia según políticas
-- **CryptoValidator**: Verificación continua de integridad matemática
-- **EmergencyKeyManager**: Protocolos de acceso crítico con trazabilidad
-
-##### Operación
-Generación automática de llaves para organizaciones aprobadas con distribución cifrada a custodios. Rotaciones programadas transparentes y protocolos de emergencia para revocación inmediata ante compromisos de seguridad.
-
-**Tecnologías**: AWS KMS, AWS Secrets Manager, PostgreSQL, AWS Lambda, AWS SES
+**Base de Datos**: `admin_validation_db`
+- Tablas: `validation_requests`, `document_analysis_results`, `approval_workflows`
 
 **Eventos**:
-- *Consume*: `organization.approved`, `security.threat.detected`
-- *Produce*: `keys.generated`, `key.revoked`, `emergency.access.granted`
+- *Consume*: `user.registration.submitted`, `document.uploaded`
+- *Produce*: `validation.approved`, `validation.rejected`, `manual.review.required`
 
 ---
 
-#### 4. audit-monitoring-service
+#### 2. pipeline-operations-service
 
-Sistema nervioso de cumplimiento y seguridad con análisis ML y evidencia forense.
+**Responsabilidad**: Supervisión y gestión operacional de pipelines de transformación con intervención manual.
 
-##### Componentes Clave
-- **AuditController**: Búsqueda forense y reportes regulatorios automáticos
-- **SecurityAnalyzer**: Detección ML de anomalías con SageMaker
-- **ComplianceReporter**: Reportes automáticos Ley 8968, GDPR, ISO 27001
-- **ForensicsExtractor**: Preservación de evidencia con cadena de custodia legal
-- **ThreatDetector**: Análisis en tiempo real con respuestas automáticas
+#### Componentes Clave
+- **PipelineController**: Dashboard en tiempo real y controles operacionales
+- **AirflowIntegrator**: Integración directa con Airflow API para gestión de DAGs
+- **SparkMonitor**: Métricas específicas de rendimiento Spark y detección de cuellos de botella
+- **InterventionManager**: Gestión de intervenciones manuales con trazabilidad completa
+- **ResourceOptimizer**: Optimización de clusters basada en patrones históricos
 
 ##### Operación
-Recopilación continua de eventos con análisis ML para patrones sospechosos. Alertas clasificadas por severidad y investigaciones formales con preservación de evidencia. Reportes de cumplimiento automáticos según calendarios regulatorios.
+Monitoreo continuo durante ventanas de procesamiento batch. Los operadores intervienen en fallos, analizan logs específicos de Spark (memory spill, shuffle operations, task failures) y deciden reintentos o escalación. Todas las intervenciones quedan auditadas.
 
-**Tecnologías**: OpenSearch, AWS CloudTrail, Amazon SageMaker, PostgreSQL, AWS Lambda
+**Tecnologías**: Apache Airflow API, Spark History Server, PostgreSQL, OpenSearch
+
+**Base de Datos**: `pipeline_management_db`
+- Tablas: `pipeline_configurations`, `execution_history`, `manual_interventions`, `performance_metrics`
 
 **Eventos**:
-- *Consume*: Todos los eventos del ecosistema
-- *Produce*: `security.threat.critical`, `compliance.violation.detected`
+- *Consume*: `pipeline.execution.failed`, `data.quality.issue.detected`, `resource.threshold.exceeded`
+- *Produce*: `pipeline.manually.restarted`, `intervention.logged`, `resource.optimization.applied`
+
+
+#### 3. security-key-orchestrator-service
+
+**Responsabilidad**: Orquestación de llaves tripartitas con custodios distribuidos, sin almacenar llaves sensibles.
+
+##### Componentes Clave
+- **KeyOrchestrationController**: Gestión de metadatos y orquestación de llaves
+- **CustodianCoordinator**: Coordinación de custodios geográficamente distribuidos
+- **RotationScheduler**: Programación y coordinación de rotaciones automáticas
+- **EmergencyProtocolManager**: Protocolos de emergencia con tiempos de respuesta definidos
+- **CryptoIntegrityValidator**: Verificación de integridad matemática sin acceso a llaves
+
+##### Operación
+Coordina generación de llaves para organizaciones aprobadas sin almacenar las llaves reales. Gestiona metadatos, programación de rotaciones y protocolos de emergencia. Las llaves permanecen en AWS KMS y con custodios distribuidos.
+
+**Tecnologías**: AWS KMS, AWS Secrets Manager, PostgreSQL (metadatos), AWS Lambda (rotaciones)
+
+**Base de Datos**: `security_keys_metadata_db`
+- Tablas: `key_metadata`, `custodian_assignments`, `rotation_schedules`, `emergency_protocols`
+
+**Geografía de Custodios**:
+- Custodio 1: San José (Gobierno Central)
+- Custodio 2: Cartago (Academia)
+- Custodio 3: Heredia (Sector Privado)
+- Custodio 4: Alajuela (Sector Financiero)
+- Custodio 5: Puntarenas (Representación Regional)
+
+**Eventos**:
+- *Consume*: `organization.approved`, `security.threat.detected`, `rotation.scheduled`
+- *Produce*: `keys.orchestrated`, `key.revoked`, `emergency.access.initiated`, `custodian.notified`
+
+
+
+#### 4. audit-intelligence-service
+
+**Responsabilidad**: Sistema de auditoría inteligente con análisis ML y evidencia forense.
+
+#### Componentes Clave
+- **AuditController**: APIs para búsqueda forense y reportes regulatorios
+- **EventCorrelationEngine**: Correlación distribuida de eventos con OpenTelemetry
+- **SecurityAnalyzer**: Detección de anomalías usando modelos Hugging Face unificados
+- **ComplianceReporter**: Reportes automáticos para regulaciones específicas
+- **ForensicsManager**: Preservación de evidencia con cadena de custodia
+
+##### Operación
+Recopilación continua con procesamiento via Kafka Streams para alto volumen. Correlación de eventos distribuidos y análisis ML para patrones sospechosos. Investigaciones formales con preservación inmutable de evidencia.
+
+**Tecnologías**: Apache Kafka, OpenSearch (separado por propósito), Hugging Face, PostgreSQL
+
+**Base de Datos**: `audit_cases_db`
+- Tablas: `investigation_cases`, `evidence_chain`, `compliance_reports`, `anomaly_alerts`
+
+**OpenSearch Clusters**:
+- `audit-logs-cluster`: Time-series para logs de auditoría
+- `security-events-cluster`: Eventos de seguridad en tiempo real
+
+**Eventos**:
+- *Consume*: Todos los eventos del ecosistema via Kafka
+- *Produce*: `security.threat.critical`, `compliance.violation.detected`, `investigation.initiated`
 
 
 #### 5. system-configuration-service
 
-Centro de control operacional para configuraciones globales e integraciones externas.
+**Responsabilidad**: Configuración global del sistema con feature flags y gestión de integraciones.
 
 ##### Componentes Clave
-- **ConfigController**: Configuración global y gestión de integraciones
-- **IntegrationManager**: Conexiones seguras con APIs externas y fallbacks
-- **HealthMonitor**: Supervisión proactiva de infraestructura completa
-- **BackupManager**: Respaldos automáticos con pruebas de recuperación
-- **FeatureToggleManager**: Despliegue gradual con feature flags
+- **ConfigController**: APIs para configuración global y feature management
+- **FeatureToggleManager**: Feature flags granulares con estrategias de rollout
+- **IntegrationManager**: Gestión de integraciones externas con SLAs específicos
+- **HealthOrchestrator**: Orquestación de health checks distribuidos
+- **BackupCoordinator**: Coordinación de respaldos con validación automática
 
 ##### Operación
-Dashboards centralizados del estado completo de infraestructura. Configuraciones versionadas con rollback inmediato. Monitoreo continuo de integraciones con activación automática de contingencias y ventanas de mantenimiento coordinadas.
+Gestión centralizada de configuraciones con versionado y rollback. Feature flags con deployment strategies (canary, blue-green, ring). Monitoreo de integraciones con circuit breakers y fallback automático.
 
-**Tecnologías**: AWS Systems Manager, Terraform, CloudWatch, AWS Backup, AWS Lambda
+**Tecnologías**: AWS Systems Manager, PostgreSQL, Circuit Breaker Pattern, AWS Backup
+
+**Base de Datos**: `system_configuration_db`
+- Tablas: `feature_flags`, `integration_configs`, `system_parameters`, `deployment_strategies`
+
+**SLAs de Integraciones**:
+- Stripe API: timeout 10s, retry 3 veces
+- SumSub API: timeout 30s, retry 2 veces  
+- Banco Central: timeout 60s, retry 1 vez
 
 **Eventos**:
-- *Consume*: `service.health.degraded`, `integration.external.failed`
-- *Produce*: `config.updated`, `backup.completed`, `feature.toggle.changed`
+- *Consume*: `service.health.degraded`, `integration.external.failed`, `backup.completed`
+- *Produce*: `config.updated`, `feature.toggle.changed`, `integration.circuit.opened`
 
-### Servicios AWS para Backoffice Administrativo
+
+
+#### 6. ai-analysis-service (NUEVO)
+
+**Responsabilidad**: Servicio unificado de IA para todo el Backoffice usando stack consolidado.
+
+##### Componentes Clave
+- **AIAnalysisController**: APIs unificadas para análisis de IA
+- **DocumentClassifier**: Clasificación de documentos usando modelos Hugging Face
+- **AnomalyDetector**: Detección de anomalías en logs y comportamiento
+- **RiskScorer**: Scoring de riesgo para usuarios y transacciones
+- **ModelManager**: Gestión unificada de modelos con cache inteligente
+
+##### Operación
+Punto único para todas las operaciones de IA del Backoffice. Usa modelos Hugging Face compartidos con el Motor de Transformación. SageMaker solo para casos específicos que requieren entrenamiento custom.
+
+**Tecnologías**: Hugging Face Transformers, FastAPI, Redis (cache), AWS SageMaker (casos específicos)
+
+**Modelos Utilizados**:
+- `distilbert-base-multilingual-cased`: Análisis de texto en español
+- `microsoft/DialoGPT-medium`: Generación de reportes
+- `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`: Embeddings
+
+**Eventos**:
+- *Consume*: `document.uploaded`, `security.event.detected`, `audit.analysis.requested`
+- *Produce*: `document.classified`, `anomaly.detected`, `risk.score.calculated`
+
+---
+
+### Servicios AWS 
 
 #### Compute Services
 
 ##### Amazon EKS
-**Propósito**: Orquestación de los 5 microservicios del backoffice con escalabilidad automática
-- **Configuración**: Cluster multi-AZ con node groups optimizados para cargas administrativas
-- **Auto Scaling**: HPA basado en CPU/memoria para manejar picos durante validaciones masivas
-- **Networking**: VPC privada con subnets aisladas para mayor seguridad
-- **Uso**: Despliega admin-user-management, data-pipeline-manager, security-key-manager, audit-monitoring y system-configuration services
+**Propósito**: Orquestación de los 6 microservicios del backoffice
+- **Configuración**: Cluster multi-AZ con node groups t3.medium (2 vCPU, 8 GB RAM)
+- **Auto Scaling**: HPA basado en CPU >70%, memoria >80% por 5 minutos
+- **Networking**: VPC privada con security groups restrictivos
+- **Uso**: Despliega admin-validation, pipeline-operations, security-key-orchestrator, audit-intelligence, system-configuration, ai-analysis services
 
 ##### AWS Lambda
-**Propósito**: Funciones serverless para operaciones críticas y automatización
-- **Key Rotation Functions**: Rotación automática de llaves tripartitas programada
-- **Audit Processing**: Procesamiento en tiempo real de eventos de auditoría
-- **Health Checks**: Verificaciones automatizadas de salud de integraciones externas
-- **Backup Validation**: Verificación de integridad de respaldos automáticos
+**Propósito**: Funciones serverless para operaciones programadas y event-driven
+- **Configuración**: Python 3.11, 512MB-1GB memoria, timeout variable por función
+
+**Funciones Específicas**:
+- **key_rotation_scheduler**: Coordinación semanal de rotación de llaves con custodios (512MB, 15min timeout)
+- **audit_log_processor**: Procesamiento de eventos de auditoría de alto volumen (1GB, 5min timeout)
+- **backup_validator**: Validación de integridad de respaldos automáticos (256MB, 2min timeout)
+- **compliance_reporter**: Generación mensual de reportes de cumplimiento (1GB, 30min timeout)
+- **integration_health_checker**: Monitoreo cada 5 minutos de APIs externas (256MB, 1min timeout)
+- **emergency_notifier**: Notificaciones inmediatas de emergencias de seguridad (128MB, 30sec timeout)
+- **feature_flag_coordinator**: Coordinación de despliegues de features (256MB, 2min timeout)
+- **data_retention_manager**: Gestión diaria de ciclo de vida de datos (512MB, 10min timeout)
 
 #### Storage & Database
 
 ##### Amazon RDS PostgreSQL
-**Propósito**: Base de datos principal para cada microservicio siguiendo patrón Database per Service
-- **Configuración**: Multi-AZ con encrypted storage, automated backups
-- **Databases**:
-  - `admin_users_db`: Usuarios, roles, permisos, historial de validaciones
-  - `pipelines_db`: Configuraciones de pipelines, logs de intervenciones
-  - `security_keys_db`: Metadata de llaves, custodios (datos cifrados)
-  - `audit_db`: Casos de investigación, reportes de cumplimiento
-  - `system_config_db`: Configuraciones globales, estado de integraciones
+**Propósito**: Almacenamiento especializado por dominio funcional
+- **Configuración**: Multi-AZ, encrypted storage, automated backups
+- **Instancia**: db.t3.medium (2 vCPU, 4 GB RAM) por base
+
+**Bases de Datos Especializadas**:
+
+**shared_reference_db** (20 GB inicial):
+- Referencias a datos primarios de otros componentes
+- Tablas: user_references, dataset_references, organization_references
+
+**admin_validation_db** (50 GB inicial):
+- Estados de validación únicamente
+- Tablas: validation_requests, document_analysis_results, approval_workflows
+
+**pipeline_management_db** (100 GB inicial):
+- Configuración y monitoreo de pipelines
+- Tablas: pipeline_configurations, execution_history, manual_interventions, performance_metrics
+
+**security_keys_metadata_db** (10 GB inicial):
+- Metadatos de llaves sin almacenar llaves reales
+- Tablas: key_metadata, custodian_assignments, rotation_schedules, emergency_protocols
+
+**audit_cases_db** (200 GB inicial):
+- Casos de investigación y compliance
+- Tablas: investigation_cases, evidence_chain, compliance_reports, anomaly_alerts
+
+**system_configuration_db** (5 GB inicial):
+- Configuraciones globales del sistema
+- Tablas: feature_flags, integration_configs, system_parameters, deployment_strategies
 
 ##### Amazon ElastiCache Redis
-**Propósito**: Cache distribuido para optimización de rendimiento
-- **Session Cache**: Sesiones activas de administradores
-- **Permission Cache**: Permisos RBAC para validación rápida
-- **Pipeline Status**: Estado en tiempo real de pipelines de transformación
-- **Integration Health**: Estado actual de APIs externas (Stripe, SumSub)
+**Propósito**: Cache distribuido especializado por uso
+
+**session_cache**: 2 nodos cache.t3.micro para sesiones de administradores (TTL: 8 horas)
+
+**permission_cache**: 3 nodos cache.t3.small para cache de permisos RBAC (TTL: 1 hora, invalidación inteligente)
+
+**ai_model_cache**: 2 nodos cache.t3.medium para cache de modelos Hugging Face (TTL: 24 horas)
+
+**integration_status_cache**: 2 nodos cache.t3.micro para estado de APIs externas (TTL: 5 minutos)
 
 ##### Amazon S3
-**Propósito**: Almacenamiento de documentos y respaldos
-- **Buckets**:
-  - `backoffice-audit-logs`: Logs de auditoría con retention automático
-  - `compliance-reports`: Reportes regulatorios con cifrado
-  - `user-documents`: Documentos de validación con acceso controlado
-  - `system-backups`: Respaldos automáticos de configuraciones
+**Propósito**: Almacenamiento especializado con lifecycle policies
+
+**Buckets Especializados**:
+
+**backoffice-audit-evidence**: Evidencia forense inmutable con cifrado SSE-KMS, versionado habilitado con MFA delete, migración a Glacier después de 90 días, retención permanente
+
+**backoffice-compliance-reports**: Reportes regulatorios con cifrado SSE-S3, migración a IA después de 30 días y Glacier después de 365 días, retención mínima de 7 años
+
+**backoffice-system-backups**: Respaldos de configuraciones con cifrado SSE-KMS, replicación cross-region a us-west-2, migración a Glacier después de 30 días
+
+**backoffice-ai-models**: Modelos Hugging Face cacheados con cifrado SSE-S3, eliminación automática después de 90 días por ser regenerables
 
 #### Security & Identity
 
 ##### AWS Cognito
-**Propósito**: Autenticación y autorización de administradores del backoffice
-- **User Pool**: Gestión de identidades de operadores administrativos
-- **Identity Pool**: Control de acceso granular por rol administrativo
-- **MFA**: Autenticación multifactor obligatoria para operaciones críticas
-- **Integration**: SSO con Active Directory corporativo si aplica
+**Propósito**: Autenticación exclusiva para administradores del backoffice
+
+**User Pool Configuration**:
+- Nombre: backoffice-administrators
+- MFA: Obligatorio (TOTP + SMS)
+- Política de contraseñas: mínimo 12 caracteres con símbolos, números y mayúsculas requeridas
+- Atributos personalizados: admin_level (junior/senior/super), clearance_level (standard/elevated/maximum), geo_restriction por provincia
+
+**Identity Pool Roles**:
+- **backoffice_junior_admin**: Lectura de auditoría, validación de documentos
+- **backoffice_senior_admin**: Gestión de pipelines, configuración de sistema  
+- **backoffice_super_admin**: Gestión de llaves, acceso de emergencia
 
 ##### AWS KMS
-**Propósito**: Gestión de llaves maestras para cifrado de datos sensibles
-- **Master Keys**: Protección de llaves tripartitas del security-key-manager
-- **Database Encryption**: Cifrado de bases de datos RDS
-- **S3 Encryption**: Cifrado de documentos y reportes almacenados
-- **Secrets Encryption**: Protección adicional de credenciales en Secrets Manager
+**Propósito**: Llaves especializadas por tipo de datos
 
-##### AWS Secrets Manager
-**Propósito**: Almacenamiento seguro de credenciales y llaves distribuidas
-- **API Credentials**: Credenciales para SumSub, Stripe, servicios externos
-- **Database Connections**: Strings de conexión a bases de datos
-- **Tripartite Key Portions**: Porciones de llaves distribuidas entre custodios
-- **Auto Rotation**: Rotación automática de credenciales según políticas
+**Key Strategy**:
 
+**backoffice-audit-evidence-key**: Para cifrado de evidencia forense, rotación manual únicamente para preservar evidencia, acceso solo para super admins
+
+**backoffice-compliance-reports-key**: Para reportes regulatorios, rotación anual automática, acceso para senior y super admins
+
+**backoffice-config-key**: Para configuraciones sensibles, rotación trimestral automática, acceso para todos los admins
+
+**tripartite-orchestration-key**: Para metadatos de llaves tripartitas, rotación semestral automática, acceso solo para super admins + servicios KMS
+
+#### AWS Secrets Manager
+**Propósito**: Credenciales con rotación automática
+
+**Secrets Management**:
+
+**external-api-credentials**: SumSub API key (rotación cada 90 días), Stripe keys (rotación cada 60 días), certificado Banco Central (rotación anual)
+
+**database-credentials**: admin_validation_db (rotación cada 30 días), pipeline_management_db (rotación cada 30 días), audit_cases_db (rotación cada 15 días por ser sensible)
+
+**integration-certificates**: Certificado PKI gubernamental (rotación según PKI nacional), certificados de servicios internos (rotación cada 90 días)
+
+#### AI & Analytics
+
+#### Amazon SageMaker (Uso Limitado)
+**Propósito**: Solo para casos específicos que requieren entrenamiento custom
+
+**Limited Use Cases**:
+
+**custom_document_classifier**: Clasificación de documentos costarricenses específicos usando DistilBERT fine-tuned para documentos legales CR, entrenamiento mensual con nuevos datos
+
+**fraud_detection_model**: Detección de fraude específico para patrones CR usando XGBoost con features locales, entrenamiento semanal
+
+**compliance_text_analyzer**: Análisis de compliance para regulaciones CR usando custom NER para entidades regulatorias, entrenamiento trimestral
+
+**Infrastructure**: Instancias de entrenamiento ml.m5.large on-demand, endpoints de inferencia ml.t3.medium (máximo 3 endpoints), model registry con versionado automático
+
+##### Apache Kafka (en EKS)
+**Propósito**: Stream processing para alto volumen de eventos de auditoría
+
+**Kafka Configuration**: 3 brokers en diferentes AZs, retención de 7 días para eventos de auditoría, 10 particiones por topic crítico, factor de replicación 3
+
+**Topics Structure**:
+
+**audit-events-high-volume**: Eventos de auditoría en tiempo real, retención 7 días, 15 particiones
+
+**security-events-critical**: Eventos críticos de seguridad, retención 30 días, 5 particiones
+
+**compliance-events**: Eventos para compliance, retención 90 días, 8 particiones
 
 #### Integration & Communication
 
 ##### Amazon EventBridge
-**Propósito**: Bus de eventos central para comunicación asíncrona entre microservicios
-- **Custom Event Bus**: Eventos específicos del backoffice separados del bus principal
-- **Event Rules**: Routing automático de eventos entre microservicios
-- **Dead Letter Queues**: Manejo de eventos fallidos con reintentos
-- **Event Replay**: Capacidad de replay para debugging y recovery
+**Propósito**: Integración cross-component y eventos programados
+
+**Event Buses**:
+
+**backoffice-internal-bus**: Para eventos internos del backoffice con 12 reglas y targets hacia Lambda functions, SQS, SNS
+
+**cross-component-bus**: Para integración con Bio Registro, La Bóveda, etc. con 8 reglas y targets hacia HTTP endpoints y Lambda
+
+**Custom Rules**:
+
+**user-validation-approved**: Source desde admin-validation-service hacia Bio Registro API y notification Lambda
+
+**security-incident-detected**: Source desde audit-intelligence-service hacia emergency Lambda y CERT webhook
+
+**backup-completed**: Source desde AWS Backup hacia validation Lambda y compliance reporter
 
 ##### Amazon API Gateway
-**Propósito**: Gateway unificado para APIs del backoffice con seguridad integrada
-- **Rate Limiting**: Control de carga por usuario y endpoint
-- **Authentication**: Integración con Cognito para validación de tokens
-- **Request Validation**: Validación automática de schemas de entrada
-- **Usage Plans**: Planes diferenciados por tipo de administrador
+**Propósito**: Gateway unificado con seguridad robusta
 
-##### Amazon SES
-**Propósito**: Servicio de email para notificaciones críticas
-- **Transactional Emails**: Notificaciones de aprobación/rechazo de usuarios
-- **Security Alerts**: Alertas inmediatas de incidentes de seguridad
-- **Compliance Notifications**: Notificaciones regulatorias automáticas
-- **Custodian Communications**: Emails cifrados para custodios de llaves
+**Gateway Configuration**:
+- Autenticación: Cognito User Pool
+- Autorización: Custom authorizer con RBAC
+- Rate limiting: junior_admin 100 req/min, senior_admin 300 req/min, super_admin 1000 req/min
+- Throttling: burst limit 200, rate limit 100
+- Request validation: Body validation habilitada con JSON Schema, parameter validation habilitada, headers requeridos enforced
 
-#### AI & Analytics
-
-##### Amazon SageMaker
-**Propósito**: Modelos de machine learning para análisis de seguridad y detección de anomalías
-- **Anomaly Detection**: Modelos para detectar patrones sospechosos en audit logs
-- **Risk Scoring**: Scoring automático de usuarios durante validaciones
-- **Threat Classification**: Clasificación automática de amenazas de seguridad
-- **Model Endpoints**: APIs en tiempo real para análisis durante operaciones
-
-##### AWS Comprehend
-**Propósito**: Análisis de texto para documentos de validación
-- **Document Analysis**: Análisis automático de documentos subidos por usuarios
-- **Sentiment Analysis**: Análisis de comunicaciones en casos de investigación
-- **Entity Recognition**: Extracción automática de entidades relevantes
-- **Custom Models**: Modelos específicos para documentos costarricenses
+**API Stages**:
+- **Development**: Caching deshabilitado, logging completo de request/response
+- **Production**: Caching de 5 minutos para endpoints de lectura, logging solo de errores más audit trail
 
 #### Backup & Disaster Recovery
 
-##### AWS Backup
-**Propósito**: Respaldos centralizados y automatizados
-- **RDS Backups**: Respaldos automáticos de todas las bases de datos
-- **S3 Cross-Region**: Replicación de documentos críticos entre regiones
-- **Point-in-Time Recovery**: Capacidad de restauración granular
-- **Compliance Retention**: Retención según requerimientos regulatorios
+##### AWS Backup (Estrategia Cross-Region)
+**Propósito**: Respaldos automatizados con DR geográfico
 
-##### AWS CloudFormation
-**Propósito**: Infraestructura como código para disaster recovery
-- **Template Versioning**: Versionado de infraestructura para rollbacks rápidos
-- **Multi-Region Deployment**: Capacidad de despliegue en región secundaria
-- **Automated Recovery**: Scripts de recuperación automática ante desastres
-- **Configuration Drift**: Detección de cambios no autorizados en infraestructura
+**Backup Strategy**:
 
-#### Configuration & Compliance
+**daily_snapshots**: Recursos incluyen instancias RDS y volúmenes EBS, retención 30 días local, cross-region a us-west-2 por 7 días
 
-##### AWS Systems Manager
-**Propósito**: Gestión centralizada de configuraciones y patches
-- **Parameter Store**: Configuraciones encriptadas versionadas por microservicio
-- **Patch Manager**: Actualizaciones automáticas de seguridad en EKS nodes
-- **Session Manager**: Acceso seguro a instancias sin SSH keys
-- **Compliance Scanning**: Verificación automática de compliance de infraestructura
+**weekly_full_backup**: Recursos incluyen todas las bases RDS y buckets S3 críticos, retención 90 días local, cross-region a us-west-2 por 30 días
 
-##### AWS Config
-**Propósito**: Monitoreo de compliance y cambios de configuración
-- **Resource Compliance**: Verificación continua de configuraciones según políticas
-- **Change Tracking**: Historial completo de cambios en recursos AWS
-- **Compliance Rules**: Reglas automáticas para Ley 8968 y GDPR
-- **Remediation**: Corrección automática de configuraciones no conformes
+**compliance_backup**: Recursos incluyen audit_cases_db y compliance reports, retención 7 años local, cross-region a us-west-2 por 7 años
+
+**Recovery Objectives**: RTO menor a 2 horas para servicios críticos, RPO menor a 15 minutos para datos críticos, testing con DR drills automáticos mensuales
+
+##### AWS Route 53 Health Checks
+**Propósito**: Monitoreo y failover automático
+
+**Health Check Strategy**:
+
+**Primary region endpoints**: admin-validation-service cada 30 segundos, audit-intelligence-service cada 30 segundos, security-key-orchestrator cada 10 segundos
+
+**Failover configuration**: Primario en us-east-1, secundario en us-west-2, umbral de failover de 2 fallas consecutivas
+
+**Notification**: SNS topic backoffice-health-alerts con lista de email admin-team@datapuravida.cr
 
 
 ## Diseño de los datos
