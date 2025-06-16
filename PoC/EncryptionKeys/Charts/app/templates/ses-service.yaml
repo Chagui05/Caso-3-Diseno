@@ -1,0 +1,42 @@
+{{ if .Values.config.ses_service.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.config.ses_service.name }}
+  labels:
+    app: {{ .Values.config.ses_service.name }}
+spec:
+  replicas: {{ .Values.config.ses_service.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.config.ses_service.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.config.ses_service.name }}
+    spec:
+      containers:
+      - name: {{ .Values.config.ses_service.name }}
+        image: {{ .Values.config.ses_service.image }}
+        env:
+            - name: RABBITMQ_HOST
+              value: {{ .Values.config.rabbitmq.host }}
+            - name: RABBITMQ_PORT
+              value: "{{ .Values.config.rabbitmq.port }}"
+            - name: RABBITMQ_USER
+              value: {{ .Values.config.rabbitmq.user }}
+            - name: RABBITMQ_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.config.rabbitmq.passName }}
+                  key: {{ .Values.config.rabbitmq.passKey }}
+            - name: RABBITMQ_QUEUE
+              value: {{ .Values.config.rabbitmq.queue_name }}
+            - name: AWS_ACCESS_KEY_ID
+              value: {{ .Values.config.aws.key }}
+            - name: AWS_SECRET_ACCESS_KEY
+              value: {{ .Values.config.aws.secret_key }}
+            - name: AWS_REGION
+              value: {{ .Values.config.aws.region }}
+
+{{ end }}

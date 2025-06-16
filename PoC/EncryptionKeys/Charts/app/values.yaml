@@ -1,0 +1,24 @@
+config:
+  aws:
+    key: 
+    secret_key: 
+    region: us-east-2
+  rabbitmq:
+    passName: databases-rabbitmq
+    passKey: rabbitmq-password
+    host: databases-rabbitmq
+    port: 5672
+    user: user
+    queue_name: kek_email
+  kek_sender:
+    enabled: true
+    name: kek-sender
+    image: chago05/kek-sender
+    replicas: 1
+    port: 8000
+    nodeport: 30080
+  ses_service:
+    enabled: true
+    name: ses-service
+    image: chago05/ses-service
+    replicas: 1

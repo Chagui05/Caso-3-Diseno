@@ -1,0 +1,4 @@
+rabbitmq:
+  enabled: true
+  auth:
+    password: "password"

@@ -4350,7 +4350,7 @@ El progreso de upload debe actualizarse simultáneamente en múltiples component
 - **UIProgressObserver**: Actualiza componentes específicos mediante referencias React
 - **NotificationObserver**: Envía alertas al sistema de messaging del usuario
 
-#### Diagrama de Clases 
+#### Diagrama de Clases
 El diagrama muestra la integración de todos los patrones de diseño implementados en el frontend. La arquitectura se organiza en **5 capas** claramente diferenciadas:
 
 ![alt text](image-1.png)
@@ -4735,6 +4735,8 @@ Respuesta al frontend:
   "datasetId": "uuid-del-dataset"
 }
 ```
+
+5. Además se envía un mensaje por RabbitMQ a la cola que el motor de transformación lee para saber que tiene que procesar un nuevo dataset.
 
 **3. security-service**
 
@@ -5340,6 +5342,13 @@ El Centro de Carga también se beneficia del uso de Amazon EKS para gestionar mi
 
 ### Diagrama del Backend
 
+A continuación se presenta el diagrama del backend del Centro de carga. En él se evidencia cómo todo el ecosistema de AWS interactúa con los distintos microservicios desplegados en el clúster de Kubernetes provisto por EKS. También se describen los clases internas de cada microservicio, los patrones utilizados, y cómo interactúan entre sí.
+
+Se muestra cómo la contenerización de cada microservicio se realizará utilizando Docker, y cómo el monitoreo interno será gestionado por Prometheus. Además se visualiza el cluster autogestionado de Spark para extraer datasets de fuentes externas.
+
+![image](img/DiagramaBackendCC.svg)
+
+
 ## Diseño de los Datos
 
 La influencia de este componente sobre la base de datos es mínima, ya que reutiliza la misma instancia de RDS compartida con La Bóveda y el Bioregistro, cuyas especificaciones ya fueron detalladas previamente. Del mismo modo, las configuraciones para DynamoDB y S3 se mantienen idénticas a las de esos componentes.
@@ -5707,7 +5716,7 @@ El flujo principal sería el siguiente:
 
 - Para cada prompt se tendrá un .txt base al cual simplemente se le añadirá el contexto obtenido por medio del Schema.json y las entidades de spaCy para realizar consultas completas.
 
-3. Se obtendrá un recomendations.json que será devuelto al nodo de airflow que hizo el POST.
+4. Se obtendrá un recomendations.json que será devuelto al nodo de airflow que hizo el POST.
 
 **8. merger**
 
@@ -6200,13 +6209,13 @@ Se muestra cómo la contenerización de cada microservicio se realizará utiliza
 
 ## Diseño del Frontend
 
-### Arquitectura del Cliente 
+### Arquitectura del Cliente
 
 Nuestra arquitectura de cliente consistirá en Client Side Rendering con rendering estático, con una única capa dedicada a la web. Esta decisión se toma porque los bundles de React generados en el build de cada proyecto serán almacenados en un bucket de S3, el cual será servido a los clientes mediante el CDN provisto por CloudFront.
 
 Además, para acceder al backend se utilizará una única API, desarrollada en FastAPI alojada en EKS.
 
-### Patrones de Diseño de Objetos 
+### Patrones de Diseño de Objetos
 
 El diseño del frontend del componente Marketplace de Data Pura Vida sigue principios de diseño orientado a objetos que buscan flexibilidad, mantenibilidad y escalabilidad. Los principales patrones aplicados son los siguientes:
 
@@ -6243,7 +6252,7 @@ El diseño del frontend del componente Marketplace de Data Pura Vida sigue princ
   - View: Los componentes visuales de React, organizados bajo Atomic Design.
 - Beneficio: Separa de forma clara la lógica de presentación, la lógica de negocio y el manejo de estado de UI.
 
-### Estructura de Carpetas del Sistema 
+### Estructura de Carpetas del Sistema
 
 El frontend del componente Marketplace sigue una estructura modular basada en el patrón de diseño Atomic Design, el patrón MVVM y principios de escalabilidad y mantenibilidad. La organización permite extender fácilmente nuevos módulos de negocio dentro del Marketplace.
 
@@ -6334,7 +6343,7 @@ frontend/
   - Templates: `MarketplaceLayout`, `CartLayout`.
   - Pages: `MarketplaceHomePage`, `DatasetDetailsPage`, `CheckoutPage`.
 
-- **MVVM:** 
+- **MVVM:**
   - Model: Clases de datos y funciones que manejan las llamadas a la API (ejemplo: `DatasetApi`).
   - View: Componentes visuales React organizados por Atomic Design.
   - ViewModel: Hooks como `useCart()`, `usePayment()`, `useDatasetSearch()` que gestionan la lógica de negocio.
@@ -6345,7 +6354,7 @@ frontend/
 
 ## Diseño del Backend
 
-### Microservicios 
+### Microservicios
 
 ### marketplace-catalog-service
 
@@ -6761,7 +6770,7 @@ Estas métricas se utilizarán en las siguientes herramientas:
 **Logs y Trazabilidad**
 Un sistema centralizado de logs y trazabilidad es crucial para diagnosticar problemas en un entorno de microservicios.
 
--	Centralización de Logs: 
+-	Centralización de Logs:
     - 	Todos los microservicios configurarán sus aplicaciones para emitir logs estructurados (JSON) a stdout.
     -	También se pueden enviar logs a CloudWatch Logs para integrarse con otras herramientas de AWS y facilitar la consulta con CloudWatch Logs Insights.
 
@@ -6770,7 +6779,7 @@ Un sistema centralizado de logs y trazabilidad es crucial para diagnosticar prob
     -	Un OpenTelemetry Collector se desplegará en el cluster para recolectar las trazas y exportarlas a un backend como Jaeger (para visualización y análisis de trazas).
     -	Esto permitirá seguir una solicitud a través de múltiples microservicios (incluyendo llamadas gRPC y HTTP entre ellos) y ver la latencia de cada salto.
 
--	**Auditoría y Diagnóstico:** 
+-	**Auditoría y Diagnóstico:**
     -	**Elasticsearch:** Proporcionará una interfaz potente para buscar, filtrar y analizar logs estructurados de todos los microservicios, permitiendo una rápida identificación de la causa raíz de problemas.
     -	AWS CloudTrail: Registra todas las llamadas a la API de AWS realizadas por los roles IAM de los microservicios del marketplace, crucial para auditoría de seguridad y cumplimiento.
 
@@ -7153,7 +7162,7 @@ Pruebas semanales automatizadas simulando vectores de ataque reales:
   - **Startup probes**: optimizan carga de modelos ML en behavioral-ml-service
   
 
-### Diagrama del Backend 
+### Diagrama del Backend
 
 A continuación, se presenta el diagrama del backend del Marketplace de Datos de Data Pura Vida. En él se evidencia cómo todo el ecosistema de AWS interactúa con los distintos microservicios desplegados en el clúster de Kubernetes provisto por EKS. Se muestra la contenerización de cada microservicio utilizando Docker y cómo el monitoreo interno es gestionado por Prometheus. También se destacan las interacciones con sistemas de terceros como SumSub y Stripe.
 
@@ -7162,11 +7171,25 @@ A continuación, se presenta el diagrama del backend del Marketplace de Datos de
 
 ## Diseño de los datos
 
+La influencia de este componente sobre la base de datos es mínima, ya que reutiliza la misma instancia de RDS compartida con La Bóveda, el Bioregistro y todas las que tengan control sobre contenido administrativo. Del mismo modo, las configuraciones para DynamoDB se mantienen idénticas a las de esos componentes.
+
+El único aporte nuevo se encuentra reflejado en el diagrama de base de datos que se presenta a continuación.
+
+### Diagrama de Base de Datos
+
+A continuación se presenta el diagrama de base de datos correspondiente al módulo del Centro de Carga. Este diagrama incluye las tablas clave que componen el componente, entre ellas:
+
+- **AccessoDashboard**: Es una tabla que guarda quien tiene acceso a la visualización de un dashboard
+- **Dashboard**: Almacena los dashboards, como tal la meta data de cada uno es guardada en Dynamo en la tabla de "Dashboards", pero también se ocupa llevar control de accesos y relacional, por lo que se tiene una copia en RDS también.
+- **AICuota**: Lleva la cuenta de cuantos usos le quedan a un usuario para hacer consumo de IA sobre un dataset.
+
+![image](img/DiagramaBDCvC.png)
+
 ### Topología de Datos
 
 - **Tipo:** OLTP + OLAP + NoSQL + Motor de búsqueda
 
-- Para el componente Marketplace se va a utilizar un arquitectura híbrida para la separación de responsabilidades entre transacciones, analítica y búsqueda. Las operaciones de compra, gestiones de permisos y accesos se maneja con una base de datos `OLTP` en RDS con PostgreSQl. Las consultas de usuario y logs se maneja en `OLAP` para realizar análisis. Para explorar el catálogo de datasets se usa un motor de búsqueda especializado. 
+- Para el componente Marketplace se va a utilizar un arquitectura híbrida para la separación de responsabilidades entre transacciones, analítica y búsqueda. Las operaciones de compra, gestiones de permisos y accesos se maneja con una base de datos `OLTP` en RDS con PostgreSQl. Las consultas de usuario y logs se maneja en `OLAP` para realizar análisis. Para explorar el catálogo de datasets se usa un motor de búsqueda especializado.
 
 - Para `OLTP`se usa la misma instancia de RDS que se utiliza en el componente Bioregistro, extendida con nuevas tablas para:
   - Transacciones de compra de acceso.
@@ -7177,7 +7200,7 @@ A continuación, se presenta el diagrama del backend del Marketplace de Datos de
 - Para `OLAP`, se usa Amazon Redshift en Serverless, configurado con escalado  automático. Redshift se alimenta por cargas en batch diarias desde Amazon S3 y OpenSearch incluyendo.
   - logs de acceso
   - consultas de usuarios
-  - de navegación. 
+  - de navegación.
   - Redshift también consulta directamente algunas tablas de PostgreSQL mediante Federated Queries.
 
 - Como sección `NoSQL`, Amazon DynamoDB se usa como backend para estado temporal y comportamiento de usuarios:
@@ -7228,7 +7251,7 @@ Estas tablas incluyen políticas de TTL y activan Streams que alimentan pipeline
 - **Polítcias y Reglas**:
 
 - **Single-region:** Toda la infraestructura estará localizada en `us-east-1`
-- **Backups automáticos:** 
+- **Backups automáticos:**
   - RDS y Redshift con respaldo diario a la 1 a.m. en S3.
   - DynamoDB habilitado con backups automáticos y TTL por tabla.
   - S3 tiene versionado y reglas de ciclo de vida para archivar logs.
@@ -7270,7 +7293,7 @@ No se hace uso de RLS al igual que en la bóveda, por las mismas razones.
 
 ### Tenency, Seguridad y Privacidad
 
-- **Modelo**: Single-Access-Point, RBAC, Multi-Tenant 
+- **Modelo**: Single-Access-Point, RBAC, Multi-Tenant
 
   - Todo acceso a datos se hace a través del Single Access Point. Solo las clases autorizadas como `MarketplaceRDSRepository`, `MarketplaceSearchRepository`, `MarketplaceAnalyticsRepository`, `MarketplaceDynamoRepository` y `MarketplaceEventBridgeHandler` están habilitadas para interactuar con las fuentes de datos. Esto incluye RDS, Redshift, DynamoDB y OpenSearch. Toda consulta o acción desde APIs, Lambda o dashboards debe pasar por estas clases.
 
@@ -7296,7 +7319,7 @@ No se hace uso de RLS al igual que en la bóveda, por las mismas razones.
       - Cada ítem incluye tenant_id y user_id, lo que permite el uso de condiciones en IAM Policies para evitar lectura cruzada de tenants.
 
     - **Ejemplo de implementación con LakeFormation**
-    
+
       ```py
       import boto3
       client = boto3.client('lakeformation')
@@ -7347,7 +7370,7 @@ No se hace uso de RLS al igual que en la bóveda, por las mismas razones.
       )
       ```
 
-- **Cloud**: 
+- **Cloud**:
 
   - AWS RDS para PostgreSQL, esquema por colectivo.
   - AWS Redshift Serverless, segmentado por tags.
@@ -7363,7 +7386,7 @@ No se hace uso de RLS al igual que en la bóveda, por las mismas razones.
 
   - Gracias a Single-Access-Point, los accesos a datos del Marketplace (compras, validación de permisos, consultas de visualización) pasan por validadores como `TenantManager` y `MarketplaceRepository`. Esto minimiza el riesgo de acceso directo a las bases de datos sin control lógico o sin trazabilidad.
 
-  - Como cada colectivo tiene su propio esquema en PostgreSQL, y los datasets de pago se asocian a tablas individuales, se elimina el riesgo de filtración de datos entre organizaciones. 
+  - Como cada colectivo tiene su propio esquema en PostgreSQL, y los datasets de pago se asocian a tablas individuales, se elimina el riesgo de filtración de datos entre organizaciones.
 
   - Se pueden diferenciar los datasets públicos, privados y pagos, y aplicar diferentes niveles de acceso y visibilidad sin necesidad de duplicar datos usando tags como `dataset=public-free`.
 
@@ -7379,10 +7402,10 @@ El componente Marketplace maneja su acceso a datos utilizando una arquitectura h
 
 - **Patrones de POO**:
 
-Factory: Se aplica el patrón Factory para crear instancias de conexión y repositorios específicos para cada motor de base de datos:       
+Factory: Se aplica el patrón Factory para crear instancias de conexión y repositorios específicos para cada motor de base de datos:
 
   - `MarketplaceRDSFactory`, `MarketplaceRDSRepository`
-  - `MarketplaceRedshiftFactory`, `MarketplaceRedshiftRepository`   
+  - `MarketplaceRedshiftFactory`, `MarketplaceRedshiftRepository`
   - `MarketplaceSearchFactory`, `MarketplaceSearchRepository`
   - `MarketplaceDynamoFactory`, `MarketplaceDynamoRepository`
 
@@ -7396,7 +7419,7 @@ Factory: Se aplica el patrón Factory para crear instancias de conexión y repos
   - Las funciones Lambda pueden ser probadas y versionadas de forma independiente, ayudando a mantener un sistema robusto.
 
 
-- **Pool de Conexiones:** Usaremos el pool integrado en SQLAlchemy (QueuePool), el cual es dinámico. El tamaño base del pool será de 10 conexiones, y podrá escalar hasta 15 conexiones simultáneas. 
+- **Pool de Conexiones:** Usaremos el pool integrado en SQLAlchemy (QueuePool), el cual es dinámico. El tamaño base del pool será de 10 conexiones, y podrá escalar hasta 15 conexiones simultáneas.
 
   - Tamaño base del pool: 10 conexiones
   - Tamaño máximo: 15 conexiones
@@ -7406,9 +7429,9 @@ Factory: Se aplica el patrón Factory para crear instancias de conexión y repos
     - La escalabilidad se ajusta bajo demanda.
     - Proporciona mayor estabilidad en ambientes productivos.
     - Para DynamoDB y OpenSearch no se usan pools persistentes, ya que los SDKs están optimizados para conexiones breves y asincrónicas (HTTP bajo demanda).
-  
 
-- **Drivers y SDKs:** 
+
+- **Drivers y SDKs:**
 
   - **PostgreSQL / Redshift:**
 
@@ -7481,9 +7504,9 @@ Las tablas que se usan directamente en el Marketplace son:
 
 ![alt text](img/DiagramaBDBoveda.png)
 
-# 4.6 Centro de Visualización y Consumo 
+# 4.6 Centro de Visualización y Consumo
 
-## Diseño del Frontend 
+## Diseño del Frontend
 
 ### Construcción Arquitectónica
 
@@ -7607,6 +7630,180 @@ frontend/
 ```
 
 ## Diseño del Backend
+
+A continuación se presenta la sección de Diseño del Backend, donde se detallan los microservicios correspondientes. El trabajo principal está enfocado en cómo construir consultas dinámicas que permitan generar distintos tipos de gráficos y aplicar diversos tipos de consultas; más adelante se abordará cómo resolver este desafío. También se explicará cómo se planea ofrecer consumo de IA sobre los datasets sin exportar directamente los datos, además de cómo gestionar tareas operativas como el almacenamiento de dashboards.
+
+
+### Microservicios del Componente
+
+
+**1. query-creator**
+
+Este microservicio es el encargado de poder transformar las consultas en lenguaje natural que hacen los usuarios para obtener información de los datasets, a consultas en SQL válidas para poder retornar resultados apropiados (Similar a lo que hace Snowflake con su integración de Cortex).
+
+Funcionará gracias a dos agents de IA con base en los modelos de hugging face:
+- defog/sqlcoder-7b-2
+- Phind/Phind-CodeLlama-34B-v2
+
+Los componentes principales son
+
+ - **QueryCreatorController**: Expone el endpoint RESTful del microservicio.
+  - `/query`: todas las consultas seguidas de query especifican que tipo de dataset es el que se está solicitando
+  - `/query/consult-table`
+  - `/query/consult-scatter-plot`
+  - `/query/consult-line-chart`
+  - `/query/consult-bar-chart`
+  - `/query/consult-pie-chart`
+- **SemanticAnalizer**: Se encarga de analizar el dataset en Redshift junto con sus campos de CategoríaSemántica y Descipciones.
+- **sql-creator**: Se encarga de crear las consultas sql.
+- **query-executor**: Se encarga de ejecutar el query sql y devolver el resultado al frontend.
+
+El flujo principal sería el siguiente:
+
+1. La consulta llega al QueryCreatorController:
+- El frontend hace un  `POST /query/{algun-endpoint}`
+```json
+{
+  "tipoDeGrafico": "tipo de gráfico",
+  "datasetName": "Nombre del dataset",
+  "nlpQuery": "query en lenguaje natural"
+}
+```
+- Una vez obtenida dicha información se pasará el control al SemanticAnalizar para que revise cuales son las tablas correspondientes al dataset en RDS, para que luego extraiga sus columnas, tablas, y en especial, al menos 20 registros de cada una para ver que datos hay en las columnas de Descripcion y Categoria Semantica.
+
+- Posteriormente a esto usando el Langchain con Phind/Phind-CodeLlama-34B-v2 se le dará todo el contexto usando:
+  - La consulta en nlp.
+  - El schema del dataset.
+  - Los campos de Categoria semántica y descripción.
+- Con base en eso generará una recomendación.
+
+2. Creación del script:
+
+- Con base en las recomendaciones del agente anterior, ahora con defog/sqlcoder-7b-2 se creará el script de SQL en sí. Se le dará de contexto:
+  - Las recomendaciones del paso pasado.
+  - La consulta en lenguaje natural del cliente.
+  - El formato con el que se debe devolver la data (varia de gráfico a gráfico, es importante para que calze con el modelo en el frontend)
+
+3. Ejecución del script:
+
+- Una vez se obtenga el query del sql-creator, se pasará el string obteniedo al query-executor, para que realice la consulta en la base de datos, y retorno la data con el formato previamente solicitado al frontend.
+
+**2. dashboard-manager**
+
+Este componente se encarga de gestionar los dashboards: permite guardarlos, compartirlos con otros usuarios y consultar los datasets previamente guardados.
+
+Primeramente cabe aclarar que los dashboards serán guardados en DynamoDB con la siguiente estructura:
+``` json
+{
+  "nombre": "Nombre del dashboard",
+  "gráficos": [
+    {
+      "query_sql": "Consulta SQL generada durante la creación",
+      "tipo_visualizacion": "Tipo de gráfico"
+    }
+  ],
+  "dataset_id": "Id del dataset en RDS",
+  "usuario_id": "Id del usuario propietario en RDS"
+}
+```
+
+Los componentes principales son
+
+ - **DashboardController**: Expone el endpoint RESTful del microservicio.
+  - `/dashboard/save-dashboard`: permite guardar un dashboard
+  - `/dashboard/view-dashboard`: permite visualizar un dashboard
+  - `/dashboard/share-dashboard`: permite compartir un dashboard
+- **DashboardSaver**: Se encarga de traer el dashboard.
+- **DashboardLoader**: Se encarga de traer el dashboard.
+- **DashboardSharer**: Da la funcionalidad para compartir dashboards.
+
+- El componente DashboardSaver se encarga exclusivamente de guardar dashboards en la tabla "Dashboards" de DynamoDB, utilizando el formato previamente definido.
+- Por su parte, el DashboardLoader busca un dashboard por su nombre dentro de DynamoDB, valida que el usuario sea el propietario, y en caso afirmativo, lo recupera para que se puedan ejecutar las consultas asociadas.
+
+Sin embargo el proceso de compartir un dashboard es un tanto más largo:
+
+1. Creación de link
+- Una vez el usuario llama a `POST /dashboard/share-dashboard` con
+```json
+{
+  "username": "nombre de usuario de la persona",
+  "datasetName": "Nombre del dataset"
+}
+```
+
+- Se genera un token UUID que se guardará con formato "collective-register:<TOKEN_UID> : <NOMBRE_DEL_DASHBOARD>" para ser guardado en redis con un TTL de una semana.
+
+- Luego se generará un link con base en ese token que se vea así:
+
+  ```txt
+  https://data-pura-vida.com/dataset/dashboard?token=<TOKEN_UID>
+  ```
+
+2. El link copleto se devuelve al frontend para que peuda compartirlo
+
+3. Uso del link
+
+- Ahora, cualquier usuario que acceda a dicho link en una semana podrá tener acceso al dashboard
+
+- Además, para evitar que el token en redis expire, y la persona no pueda acceder más al dashboard, desde la primera vez que lo acceda se va a haber guardado su usuario en la tabla de AccesoDashboard en RDS.
+
+**3. metrics-manager**
+
+Este componente se encarga de mostrar las métricas de sesión del usuario, incluyendo el número de consultas restantes disponibles. La lógica relacionada con el registro y control de cuotas se encuentra detallada en la sección correspondiente al backend de La Bóveda.
+
+Además, como tal lo que es mostrar el volumen de consultas, y datos extraidos se hace implicitamente al visualizar los dashboards o en el query-creator, ya que este como parte de la información que devuelve al cliente está cuantos datos fueron traidos durante la consulta.
+
+Los componentes principales son
+
+ - **MetricsController**: Expone el endpoint RESTful del microservicio.
+  - `/metrics/use-stats`: da las estadísticas de uso sobre cuantas cuotas quedan
+- **QuoataGetter**: Se encarga de traer las métricas de uso del dashboard.
+
+Este componente es sencillo: su función principal es actualizar en el frontend las métricas de uso cada vez que el usuario ejecuta una consulta a través del servicio query-creator. El manejo del contador de cuota y su trazabilidad está descrito en detalle en la sección de La Bóveda.
+
+**4. ai-ingester**
+
+Finalmente, este microservicio es el que permite que la alimentación de sistema de inteligencia artificial sea posible y segura para los datos del propieatario del dataset.
+
+Los componentes principales son
+
+ - **AiIngestController**: Expone el endpoint RESTful del microservicio.
+  - `/ingest/dataset`: con este endpoint se llama a la alimentación de IAs.
+- **Embedder**: Se encarga de crear embeddings.
+- **DataSender**: Se encarga de enviar la data vectorizada.
+- **DatasetManager**: Se encarga de traer el dataset de Redshift.
+
+Este es el flujo principal:
+
+1. La consulta llega al AiIngestController:
+- El frontend hace un  `POST /ingest/dataset`
+```json
+{
+  "nombreDeColeccion": "Nombre de la colección donde guardar los vectores",
+  "coonectionString": "URI a una base de datos de vectores",
+  "BDtype": "elastic|Mongo|Vespa"
+}
+```
+- Con esa información se sabrá a que base de datos de vectores se deberá enviar la información de los datasets ya tokenizada
+
+2. Generación de Embeddings y Envió:
+
+- Cabe aclarar que este proceso es iterativo.
+
+- Primero se traerá una tabla de redshift, cada 1000 registros.
+
+- Luego el embedder generará los embeddings para cada uno de los campos. Tomará en cuenta cada una de las columnas, especialmente las de Descripción y CategoriaSemantica. Este proceso se hará gracias a sentence-transformers/all-mpnet-base-v2, el cual puede vectorizar oraciones y producir embeddings de 768 dimensiones.
+
+- Luego de esto se pasará la información al origen con el DataSender, cabe aclarar que se usarán distintas estrategias dependiendo de cual tipo de destino sea la base de datos.
+
+- Se repite este proceso de 1000 en 1000 hasta finalizar el dataset.
+
+
+### Diagramas de Clases
+
+
+## Diseño de los Datos
+
 
 ### Servicios de AWS
 
@@ -7771,7 +7968,7 @@ Diseñado para identificar y responder rápidamente ante eventos que comprometan
 
 # 4.7 Backoffice Administrativo
 
-## Diseño del Frontend 
+## Diseño del Frontend
 
 ### Arquitectura de Construcción del Backoffice Administrativo
 
@@ -7789,7 +7986,7 @@ El módulo de Backoffice Administrativo permite a los operadores internos gestio
 
 ### Diseño de la arquitectura
 
-- **Frontend**  
+- **Frontend**
   - Construido en React con Tailwind, siguiendo patrón MVVM.
   - Atomic Design para la composición de pantallas administrativas.
   - Integración con React Query para sincronización eficiente con el backend.
@@ -7837,7 +8034,7 @@ El módulo de Backoffice Administrativo permite a los operadores internos gestio
 
 ### Principios de diseño aplicados
 
-- **MVVM**  
+- **MVVM**
   El frontend sigue estrictamente MVVM con separación en `models`, `hooks` (ViewModel), `components` (View).
 
 - **SOLID**
@@ -7847,10 +8044,10 @@ El módulo de Backoffice Administrativo permite a los operadores internos gestio
   - **Interface Segregation:** Los hooks solo exponen las props mínimas requeridas.
   - **Dependency Inversion:** El backend está completamente desacoplado de la UI, expone solo APIs REST bien definidas.
 
-- **Separation of Concerns:**  
+- **Separation of Concerns:**
   Roles claramente aislados entre visualización, lógica de negocio, persistencia y auditoría.
 
-- **DRY:**  
+- **DRY:**
   Formularios, validadores y modales reutilizados por cada panel de administración.
 
 
@@ -7899,6 +8096,7 @@ frontend/
 │   │   └── AdminDashboardPage.tsx
 │   └── App.tsx
 ```
+
 ## Diseño del Backend
 
 ### Microservicios del Backoffice Administrativo
@@ -8542,5 +8740,6 @@ A continuación, se describen las tablas principales para PostgreSQL, así como 
 
 
 ![image](img/DiagramaBDBackoffice.png)
+
 
 ## 5. Validación de los requerimientos
