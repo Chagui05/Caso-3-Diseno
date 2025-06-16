@@ -7763,6 +7763,122 @@ frontend/
 ```
 ## Diseño del Backend
 
+### Microservicios del Backoffice Administrativo
+
+#### 1. admin-user-management-service
+
+Controla el acceso al ecosistema gestionando usuarios desde registro hasta permisos operacionales.
+
+##### Componentes Clave
+- **AdminUserController**: APIs REST para gestión de usuarios y organizaciones
+- **UserValidator**: Validación automática con IA y integración SumSub para KYC
+- **RoleManager**: Sistema RBAC con permisos granulares por tipo de entidad
+- **PermissionEngine**: Evaluación en tiempo real con cache Redis
+- **ProfileManager**: Sincronización de perfiles entre Bio Registro y ecosistema
+
+##### Operación
+Los administradores validan registros pendientes usando scoring automático de IA y SumSub. Las aprobaciones activan creación automática de cuentas Cognito y notificaciones por email. Los cambios de permisos se propagan inmediatamente via eventos.
+
+**Tecnologías**: FastAPI, PostgreSQL, Redis, SumSub API, AWS SES
+
+**Eventos**:
+- *Consume*: `user.registration.completed`, `user.kyc.verified`
+- *Produce*: `user.approved`, `role.assigned`, `permission.updated`
+
+
+#### 2. data-pipeline-manager-service
+
+Centro de control para pipelines de transformación con supervisión y gestión operacional completa.
+
+##### Componentes Clave
+- **PipelineController**: Dashboard y controles de pipelines en tiempo real
+- **AirflowManager**: Gestión directa de DAGs con logs e intervención manual
+- **SparkMonitor**: Métricas de rendimiento y detección de cuellos de botella
+- **QualityAssurance**: Validación automática antes de carga a Redshift
+- **ResourceManager**: Optimización de clusters Spark basada en patrones históricos
+
+##### Operación
+Monitoreo continuo durante ventanas nocturnas de procesamiento batch. Los operadores intervienen en fallos, analizan logs de Spark y deciden reintentos o escalación. Las intervenciones manuales quedan auditadas para análisis de patrones.
+
+**Tecnologías**: Apache Airflow API, Spark History Server, OpenSearch, PostgreSQL, Grafana API
+
+**Eventos**:
+- *Consume*: `pipeline.execution.failed`, `data.quality.issue.detected`
+- *Produce*: `pipeline.manually.paused`, `data.processing.intervention.required`
+
+
+#### 3. security-key-manager-service
+
+Gestiona llaves tripartitas que protegen datasets sensibles con custodios distribuidos.
+
+##### Componentes Clave
+- **KeyManagementController**: Administración completa de llaves criptográficas
+- **CustodianManager**: Red de custodios con validación mancomunada
+- **KeyRotator**: Rotación automática y de emergencia según políticas
+- **CryptoValidator**: Verificación continua de integridad matemática
+- **EmergencyKeyManager**: Protocolos de acceso crítico con trazabilidad
+
+##### Operación
+Generación automática de llaves para organizaciones aprobadas con distribución cifrada a custodios. Rotaciones programadas transparentes y protocolos de emergencia para revocación inmediata ante compromisos de seguridad.
+
+**Tecnologías**: AWS KMS, AWS Secrets Manager, PostgreSQL, AWS Lambda, AWS SES
+
+**Eventos**:
+- *Consume*: `organization.approved`, `security.threat.detected`
+- *Produce*: `keys.generated`, `key.revoked`, `emergency.access.granted`
+
+---
+
+#### 4. audit-monitoring-service
+
+Sistema nervioso de cumplimiento y seguridad con análisis ML y evidencia forense.
+
+##### Componentes Clave
+- **AuditController**: Búsqueda forense y reportes regulatorios automáticos
+- **SecurityAnalyzer**: Detección ML de anomalías con SageMaker
+- **ComplianceReporter**: Reportes automáticos Ley 8968, GDPR, ISO 27001
+- **ForensicsExtractor**: Preservación de evidencia con cadena de custodia legal
+- **ThreatDetector**: Análisis en tiempo real con respuestas automáticas
+
+##### Operación
+Recopilación continua de eventos con análisis ML para patrones sospechosos. Alertas clasificadas por severidad y investigaciones formales con preservación de evidencia. Reportes de cumplimiento automáticos según calendarios regulatorios.
+
+**Tecnologías**: OpenSearch, AWS CloudTrail, Amazon SageMaker, PostgreSQL, AWS Lambda
+
+**Eventos**:
+- *Consume*: Todos los eventos del ecosistema
+- *Produce*: `security.threat.critical`, `compliance.violation.detected`
+
+
+#### 5. system-configuration-service
+
+Centro de control operacional para configuraciones globales e integraciones externas.
+
+##### Componentes Clave
+- **ConfigController**: Configuración global y gestión de integraciones
+- **IntegrationManager**: Conexiones seguras con APIs externas y fallbacks
+- **HealthMonitor**: Supervisión proactiva de infraestructura completa
+- **BackupManager**: Respaldos automáticos con pruebas de recuperación
+- **FeatureToggleManager**: Despliegue gradual con feature flags
+
+##### Operación
+Dashboards centralizados del estado completo de infraestructura. Configuraciones versionadas con rollback inmediato. Monitoreo continuo de integraciones con activación automática de contingencias y ventanas de mantenimiento coordinadas.
+
+**Tecnologías**: AWS Systems Manager, Terraform, CloudWatch, AWS Backup, AWS Lambda
+
+**Eventos**:
+- *Consume*: `service.health.degraded`, `integration.external.failed`
+- *Produce*: `config.updated`, `backup.completed`, `feature.toggle.changed`
+
+
+
+## Arquitectura de Comunicación
+
+**Event-Driven**: Amazon EventBridge como bus central de eventos asíncronos
+**Síncrona**: API Gateway interno con Service Discovery y Circuit Breakers
+**Persistencia**: Database per Service con PostgreSQL, Redis, OpenSearch, S3
+**Observabilidad**: AWS X-Ray, CloudWatch, Grafana con alertas inteligentes
+
 ## Diseño de los datos
 
 ### Topología de Datos
@@ -7771,10 +7887,22 @@ frontend/
 
 - Para el Backoffice, se empleará una arquitectura de datos híbrida que combine `OLTP` para transacciones y mantenimiento de registros principales, `NoSQL` para metadatos dinámicos y de alto rendimiento, `OLAP` para auditorías y reportes, búsqueda para la supervisión y extracción de información, y almacenamiento de objetos para grandes volúmenes de datos no estructurados como las reglas de carga o las evidencias legales.
 
-- Para `OLTP` utilizaremos `RDS` como la base de datos principal para la gestión. Esta base de datos es ideal para operaciones transaccionales.
+- Para `OLTP` utilizaremos `RDS` como la base de datos principal para la gestión. Esta base de datos es ideal para operaciones transaccionales. Se usarán tablas para:
 
-- Para el `NoSQL` utilizaremos `DynamoDB` ya que este almacena metadatos dinámicos y de alto rendimiento. Ofreciendo:
-   - Estado operativo de servicios.
+   - **Usuarios:** Mantenimiento de usuarios, roles, perfiles.
+   - **RolEntidad:** Definición de roles y su asignación a usuarios a través de la tabla `UsuarioEntidad`. 
+   - **Entidad:** Representa las organizaciones que se registran en la plataforma.
+   - **CargaDatos:** Registro de los procesos de carga de datos, incluyendo su estado y origen.
+   - **Dataset:** Mantenimiento de los datasets publicados, incluyendo si son públicos/privados o pagados y sus permisos de acceso.
+   - **LlaveSeguridad y LlaveTripartita :** Almacenamiento y gestión de llaves criptográficas.
+   - **CustodioLlave:** Gestión de los custodios de llaves.
+   - **Sesion:** Gestión de sesiones activas de los usuarios del Backoffice.
+   - **DatasetPermisos:** Define los permisos específicos que una entidad o usuario sobre datos.
+   - **UsuarioEntidad:** Tabla intermedia que vincula a los usuarios con una entidad.
+   - **Auditoria:** Registra todas las acciones relevantes realizadas.
+
+- Para el `NoSQL` utilizaremos `DynamoDB` ya que este almacena metadatos dinámicos y de alto rendimiento. Ejemplos de uso:
+   - Estado operativo.
    - Historial de cambios de `Dataset`.
    - Logs de ejecución.
    - Configuraciones de conectividad.
@@ -7955,23 +8083,9 @@ Al centralizar la gestión de los elementos de IA en el Backoffice:
   -  **Garantizamos la Gobernanza:** Tenemos un control centralizado para supervisar y auditar los modelos de IA y el uso de sus datos en todo momento.
   -  **Facilitamos la Innovación:** Agilizamos el desarrollo y la mejora de soluciones de IA para todo Data Pura Vida continuamente.
 
-- **Diagrama de Base de Datos:** 
+- **Diagrama de Base de Datos**
+A continuación, se describen las tablas principales para PostgreSQL, así como una mención de cómo se relacionan con DynamoDB y OpenSearch para sus propósitos específicos
 
-A continuación, se presenta la estructura de datos relacional para el sistema de backoffice administrativo.
-
-Las tablas que se usan directamente son:
-
-   - **Usuarios:** Mantenimiento de usuarios, roles, perfiles.
-   - **RolEntidad:** Definición de roles y su asignación a usuarios a través de la tabla `UsuarioEntidad`. 
-   - **Entidad:** Representa las organizaciones que se registran en la plataforma.
-   - **CargaDatos:** Registro de los procesos de carga de datos, incluyendo su estado y origen.
-   - **Dataset:** Mantenimiento de los datasets publicados, incluyendo si son públicos/privados o pagados y sus permisos de acceso.
-   - **LlaveSeguridad y LlaveTripartita :** Almacenamiento y gestión de llaves criptográficas.
-   - **CustodioLlave:** Gestión de los custodios de llaves.
-   - **Sesion:** Gestión de sesiones activas de los usuarios del Backoffice.
-   - **DatasetPermisos:** Define los permisos específicos que una entidad o usuario sobre datos.
-   - **UsuarioEntidad:** Tabla intermedia que vincula a los usuarios con una entidad.
-   - **Auditoria:** Registra todas las acciones relevantes realizadas.
 
 ![image](img/DiagramaBDBackoffice.png)
 
