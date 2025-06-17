@@ -6211,50 +6211,59 @@ Se muestra cómo la contenerización de cada microservicio se realizará utiliza
 
 ### Arquitectura del Cliente
 
-Nuestra arquitectura de cliente consistirá en Client Side Rendering con rendering estático, con una única capa dedicada a la web. Esta decisión se toma porque los bundles de React generados en el build de cada proyecto serán almacenados en un bucket de S3, el cual será servido a los clientes mediante el CDN provisto por CloudFront.
+Nuestra arquitectura de cliente consistirá en Client Side Rendering (CSR) combinado con rendering estático (Static Site Generation), manteniendo una única capa dedicada exclusivamente a la web. Durante el proceso de build, los bundles de React (archivos JavaScript, HTML, CSS y assets) son generados mediante un proceso optimizado y empaquetados para su despliegue. Estos bundles estáticos son almacenados en un bucket de Amazon S3, configurado como origen de almacenamiento de archivos públicos.
 
-Además, para acceder al backend se utilizará una única API, desarrollada en FastAPI alojada en EKS.
+Para asegurar un rendimiento óptimo, baja latencia global y alta disponibilidad, estos archivos estáticos son distribuidos a los usuarios finales a través de Amazon CloudFront, el servicio de Content Delivery Network (CDN) de AWS, el cual replica el contenido en múltiples edge locations alrededor del mundo. Este enfoque permite tiempos de carga rápidos, independientemente de la ubicación geográfica de los usuarios.
+
+Toda la comunicación hacia el backend se canaliza a través de una única API centralizada, implementada sobre el framework FastAPI, desplegada y orquestada dentro de un clúster de contenedores en AWS Elastic Kubernetes Service (EKS). De esta forma, el frontend queda completamente desacoplado de la lógica de negocio, consumiendo únicamente servicios expuestos vía HTTP REST, permitiendo escalabilidad, mantenibilidad y control centralizado de las operaciones de negocio.
 
 ### Patrones de Diseño de Objetos
 
-El diseño del frontend del componente Marketplace de Data Pura Vida sigue principios de diseño orientado a objetos que buscan flexibilidad, mantenibilidad y escalabilidad. Los principales patrones aplicados son los siguientes:
+El diseño del frontend del componente Marketplace de Data Pura Vida sigue principios sólidos de diseño orientado a objetos, enfocados en lograr una solución altamente flexible, mantenible y escalable a largo plazo. Esta estructura permite que el sistema pueda adaptarse fácilmente a cambios futuros, incorporar nuevas funcionalidades de forma incremental y garantizar una separación clara de responsabilidades en cada módulo. Los patrones aplicados organizan tanto los componentes visuales como la lógica de negocio y comunicación con el backend, favoreciendo el desacoplamiento, la reutilización de código, el aislamiento de funcionalidades y la facilidad de pruebas unitarias. Gracias a esta arquitectura, el desarrollo continuo puede realizarse sin afectar negativamente la estabilidad ni el crecimiento evolutivo del sistema.
 
 #### 1 **Patrón de Strategy**
 
-- Ubicación: En los filtros de búsqueda de datasets.
-- Descripción: El frontend permite al usuario aplicar distintos tipos de filtros (por precio, categoría, tipo de dataset, popularidad, etc). Cada filtro implementa una estrategia diferente de ordenamiento o filtrado, pero todos heredan de una interfaz común, lo que permite agregar nuevos filtros en el futuro sin modificar el flujo principal.
-- Beneficio: Permite extender fácilmente nuevos criterios de búsqueda sin alterar el resto del sistema.
+#### 1 **Patrón de Strategy**
+
+- **Ubicación:** En los filtros de búsqueda de datasets.
+- **Descripción:** El frontend permite al usuario aplicar distintos tipos de filtros (por precio, categoría, tipo de dataset, popularidad, fecha de publicación, calificación, entre otros). Cada uno de estos filtros encapsula su propia lógica de ordenamiento o filtrado dentro de clases o funciones específicas que implementan una estrategia concreta. Todos los filtros implementan una interfaz común definida en el sistema, lo que permite que los componentes de búsqueda trabajen de forma genérica sin preocuparse por la lógica interna de cada filtro. De esta manera, el flujo principal de búsqueda permanece estable, mientras que es posible introducir nuevas estrategias de filtrado en el futuro sin modificar el código base existente.
+- **Beneficio:** Esta implementación facilita la extensión del sistema de búsqueda, permite escalar la funcionalidad de filtrado conforme evolucionen los requerimientos de negocio, reduce la posibilidad de errores al introducir cambios y mejora la mantenibilidad del código al aislar cada criterio de filtrado de forma independiente.
 
 #### 2️ **Patrón de Singleton**
 
-- Ubicación: Cliente HTTP centralizado (por ejemplo ApiConnector o MarketplaceApiClient).
-- Descripción: Todo el frontend utiliza una única instancia para gestionar las conexiones al backend (requests HTTP a la API REST de Marketplace).
-- Beneficio: Garantiza un único punto de configuración de headers, manejo de tokens, interceptores de error, y manejo centralizado de respuestas.
+- **Ubicación:** Cliente HTTP centralizado (ApiConnector o MarketplaceApiClient).
+- **Descripción:** En el frontend, toda la comunicación hacia el backend es gestionada por una única instancia del cliente HTTP, implementada como un singleton. Este cliente centralizado es responsable de manejar todas las solicitudes REST hacia la API, asegurando consistencia en la configuración de headers, manejo de autenticación, refresco de tokens, implementación de políticas de reintento, manejo uniforme de errores y control centralizado de los interceptores. Al mantener una única instancia compartida en toda la aplicación, se evita la duplicación de lógica de conexión y se garantiza que todos los módulos del frontend utilicen exactamente los mismos mecanismos de comunicación, seguridad y logging.
+- **Beneficio:** Permite simplificar el mantenimiento de las integraciones con el backend, facilita la trazabilidad de los llamados API, centraliza la configuración de seguridad y reduce significativamente los errores relacionados a inconsistencias en las llamadas HTTP realizadas desde diferentes partes de la aplicación.
+
 
 #### 3️ **Patrón de Observer (Pub-Sub)**
 
-- Ubicación: Sistema de notificaciones y actualización de componentes de UI.
-- Descripción: Algunos componentes de la interfaz están suscritos a eventos globales como la finalización de una compra, actualización de un dataset o expiración de accesos.
-- Beneficio: Desacopla los componentes visuales del flujo de negocio, permitiendo que reaccionen a eventos sin depender directamente unos de otros.
+- **Ubicación:** Sistema de notificaciones y actualización de componentes de UI.
+- **Descripción:** Dentro del frontend, algunos componentes de la interfaz están suscritos a eventos globales a través de un sistema de publicación-suscripción (Pub-Sub). Estos eventos pueden ser generados por múltiples acciones del usuario o del backend, como la finalización de una compra, la actualización de los datos de un dataset, el cambio en el estado de un pedido o la expiración de accesos. Los componentes suscritos escuchan únicamente los eventos relevantes para su funcionalidad, permitiendo actualizar su estado de forma reactiva sin necesidad de tener dependencias directas entre módulos. Esta lógica es gestionada principalmente mediante Contextos de React, Event Emitters o sistemas de estado global controlado.
+- **Beneficio:** Permite un alto grado de desacoplamiento entre los componentes de UI y la lógica de negocio. Facilita la escalabilidad del sistema, ya que nuevos eventos pueden ser integrados sin necesidad de modificar la lógica de los componentes existentes, reduciendo la complejidad, mejorando la mantenibilidad y aumentando la robustez de la interfaz.
+
 
 #### 4️ **Patrón de Facade**
 
-- Ubicación: Módulo de servicios de pago.
-- Descripción: Las operaciones de compra, validación de pagos, visualización de precios y confirmación de compra son orquestadas desde un único módulo de servicios, el cual encapsula la comunicación con Stripe y la lógica de negocio asociada.
-- Beneficio: Simplifica el uso de APIs externas, ocultando la complejidad de validaciones, formatos de respuesta y errores.
+- **Ubicación:** Módulo de servicios de pago.
+- **Descripción:** Las operaciones relacionadas al flujo de pago dentro del Marketplace están centralizadas en un único módulo de servicios que actúa como fachada (Facade). Este módulo es responsable de orquestar todo el proceso de compra, desde la inicialización del pago, validación de transacciones, cálculo y visualización de precios, hasta la confirmación y registro final de la compra. Internamente, este módulo encapsula toda la lógica de integración con proveedores de pago como Stripe (para pagos internacionales) y BAC (para pagos locales), gestionando la comunicación, los formatos de mensajes, validaciones de seguridad, respuesta de los webhooks, tratamiento de errores y actualización del estado de la orden. Los componentes del frontend consumen únicamente métodos simplificados expuestos por esta fachada, sin necesidad de conocer la complejidad interna de cada proveedor externo.
+- **Beneficio:** Simplifica enormemente la integración con múltiples servicios de pago, reduce la duplicación de lógica de negocio, encapsula todas las reglas y validaciones específicas en un único lugar, y permite modificar o extender los proveedores de pago en el futuro sin afectar al resto de la aplicación.
+
 
 #### 5️ Patrón MVVM (Model-View-ViewModel)
 
-- Ubicación: Arquitectura general del frontend.
-- Descripción:
-  - Model: Define los objetos de negocio como Dataset, Order, PaymentTransaction.
-  - ViewModel: Implementado mediante custom hooks como useDatasetSearch(), useMarketplaceCart().
-  - View: Los componentes visuales de React, organizados bajo Atomic Design.
-- Beneficio: Separa de forma clara la lógica de presentación, la lógica de negocio y el manejo de estado de UI.
+- **Ubicación:** Arquitectura general del frontend.
+- **Descripción:** El frontend del Marketplace sigue el patrón arquitectónico **Model-View-ViewModel (MVVM)** para separar de forma clara las distintas responsabilidades dentro de la interfaz.  
+  - **Model:** Define las estructuras de negocio como `Dataset`, `Order`, `PaymentTransaction` y otros objetos de dominio, centralizando las reglas de validación de datos, transformación de estructuras y representación de entidades que viajan entre el frontend y el backend.
+  - **ViewModel:** Implementado mediante **custom hooks** como `useDatasetSearch()`, `useMarketplaceCart()`, `usePayment()`, `useRecommendation()` entre otros. Los ViewModels encapsulan la lógica de negocio específica de cada pantalla o flujo, gestionando el estado de los componentes, control de errores, llamadas al API y cualquier transformación intermedia de datos.
+  - **View:** Los componentes visuales desarrollados en React, estructurados bajo el principio de **Atomic Design**, renderizan la información recibida desde los ViewModels y presentan las interfaces interactivas al usuario.
+- **Beneficio:** La aplicación logra una alta modularidad y mantenibilidad. Las vistas quedan libres de lógica compleja de negocio, los hooks son fácilmente testeables, los modelos centralizan las estructuras de datos, y el sistema completo permite escalar nuevas funcionalidades de forma ordenada y sin generar dependencias cruzadas innecesarias.
+
 
 ### Estructura de Carpetas del Sistema
 
-El frontend del componente Marketplace sigue una estructura modular basada en el patrón de diseño Atomic Design, el patrón MVVM y principios de escalabilidad y mantenibilidad. La organización permite extender fácilmente nuevos módulos de negocio dentro del Marketplace.
+El frontend del componente Marketplace sigue una estructura modular claramente organizada, basada en la combinación de los patrones Atomic Design y MVVM, lo cual permite mantener una separación estricta de responsabilidades entre componentes visuales, lógica de negocio y gestión de datos. Esta estructura facilita la escalabilidad, mantenibilidad y extensibilidad del sistema, permitiendo incorporar nuevos módulos de negocio o funcionalidades sin impactar negativamente el código existente. Además, favorece la reutilización de componentes, simplifica las pruebas unitarias y mejora la claridad general del proyecto durante el desarrollo colaborativo.
+
 
 ```plaintext
 frontend/
@@ -6311,26 +6320,48 @@ frontend/
 
 | Tecnología    | Descripción                                |
 | ------------- | ------------------------------------------ |
-| React         | Framework principal para UI                |
+| React.js      | Framework principal de construcción de la UI |
+| Vite          | Bundler de desarrollo rápido y optimizado  |
 | Tailwind CSS  | Framework de estilos responsivos           |
-| Axios         | Cliente HTTP centralizado                  |
-| Stripe        | Gestión de pagos y facturación             |
+| Axios         | Cliente HTTP centralizado (ApiConnector)   |
 | React Context | Manejo de estado global (usuario, carrito) |
 | React Router  | Control de rutas y navegación              |
+| React Query   | Sincronización eficiente de datos (fetching y caching) |
+| Formik + Yup  | Validación y control de formularios complejos |
+| Stripe        | Gestión de pagos y facturación internacionales |
+| Amplify       | Despliegue estático y automatización CI/CD en AWS |
+| Cognito       | Autenticación de usuarios con MFA          |
+| Plotly.js     | Visualización de gráficos interactivos     |
+
 
 
 ### Componentes Visuales
 
 #### Patrones y Principios:
 
-- **Diseño Responsivo:** Aplicado desde el desarrollo inicial, permitiendo que el Marketplace sea visualizado correctamente en desktop, tablets y móviles. Se utiliza Tailwind para web. Las clases CSS usan unidades relativas (rem, %, vw) y los breakpoints de Tailwind manejan la adaptación automática.
+- **Diseño Responsivo:**  
+  Desde el inicio del desarrollo, todo el sistema de componentes visuales del Marketplace ha sido diseñado para adaptarse correctamente a múltiples tamaños de pantalla, incluyendo desktops, tablets y dispositivos móviles.  
+  Se emplea Tailwind CSS como framework de estilos, el cual permite definir clases responsivas de forma declarativa utilizando breakpoints predefinidos. Las unidades de medida utilizadas son relativas (como `rem`, `%`, `vw` y `vh`) lo que asegura escalabilidad fluida de los elementos visuales según la resolución del dispositivo.  
+  Además, los componentes visuales fueron construidos siguiendo el principio mobile-first, permitiendo que la interfaz priorice el correcto renderizado en pantallas reducidas sin sacrificar la experiencia de usuario en dispositivos de escritorio.  
+  Esta estructura permite que el Marketplace pueda ser consumido de forma cómoda, accesible y visualmente consistente en todos los dispositivos donde los usuarios acceden a la plataforma.
+
 
 - **SOLID:**
-  - Single Responsibility: Cada componente de React cumple una única función. Los componentes visuales están completamente separados de los hooks de lógica.
-  - Open/Closed Principle: Los componentes son extensibles sin modificar su código interno, como los botones (Button) o tarjetas de datasets (DatasetCard).
-  - Liskov Substitution Principle: Las listas de datasets permiten diferentes tarjetas de visualización que pueden reemplazar a las generales según el tipo de dataset.
-  - Interface Segregation Principle: Gracias a Atomic Design, los componentes solo exponen las props necesarias.
-  - Dependency Inversion Principle: La lógica de negocio reside en los ViewModels (custom hooks), manteniendo los componentes visuales desacoplados.
+
+  - **Single Responsibility Principle (SRP):**  
+    Cada componente de React está diseñado para cumplir estrictamente una única responsabilidad visual o de interacción. Los componentes visuales únicamente manejan el renderizado y la presentación de los datos, mientras que toda la lógica de negocio, validación o manipulación de datos se encuentra completamente aislada dentro de los hooks de ViewModel. Esto facilita el mantenimiento, pruebas unitarias y la evolución de cada componente de manera independiente.
+
+  - **Open/Closed Principle (OCP):**  
+    Los componentes visuales están preparados para ser extendidos sin necesidad de modificar su código interno. Por ejemplo, los botones (`Button`), tarjetas de datasets (`DatasetCard`) y formularios son altamente parametrizables a través de sus props, lo que permite modificar su comportamiento o presentación externa sin alterar su implementación interna.
+
+  - **Liskov Substitution Principle (LSP):**  
+    Las listas de datasets y sus tarjetas de visualización están diseñadas para aceptar distintos tipos de visualizaciones que implementan una misma interfaz de props. Esto permite reemplazar un componente de visualización por otro (por ejemplo, una tarjeta simple por una tarjeta premium o recomendada) sin que el resto de la aplicación requiera cambios.
+
+  - **Interface Segregation Principle (ISP):**  
+    Gracias al uso de **Atomic Design**, los componentes exponen únicamente las props estrictamente necesarias para su funcionamiento. No se obliga a los consumidores de los componentes a manejar props innecesarias o irrelevantes, reduciendo así el acoplamiento y simplificando la integración de los componentes.
+
+  - **Dependency Inversion Principle (DIP):**  
+    Toda la lógica de negocio reside en los ViewModels implementados como custom hooks. Los componentes visuales no conocen los detalles de cómo se obtiene, manipula o procesa la información. En su lugar, reciben los datos ya preparados por los hooks, manteniéndose completamente desacoplados de la lógica de negocio o del acceso a datos.
 
 - **DRY (Don't Repeat Yourself):** Los componentes son reutilizables (atoms, molecules). Además, las funciones utilitarias en `utils/` centralizan validaciones de pago, cálculos de carrito, formateo de precios, etc.
 
@@ -8010,130 +8041,240 @@ A continuación se presenta el diagrama de base de datos correspondiente al mód
 
 ### Arquitectura de Construcción del Backoffice Administrativo
 
-El módulo de Backoffice Administrativo permite a los operadores internos gestionar todos los aspectos críticos de la operación, seguridad, auditoría y configuración del ecosistema de Data Pura Vida. La arquitectura está diseñada bajo los mismos principios de escalabilidad, modularidad, seguridad avanzada y desacoplamiento que los demás módulos.
+El módulo de Backoffice Administrativo permite a los operadores internos gestionar todos los aspectos críticos de la operación, seguridad, auditoría y configuración del ecosistema de Data Pura Vida. Su arquitectura sigue los mismos principios de escalabilidad, modularidad, seguridad avanzada y desacoplamiento que el resto de los módulos del sistema.
 
-### Flujo funcional principal:
+El frontend del Backoffice está completamente desacoplado de los microservicios backend, consumiendo únicamente las APIs expuestas por los servicios administrativos centralizados. La aplicación utiliza Client Side Rendering (CSR) en React, desplegado de forma estática sobre S3 y servido globalmente mediante CloudFront.
 
-1. El usuario (operador administrativo) accede mediante login protegido por MFA en Cognito.
-2. El frontend permite administrar usuarios, llaves, flujos de trabajo y auditoría mediante distintos paneles desacoplados.
-3. Cada acción del backoffice es enviada al backend mediante API REST protegida.
-4. El backend valida roles RBAC, ejecuta lógica de negocio, actualiza bases de datos (PostgreSQL, DynamoDB, S3) y dispara eventos a EventBridge y RabbitMQ según corresponda.
-5. Se registran logs completos de auditoría y trazabilidad para cada operación sensible.
-6. El frontend permite consultar en tiempo real el estado de las operaciones y extraer reportes auditables.
+Todo el ciclo de gestión administrativa (usuarios, llaves de seguridad, flujos de datos, auditoría de operaciones, monitoreo de tareas, configuración de pipelines, manejo de custodios y autorizaciones mancomunadas) es orquestado desde esta interfaz, garantizando visibilidad centralizada, control granular de permisos, validación de identidades, auditoría continua y trazabilidad completa.
 
+La arquitectura modular permite extender nuevos módulos administrativos de forma independiente, manteniendo una estricta separación entre vistas, lógica de negocio, y acceso a servicios backend a través de clientes HTTP centralizados, aplicando los principios de MVVM, Atomic Design y Patrones de Diseño de Objetos para su mantenimiento escalable.
 
-### Diseño de la arquitectura
+### Patrones de Diseño de Objetos - Backoffice Administrativo
 
-- **Frontend**
-  - Construido en React con Tailwind, siguiendo patrón MVVM.
-  - Atomic Design para la composición de pantallas administrativas.
-  - Integración con React Query para sincronización eficiente con el backend.
-  - Alta separación de lógica de negocio en hooks: `useUserManagement()`, `useAuditLogs()`, `useKeyManagement()`, `usePipelineManager()`.
+El diseño del frontend del módulo Backoffice Administrativo de Data Pura Vida sigue estrictamente principios de diseño orientado a objetos para lograr un sistema altamente desacoplado, escalable, mantenible y seguro.  
+Dado que este módulo administra operaciones críticas del ecosistema (usuarios, llaves de seguridad, auditoría, pipelines y permisos), se aplican múltiples patrones de diseño para asegurar la extensibilidad y robustez de la solución.
 
-- **Backend**
-  - Microservicio independiente sobre FastAPI desplegado en EKS.
-  - Capa de seguridad API Gateway → Cognito → RBAC interno.
-  - Persistencia híbrida:
-    - PostgreSQL (metadata administrativa y control de usuarios)
-    - DynamoDB (logs y eventos)
-    - S3 (reportes y backups)
-  - Event-Driven para integraciones: RabbitMQ y EventBridge.
-  - Coordinación con el Bioregistro, La Bóveda y el Motor de Transformación mediante gRPC.
+A continuación, se describen los principales patrones aplicados en la arquitectura:
 
-- **Seguridad avanzada**
-  - Todos los accesos requieren autenticación multifactor con Cognito.
-  - Cada acción administrativa produce un evento de auditoría.
-  - Toda interacción sensible es auditada y registrada en OpenSearch.
+#### 1️ Patrón Strategy
 
+- **Ubicación:** Gestión de configuraciones administrativas.
+- **Uso:** Cada módulo de configuración (usuarios, roles, llaves, pipelines, custodia) implementa su propia estrategia de validación y operación, pero todos exponen una interfaz común. Por ejemplo, al crear nuevas políticas de pipelines, cada tipo de flujo sigue una estrategia específica de configuración, permitiendo extender validaciones y reglas sin afectar el flujo global del sistema.
+- **Beneficio:** Permite agregar nuevas reglas de negocio o validadores administrativos de forma desacoplada, sin necesidad de modificar el núcleo del sistema de configuración.
 
-### Construcción de objetos de negocio
+#### 2️ Patrón Singleton
 
-**Tablas principales gestionadas:**
+- **Ubicación:** Cliente HTTP centralizado (BackofficeApiClient).
+- **Uso:** Gestiona las conexiones HTTP hacia el backend administrativo mediante una única instancia compartida. Toda configuración de headers, manejo de tokens de autenticación, interceptores de error, retries y logging de requests se concentra en un único punto.
+- **Beneficio:** Evita duplicación de lógica de comunicación, asegura consistencia en todas las llamadas al backend y facilita el mantenimiento centralizado de seguridad y auditoría de requests.
 
-| Tabla | Descripción |
-|-------|--------------|
-| Users | Administración de operadores internos |
-| UserRoles | Roles y permisos RBAC |
-| PipelinesConfig | Gestión de pipelines activos |
-| SecurityKeys | Llaves de cifrado activas, revocadas y expiradas |
-| AuditLogs | Trazabilidad completa de cada operación |
-| Custodians | Custodios de llaves con validación mancomunada |
-| APIIntegrations | Conexiones externas habilitadas |
+#### 3️ Patrón Observer (Pub-Sub)
 
-**Eventos generados en el backend:**
+- **Ubicación:** Actualización reactiva de estado en la UI.
+- **Uso:** Cuando ocurren eventos administrativos (creación de usuarios, cambios de llaves, actualizaciones de pipelines), los componentes visuales suscritos a los contextos globales de React reciben las actualizaciones en tiempo real, actualizando la UI automáticamente sin necesidad de refrescar el estado global de forma manual.
+- **Beneficio:** Desacopla completamente los componentes de visualización de los flujos de negocio, permitiendo que cualquier acción administrativa propague sus efectos en los paneles correspondientes de forma automática y reactiva.
 
-- `user.updated`
-- `pipeline.config.changed`
-- `key.revoked`
-- `audit.logged`
-- `permission.assigned`
-- `external.integration.modified`
+#### 4️ Patrón Facade
 
+- **Ubicación:** Servicios administrativos de integración.
+- **Uso:** Cada dominio de negocio expone una fachada que encapsula la lógica interna de interacción con los servicios backend. Por ejemplo: UserService, KeyService, PipelineService o AuditService centralizan la interacción de cada módulo con el API, ocultando los detalles de validación de endpoints, manejo de errores, transformaciones de datos y validación de permisos.
+- **Beneficio:** Simplifica la integración entre el frontend y el backend, facilita el testing unitario de los servicios de negocio y centraliza la lógica de orquestación administrativa.
 
-### Principios de diseño aplicados
+#### 5️ Patrón Dependency Injection
 
-- **MVVM**
-  El frontend sigue estrictamente MVVM con separación en `models`, `hooks` (ViewModel), `components` (View).
+- **Ubicación:** Hooks de negocio (ViewModel).
+- **Uso:** Los hooks de cada módulo (`useUserManagement()`, `usePipelineManagement()`, `useKeyManagement()`) reciben como dependencias los servicios de backend que encapsulan el acceso a datos. Esto permite desacoplar completamente la lógica de negocio de los detalles de infraestructura.
+- **Beneficio:** Facilita la prueba aislada de cada ViewModel, reduce el acoplamiento entre capas, permite mockear servicios en testing y mejora la mantenibilidad a largo plazo.
 
-- **SOLID**
-  - **Single Responsibility:** Cada hook gestiona un solo dominio (usuarios, llaves, pipelines, auditoría).
-  - **Open/Closed:** Es sencillo extender nuevos formularios de administración sin romper flujos actuales.
-  - **Liskov Substitution:** Interfaz única para CRUD administrativo de cualquier objeto gestionable.
-  - **Interface Segregation:** Los hooks solo exponen las props mínimas requeridas.
-  - **Dependency Inversion:** El backend está completamente desacoplado de la UI, expone solo APIs REST bien definidas.
+#### 6️ Patrón MVVM (Model-View-ViewModel)
 
-- **Separation of Concerns:**
-  Roles claramente aislados entre visualización, lógica de negocio, persistencia y auditoría.
+- **Model:** Define los objetos de negocio (User, Role, Pipeline, Key, AuditLog, Custodian), estableciendo sus validaciones, transformaciones y estructuras de datos compartidas entre frontend y backend.
+- **ViewModel:** Implementado en hooks altamente especializados para cada dominio (`useUserManagement()`, `usePipelineManager()`, `useAuditLogs()`, etc.). Gestionan el estado de la interfaz, control de formularios, validación previa, llamadas al API y propagación de eventos.
+- **View:** Los componentes visuales de React, diseñados bajo Atomic Design, presentan las pantallas administrativas consumiendo exclusivamente los datos gestionados por los ViewModels.
 
-- **DRY:**
-  Formularios, validadores y modales reutilizados por cada panel de administración.
+- **Beneficio:** Permite una separación clara y robusta entre la lógica de presentación, la lógica de negocio y el acceso a datos, mejorando la mantenibilidad, escalabilidad y capacidad de evolución del sistema sin riesgo de introducir errores cruzados.
 
+#### 7️ Patrón Atomic Design
 
-### Herramientas utilizadas
+- **Aplicación en el Backoffice:**
+  - **Atoms:** Button, Input, Checkbox, Modal, TableRow.
+  - **Molecules:** UserForm, PipelineEditor, KeyConfigForm.
+  - **Organisms:** AuditLogTable, PipelineDashboard, UserManagementPanel.
+  - **Templates:** AdminLayout, FormLayout.
+  - **Pages:** AdminDashboardPage.
 
-| Herramienta | Función |
-|--------------|---------|
-| React + Tailwind | Frontend de la UI administrativa |
-| Plotly.js | Visualización de reportes de uso |
-| React Hook Form | Formularios administrativos |
-| FastAPI | Backend de servicios administrativos |
-| PostgreSQL | Metadata administrativa transaccional |
-| DynamoDB | Logs de auditoría y seguridad |
-| EventBridge + RabbitMQ | Eventos de orquestación |
-| Cognito + MFA | Control de acceso y autenticación |
-| OpenSearch | Auditoría de logs en tiempo real |
-| AWS KMS | Gestión de llaves de cifrado |
-| AWS SES | Notificaciones administrativas |
-| AWS Secrets Manager | Manejo seguro de credenciales internas |
+- **Beneficio:** Facilita la reutilización de componentes visuales en distintas vistas, garantiza consistencia visual y simplifica el mantenimiento de la UI.
 
+#### 8️ Separation of Concerns (Separación de Responsabilidades)
 
-### Estructura de carpetas Frontend
+- **Uso:** Cada capa (View, ViewModel, Model, API Service) tiene responsabilidades bien delimitadas, evitando cruces de lógica entre capas.
+- **Beneficio:** Permite desarrollar, probar y mantener cada módulo del frontend de forma aislada, minimizando el riesgo de errores regresivos y facilitando la incorporación de nuevos programadores al equipo.
+
+#### 9️ DRY (Don’t Repeat Yourself)
+
+- **Uso:** La lógica repetitiva de validación, manejo de formularios, transformación de datos y comunicación con el API se encapsula en servicios y utilitarios reutilizables.
+- **Beneficio:** Minimiza la duplicación de código, reduce el mantenimiento y asegura consistencia de comportamiento en toda la aplicación.
+
+### Estructura de Carpetas del Sistema - Backoffice Administrativo
+
+El frontend del Backoffice sigue una estructura modular organizada bajo los principios de **MVVM**, **Atomic Design** y principios de escalabilidad, permitiendo una separación clara entre lógica de negocio, visualización, modelos de datos y comunicación con el backend.
 
 ```plaintext
-frontend/
+frontend-backoffice/
+├── public/                       # Archivos estáticos
 ├── src/
-│   ├── api/
+│   ├── api/                      # Servicios de comunicación con el backend
 │   │   └── backofficeApi.ts
-│   ├── models/
+│   │
+│   ├── models/                   # Modelos de negocio
 │   │   ├── User.ts
+│   │   ├── Role.ts
 │   │   ├── Key.ts
 │   │   ├── Pipeline.ts
 │   │   ├── Custodian.ts
 │   │   └── AuditLog.ts
-│   ├── hooks/
+│   │
+│   ├── hooks/                    # ViewModels - lógica de negocio
 │   │   ├── useUserManagement.ts
+│   │   ├── useRoleManagement.ts
 │   │   ├── useKeyManagement.ts
-│   │   ├── usePipelineManager.ts
+│   │   ├── usePipelineManagement.ts
+│   │   ├── useCustodianManagement.ts
 │   │   └── useAuditLogs.ts
-│   ├── components/
-│   │   ├── atoms/
-│   │   ├── molecules/
-│   │   ├── organisms/
-│   │   └── templates/
-│   ├── pages/
-│   │   └── AdminDashboardPage.tsx
-│   └── App.tsx
+│   │
+│   ├── components/               # Componentes visuales siguiendo Atomic Design
+│   │   ├── atoms/                # Inputs, botones, iconos
+│   │   ├── molecules/            # Formularios, tablas, filtros
+│   │   ├── organisms/            # Dashboards, tablas de auditoría, paneles de administración
+│   │   └── templates/            # Layouts completos
+│   │
+│   ├── pages/                    # Páginas principales del Backoffice
+│   │   ├── AdminDashboardPage.tsx
+│   │   ├── UserManagementPage.tsx
+│   │   ├── PipelineConfigPage.tsx
+│   │   ├── KeyManagementPage.tsx
+│   │   ├── AuditLogPage.tsx
+│   │   └── CustodianPage.tsx
+│   │
+│   ├── contexts/                 # Contexto global de estado (opcional)
+│   │   ├── UserContext.tsx
+│   │   └── SessionContext.tsx
+│   │
+│   ├── utils/                    # Funciones utilitarias reutilizables
+│   ├── constants/                # Constantes de configuración o enumerados
+│   └── App.tsx                   # Entry point de la aplicación
+│
+├── amplify/                      # Configuración de despliegue en Amplify
+│   ├── backend/
+│   └── aws-exports.js
+│
+└── tests/                        # Pruebas unitarias e integración
+    ├── unit/
+    └── integration/
 ```
+### Arquitectura del Cliente - Backoffice Administrativo
+
+La arquitectura del cliente para el módulo de Backoffice Administrativo de Data Pura Vida está diseñada bajo los principios de desacoplamiento, modularidad y mantenibilidad, aplicando el patrón MVVM (Model-View-ViewModel) combinado con Atomic Design para la construcción de interfaces escalables.
+
+#### Modelo de despliegue
+
+- El frontend es construido mediante Vite, optimizando los tiempos de build.
+- Los artefactos generados (archivos estáticos de React: HTML, JS, CSS y assets) son desplegados sobre Amazon S3.
+- El contenido es distribuido globalmente a través de Amazon CloudFront para asegurar baja latencia y alta disponibilidad para los operadores internos.
+- El sistema opera bajo un esquema de Client Side Rendering (CSR), manteniendo una única capa web desacoplada del backend.
+
+#### Comunicación con el backend
+
+- Todas las operaciones administrativas se comunican con los microservicios administrativos desplegados en FastAPI sobre AWS EKS.
+- La comunicación HTTP es gestionada mediante un cliente centralizado (`BackofficeApiClient`), implementado como un Singleton.
+- Este cliente maneja:
+  - Inyección automática de headers de autenticación (JWT de Cognito).
+  - Gestión de renovación de tokens.
+  - Interceptores globales de error.
+  - Retrys controlados para operaciones críticas.
+
+#### Flujo de arquitectura del cliente
+
+El frontend sigue estrictamente el patrón MVVM:
+
+```plaintext
+[ Usuario Operador ]
+   ↓
+[ View (React Components / Pages) ]
+   ↓
+[ ViewModel (Custom Hooks especializados) ]
+   ↓
+[ Model (Entidades de negocio) ]
+   ↓
+[ ApiConnector (BackofficeApiClient) ]
+   ↓
+[ Backend REST (FastAPI sobre EKS) ]
+```
+
+### Componentes Visuales - Backoffice Administrativo
+
+#### Patrones y Principios Aplicados
+
+---
+
+- **Diseño Responsivo:**  
+  Todo el sistema de componentes visuales del Backoffice está desarrollado bajo un esquema completamente responsivo. Se utiliza Tailwind CSS como framework principal de estilos, aplicando unidades relativas (`rem`, `%`, `vw`, `vh`) y breakpoints definidos para adaptar automáticamente el diseño a diferentes resoluciones de pantalla, incluyendo desktop, tablets y laptops corporativos. Aunque el Backoffice está orientado a usuarios administrativos, el diseño mantiene compatibilidad con resoluciones múltiples para máxima accesibilidad.
+
+---
+
+- **Principios SOLID:**
+
+  - **Single Responsibility:**  
+    Cada componente visual cumple una única función de renderizado. Los componentes no contienen lógica de negocio; ésta es gestionada exclusivamente por los hooks (ViewModel). Por ejemplo, `UserTable`, `PipelineForm` o `KeyEditor` se encargan únicamente de presentar datos y recibir eventos de interacción.
+
+  - **Open/Closed Principle:**  
+    Los componentes son completamente extensibles vía props sin necesidad de modificar su estructura interna. Agregar nuevos campos en formularios o parámetros en dashboards de auditoría puede realizarse sin alterar los componentes existentes.
+
+  - **Liskov Substitution Principle:**  
+    Las tablas administrativas (ej. `UserTable`) permiten utilizar distintas variantes de filas o celdas (ej.: filas ampliadas para custodios, roles o auditoría detallada), sin alterar el comportamiento del componente principal.
+
+  - **Interface Segregation Principle:**  
+    Cada componente recibe exclusivamente las props que necesita. No existen props innecesarias ni parámetros opcionales forzados.
+
+  - **Dependency Inversion Principle:**  
+    La lógica de negocio es totalmente consumida a través de los ViewModels (custom hooks). Los componentes visuales no conocen ni interactúan directamente con los servicios o el backend.
+
+---
+
+- **DRY (Don’t Repeat Yourself):**  
+  Los formularios administrativos (`UserForm`, `KeyForm`, `PipelineForm`) utilizan componentes de formulario reutilizables, validadores comunes y estructuras de inputs parametrizables. Además, los mensajes de error, validaciones de negocio y lógicas de estado están centralizadas, evitando duplicación de código en distintos módulos.
+
+---
+
+- **Separation of Concerns (Separación de Responsabilidades):**  
+  La responsabilidad de cada capa está claramente delimitada:
+  - Las **Views** presentan la información.
+  - Los **ViewModels** gestionan el estado, validaciones y lógica de negocio.
+  - Los **Models** definen las estructuras de datos.
+  - El **ApiConnector** gestiona la comunicación con el backend.
+
+---
+
+- **Atomic Design Aplicado:**
+
+| Nivel | Ejemplos de componentes utilizados |
+|-------|------------------------------------|
+| **Atoms** | `Button`, `Input`, `Select`, `Badge`, `Modal`, `TableRow` |
+| **Molecules** | `UserForm`, `PipelineForm`, `KeyForm`, `AuditLogFilter` |
+| **Organisms** | `UserTable`, `PipelineManager`, `KeyManagementPanel`, `AuditLogTable` |
+| **Templates** | `AdminLayout`, `ConfigLayout`, `AuditLayout` |
+| **Pages** | `AdminDashboardPage`, `UserManagementPage`, `PipelineConfigPage`, `KeyManagementPage`, `AuditLogPage` |
+
+---
+
+- **Adaptabilidad y mantenibilidad:**  
+  Gracias a esta estructura, el sistema permite:
+  - Agregar nuevos módulos administrativos (por ejemplo: gestión de roles o integración de APIs externas) sin afectar los módulos existentes.
+  - Reutilizar patrones visuales homogéneos en todas las pantallas.
+  - Mantener la coherencia visual y funcional del sistema completo.
+
+---
+
 
 ## Diseño del Backend
 
