@@ -8429,6 +8429,27 @@ Sistema de auditoría y compliance que registra todas las operaciones administra
 - Cross-region: us-west-2 por 7 días
 - Compliance: Retención 7 años para auditoría
 
+### Diagrama de Clases
+
+![alt text](diagrama_clases_Backoffice.png)
+
+#### Explicación de los Patrones:
+
+**(Morado) Facade:**
+**AdminController** y **AuditController** actúan como fachadas que simplifican el acceso a las funciones complejas del backoffice
+
+**(Amarillo) Observer:**
+**EventManager** notifica a los servicios correspondientes cuando ocurren eventos administrativos
+
+**(Azul) Factory:**
+**ServiceFactory** crea las instancias apropiadas de los servicios según se necesite
+
+**(Verde) Strategy:**
+**Repository** permite cambiar entre diferentes tipos de almacenamiento (PostgreSQL, DynamoDB, S3) sin afectar la lógica de negocio
+
+**(Rojo) Singleton:**
+**DBConnection** garantiza una única instancia para manejar las conexiones a base de datos
+
 
 ### Monitoreo
 
