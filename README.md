@@ -1,13 +1,16 @@
 # Caso-3-Diseno
 
 # Índice 
-1. [Planeamiento](#planeamiento)
-  1. [Estructura del Equipo, Stakeholders, Key Players](#estructura-del-equipo,-stakeholders,-key--players)
-  2. [Planeamiento](#planeamiento)
-  3. [Planeamiento](#planeamiento)
-  4. [Planeamiento](#planeamiento)
-2. [Planeamiento](#diagrama-del-frontend-1)
-3. [Planeamiento](#diagrama-del-frontend-2)
+- [1. Planeamiento](#1-planeamiento)
+  - [1.1. Estructura del Equipo, Stakeholders, Key Players](#11-estructura-del-equipo-stakeholders-key-players)
+  - [1.2. Gestión de la Comunicación y Documentación del proyecto](#12-gestión-de-la-comunicación-y-documentación-del-proyecto)
+  - [1.3 Entendimiento del problema](#13-entendimiento-del-problema)
+  - [1.4 Customer Journeys](#14-customer-journeys)
+  - [1.5 Plan de ejecución del proyecto](#15-plan-de-ejecución-del-proyecto)
+  - [1.7 Evaluación de Riesgos](#17-evaluación-de-riesgos)
+  - [1.8 Definición de KPIs](#18-definición-de-kpis)
+- [2. Supuestos del proyecto](#2-supuestos-del-proyecto)
+- [2.1 Estándares y Regulaciones](#21-estándares-y-regulaciones)
 
 
 
