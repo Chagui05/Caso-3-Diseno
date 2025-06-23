@@ -9,12 +9,14 @@
   - [1.5 Plan de ejecución del proyecto](#15-plan-de-ejecución-del-proyecto)
   - [1.7 Evaluación de Riesgos](#17-evaluación-de-riesgos)
   - [1.8 Definición de KPIs](#18-definición-de-kpis)
+
 - [2. Supuestos del proyecto](#2-supuestos-del-proyecto)
   - [2.1 Estándares y Regulaciones](#21-estándares-y-regulaciones)
   - [2.2 Prácticas de Manejo de Código](#22-prácticas-de-manejo-de-código)
   - [2.3 Sistema de Versionamiento](#23-sistema-de-versionamiento)
   - [2.4 Sistemas de Terceros](#24-sistemas-de-terceros)
   - [2.5 Aspectos de Calidad/SLA](#25-aspectos-de-calidadsla)
+
 - [3. Stack Tecnológico](#3-stack-tecnológico)
   - [3.1. Frontend](#frontend)
   - [3.2. Backend](#backend)
@@ -23,6 +25,7 @@
   - [3.5. Sistemas de Terceros](#sistemas-de-terceros)
   - [3.6. Cloud](#cloud)
   - [3.7. DevOps y Testing](#devops-y-testing)
+
 - [4. Diseño de los componentes](#4-diseño-de-los-componentes)
   - [4.1. Bioregistro](#41-bioregistro)
     - [Diseño del Frontend](#diseño-del-frontend)
@@ -50,7 +53,6 @@
     - [Diseño del Frontend](#diseño-del-frontend-3)
     - [Diseño del backend](#diseño-del-backend-5)
     - [Diseño de los Datos](#diseño-de-los-datos-4) 
-
 
   - [4.7. Backoffice Administrativo](#47-backoffice-administrativo)
     - [Diseño del Frontend](#diseño-del-frontend-4)
@@ -8287,7 +8289,7 @@ El frontend sigue estrictamente el patrón MVVM:
 - **RBACManager**: Control de acceso basado en roles 
 - **ConfigurationController**: Gestión flexible de accesos y configuraciones 
 
-#### Operación
+##### Operación
 Interfaz administrativa unificada para todas las operaciones de gestión. Los administradores validan usuarios, configuran reglas de negocio, supervisan pipelines y gestionan configuraciones del sistema. Integra con Bio Registro vía API para consultar datos sin duplicarlos.
 
 **Tecnologías**: FastAPI, PostgreSQL, Redis, AWS Cognito
@@ -8311,61 +8313,13 @@ Sistema de auditoría y compliance que registra todas las operaciones administra
 
 ### Servicios AWS
 
-#### Compute Services
-
 #### Amazon EKS
 **Propósito**: Orquestación de los 2 microservicios del backoffice
 - **Configuración**: Cluster multi-AZ con node groups t3.medium
 - **Auto Scaling**: HPA basado en CPU >70% por 5 minutos
 - **Servicios**: admin-operations-service, audit-compliance-service
 
-##### AWS Lambda
-**Propósito**: Funciones auxiliares programadas
-
-**Funciones Específicas**:
-- **daily_reports_generator**: Reportes diarios automáticos
-- **backup_validator**: Validación de respaldos
-- **health_checker**: Monitoreo de servicios externos
-- **emergency_notifier**: Notificaciones de emergencia
-
-### Storage & Database
-
-#### Amazon RDS PostgreSQL
-**Propósito**: Base de datos unificada con esquemas separados
-- **Configuración**: Multi-AZ, db.t3.large, encrypted storage
-- **Esquemas especializados**:
-
-**admin_operations_schema** (100 GB inicial):
-- user_validations, data_rules, external_connections
-- pipeline_configs, security_keys_metadata, custodian_assignments
-- rbac_permissions, system_configurations
-
-**audit_compliance_schema** (200 GB inicial):
-- audit_logs, compliance_reports, system_monitoring
-- evidence_records, anomaly_alerts
-
-#### Amazon ElastiCache Redis
-**Propósito**: Cache unificado
-- **Configuración**: 3 nodos cache.t3.medium, cluster mode
-- **Uso**: Sesiones admin, cache de permisos, configuraciones
-
-#### Amazon S3
-**Propósito**: Almacenamiento con organización por prefijos
-
-**Bucket Único**: `backoffice-storage`
-- `audit-evidence/` - Evidencia forense inmutable
-- `compliance-reports/` - Reportes regulatorios  
-- `system-backups/` - Respaldos de configuraciones
-- `temp-uploads/` - Archivos temporales
-
-**Lifecycle Policies**:
-- Evidencia: Glacier después de 90 días, retención permanente
-- Reportes: IA después de 30 días, Glacier después de 1 año
-- Backups: Glacier después de 30 días
-
-#### Security & Identity
-
-##### AWS Cognito
+#### AWS Cognito
 **Propósito**: Autenticación administrativa
 
 **User Pool**: backoffice-administrators
@@ -8373,7 +8327,7 @@ Sistema de auditoría y compliance que registra todas las operaciones administra
 - Atributos: admin_level, clearance_level
 - Roles: admin_junior, admin_senior, admin_super
 
-##### AWS KMS
+#### AWS KMS
 **Propósito**: Cifrado especializado
 
 **Llaves**:
@@ -8381,7 +8335,7 @@ Sistema de auditoría y compliance que registra todas las operaciones administra
 - `backoffice-audit-key`: Evidencia forense, rotación manual
 - `backoffice-security-key`: Metadatos de llaves, rotación semestral
 
-##### AWS Secrets Manager
+#### AWS Secrets Manager
 **Propósito**: Credenciales con rotación
 
 **Secrets**:
@@ -8402,17 +8356,6 @@ Sistema de auditoría y compliance que registra todas las operaciones administra
 - pipeline.intervention.required
 - security.anomaly.detected
 - backup.completed
-
-
-#### Backup & Recovery
-
-##### AWS Backup
-**Propósito**: Respaldos automatizados
-
-**Estrategia**:
-- RDS: Snapshots diarios, retención 30 días
-- Cross-region: us-west-2 por 7 días
-- Compliance: Retención 7 años para auditoría
 
 ### Diagrama de Clases
 
@@ -8492,15 +8435,13 @@ Eventos que registramos siempre:
 - **Performance & Latency:** Señala los endpoints más cargados y ayuda a identificar qué podría optimizarse.
 
 
----
-
-## Modelo de Seguridad Detallado
+### Modelo de Seguridad Detallado
 
 El Backoffice Administrativo maneja operaciones críticas del ecosistema Data Pura Vida, requiriendo el más alto nivel de seguridad dado que gestiona validaciones de usuarios, llaves tripartitas, configuraciones de sistema y evidencia legal.
 
-### 1. Control de Acceso Granular
+#### 1. Control de Acceso Granular
 
-#### Autenticación Multi-Factor Obligatoria
+##### Autenticación Multi-Factor Obligatoria
 Todos los administradores deben completar un proceso de autenticación robusto:
 
 **Proceso de Login:**
@@ -8509,7 +8450,7 @@ Todos los administradores deben completar un proceso de autenticación robusto:
 3. **Validación geográfica**: Restricción por provincia configurada en Cognito
 4. **Sesión limitada**: Máximo 8 horas con re-autenticación para operaciones críticas
 
-#### RBAC Detallado por Nivel de Clearance
+##### RBAC Detallado por Nivel de Clearance
 
 | Rol | Clearance | Operaciones Permitidas | Restricciones Adicionales |
 |-----|-----------|------------------------|---------------------------|
@@ -8517,7 +8458,7 @@ Todos los administradores deben completar un proceso de autenticación robusto:
 | **admin_senior** | elevated | - Todo lo anterior<br>- Gestionar pipelines de datos<br>- Configurar conexiones externas<br>- Generar reportes personalizados<br>- Supervisar estado del sistema | - Requiere aprobación para cambios críticos<br>- Re-autenticación MFA cada 4 horas |
 | **admin_super** | maximum | - Acceso total al sistema<br>- Gestión de llaves tripartitas<br>- Administración de custodios<br>- Acceso a evidencia legal<br>- Configuraciones de emergencia | - Todas las acciones son auditadas<br>- Re-autenticación MFA para cada operación crítica<br>- Notificación automática al CERT nacional |
 
-#### Validación de Contexto en Tiempo Real
+##### Validación de Contexto en Tiempo Real
 Cada operación administrativa se valida contra múltiples factores:
 
 **Validaciones Automáticas:**
@@ -8527,9 +8468,9 @@ Cada operación administrativa se valida contra múltiples factores:
 - **Rate Limiting**: Límites por rol para prevenir abuso o compromiso de cuentas
 - **Contexto**: Validación de que la operación es apropiada para el estado actual del sistema
 
-### 2. Cifrado de Datos Multicapa
+#### 2. Cifrado de Datos Multicapa
 
-#### Cifrado en Tránsito
+##### Cifrado en Tránsito
 **Nivel 1 - Cliente a Gateway:**
 - HTTPS/TLS 1.3 obligatorio con certificados AWS Certificate Manager
 - HSTS (HTTP Strict Transport Security) habilitado
@@ -8540,52 +8481,9 @@ Cada operación administrativa se valida contra múltiples factores:
 - Certificados rotados automáticamente cada 30 días
 - Service mesh con Istio para enforcar políticas de red
 
----
+#### 3. Auditoría Completa
 
-## Modelo de Seguridad Detallado
-
-El Backoffice Administrativo maneja las operaciones más críticas del sistema, por lo que requiere el máximo nivel de seguridad.
-
-### 1. Control de Acceso por Niveles
-
-#### Autenticación Obligatoria
-Todos los administradores deben pasar por:
-- **Usuario y contraseña** con política estricta (12+ caracteres)
-- **Autenticación de dos factores** (Google Authenticator + SMS)
-- **Verificación de ubicación** (solo desde Costa Rica)
-- **Sesión limitada** a 8 horas máximo
-
-#### Roles y Permisos
-
-| Rol | Nivel | Qué Puede Hacer | Restricciones |
-|-----|-------|-----------------|---------------|
-| **Junior Admin** | Básico | Validar usuarios nuevos, ver reportes | Max 10 validaciones/hora |
-| **Senior Admin** | Avanzado | Todo lo anterior + gestionar pipelines y configuraciones | Re-autenticación cada 4 horas |
-| **Super Admin** | Máximo | Acceso total + llaves de seguridad y emergencias | Cada acción es auditada |
-
-#### Validaciones en Tiempo Real
-El sistema verifica constantemente:
-- **Nivel de autorización** necesario para cada acción
-- **Horario permitido** (operaciones críticas solo 6AM-6PM)
-- **Ubicación** del administrador
-- **Frecuencia** de operaciones para detectar comportamiento anómalo
-
-### 2. Protección de Datos
-
-#### Cifrado de Comunicaciones
-- **HTTPS obligatorio** con certificados SSL automáticos
-- **Comunicación interna** cifrada entre servicios
-- **APIs externas** con validación de certificados
-
-#### Cifrado de Almacenamiento
-- **Base de datos** completamente cifrada
-- **Archivos en S3** cifrados con llaves específicas
-- **Cache Redis** cifrado en memoria y disco
-- **Rotación de llaves** automática según criticidad
-
-### 3. Auditoría Completa
-
-#### Qué se Registra
+##### Qué se Registra
 Cada acción administrativa genera un registro con:
 - **Quién** realizó la acción (usuario y rol)
 - **Qué** se hizo exactamente
@@ -8593,15 +8491,14 @@ Cada acción administrativa genera un registro con:
 - **Desde dónde** (IP y ubicación)
 - **Resultado** (exitoso, fallido, parcial)
 
-
-#### Dónde se Almacena
+##### Dónde se Almacena
 - **PostgreSQL**: Para consultas rápidas y reportes
 - **S3**: Para evidencia legal permanente e inmutable
 - **CloudWatch**: Para monitoreo en tiempo real
 
-### 4. Protección Avanzada
+#### 4. Protección Avanzada
 
-#### Detección de Anomalías
+##### Detección de Anomalías
 El sistema aprende el comportamiento normal de cada administrador y alerta cuando detecta:
 - **Horarios inusuales** de acceso
 - **Ubicaciones** no habituales
@@ -8613,57 +8510,40 @@ El sistema aprende el comportamiento normal de cada administrador y alerta cuand
 - **Rotación de responsabilidades** cada 6 meses
 - **Monitoreo cruzado** entre administradores
 
-### 5. Gestión Segura de Credenciales
+#### 5. Gestión Segura de Credenciales
 
-#### Secretos y Contraseñas
+##### Secretos y Contraseñas
 - **Rotación automática** de todas las credenciales del sistema
 - **Almacenamiento seguro** en AWS Secrets Manager
 - **Acceso controlado** por rol y función específica
 
-#### Llaves de Seguridad
+##### Llaves de Seguridad
 - **Solo metadatos** almacenados en el backoffice (nunca las llaves reales)
 - **Coordinación segura** con custodios distribuidos
 - **Protocolos de emergencia** con tiempos definidos
 
----
 
-## Elementos de Alta Disponibilidad
+### Elementos de Alta Disponibilidad
 
 El Backoffice debe estar disponible 99.9% del tiempo para garantizar operaciones continuas.
 
-### 1. Base de Datos Redundante
+#### 1. Base de Datos Redundante
 
-#### PostgreSQL con Respaldo Automático
+##### PostgreSQL con Respaldo Automático
 - **Servidor principal** en una zona de disponibilidad
 - **Servidor de respaldo** en otra zona, siempre sincronizado
 - **Cambio automático** en menos de 2 minutos si el principal falla
 - **Respaldos automáticos** cada 6 horas guardados por 30 días
 
-### 2. Aplicaciones Escalables
+#### 2. Aplicaciones Escalables
 
-#### Pods de Kubernetes que Crecen Según Demanda
+##### Pods de Kubernetes que Crecen Según Demanda
 - **Mínimo 2 instancias** de cada servicio siempre activas
 - **Escalado automático** cuando CPU >70% o memoria >80%
 - **Máximo 8 instancias** para manejar picos de carga
 - **Distribución** en múltiples zonas para evitar puntos únicos de falla
 
-### 3. Cache Distribuido
-
-#### Redis Cluster Resistente a Fallos
-- **3 servidores** distribuidos en diferentes zonas
-- **Cambio automático** en 15 segundos si un servidor falla
-- **Datos importantes** como sesiones y permisos siempre disponibles
-- **Respaldo automático** cada hora
-
-### 4. Almacenamiento Seguro
-
-#### S3 con Múltiples Copias
-- **Copia principal** en us-east-1
-- **Copia de seguridad** automática en us-west-2
-- **Versionado** para recuperar archivos anteriores
-- **Políticas automáticas** que mueven archivos antiguos a almacenamiento más barato
-
-### 5. Monitoreo Continuo
+### 3. Monitoreo Continuo
 
 #### Vigilancia 24/7 del Sistema
 - **Verificación** cada 30 segundos de que los servicios respondan
@@ -8671,46 +8551,13 @@ El Backoffice debe estar disponible 99.9% del tiempo para garantizar operaciones
 - **Escalado preventivo** basado en patrones históricos
 - **Reinicio automático** de servicios que fallan
 
-### 6. Recuperación ante Desastres
-
-#### Planes Específicos por Tipo de Falla
-
-| Problema | Tiempo Máximo de Recuperación | Estrategia |
-|----------|------------------------------|------------|
-| **Falla de servidor** | 5 minutos | Cambio automático a servidor de respaldo |
-| **Falla de zona completa** | 30 minutos | Activación de servicios en otra zona |
-| **Falla de región** | 2 horas | Activación manual en otra región |
-
-#### Pruebas Regulares
-- **Simulación mensual** de fallas para verificar que todo funciona
-- **Prueba trimestral** de recuperación completa
-- **Validación** de que no se pierde información durante los cambios
-
-### 7. Red Redundante
-
-#### Múltiples Caminos de Comunicación
-- **Conexiones redundantes** a internet
-- **Rutas alternativas** entre servicios
-- **Protección** contra ataques de red
-- **Monitoreo** de la calidad de las conexiones
-
-### 8. Mejora Continua
-  
-#### Aprendizaje de Cada Incidente
-- **Análisis** de cada problema para evitar que se repita
-- **Automatización** de nuevas tareas basadas en experiencias
-- **Actualización** de procedimientos de recuperación
-- **Capacitación** continua del equipo de operaciones
-
-
-
 ## Diseño de los datos
 
 ### Topología de Datos
 
-- **Tipo:** OLTP + OLAP + NoSQL + Búsqueda + Almacenamiento de Objetos
+- **Tipo:** OLTP + NoSQL + Búsqueda + Almacenamiento de Objetos
 
-- Para el Backoffice, se empleará una arquitectura de datos híbrida que combine `OLTP` para transacciones y mantenimiento de registros principales, `NoSQL` para metadatos dinámicos y de alto rendimiento, `OLAP` para auditorías y reportes, búsqueda para la supervisión y extracción de información, y almacenamiento de objetos para grandes volúmenes de datos no estructurados como las reglas de carga o las evidencias legales.
+- Para el Backoffice, se empleará una arquitectura de datos híbrida que combine `OLTP` para transacciones y mantenimiento de registros principales, `NoSQL` para metadatos dinámicos y de alto rendimiento, y almacenamiento de objetos para grandes volúmenes de datos no estructurados como las reglas de carga o las evidencias legales.
 
 - Para `OLTP` utilizaremos `RDS` como la base de datos principal para la gestión. Esta base de datos es ideal para operaciones transaccionales. Se usarán tablas para:
 
@@ -8732,11 +8579,6 @@ El Backoffice debe estar disponible 99.9% del tiempo para garantizar operaciones
    - Logs de ejecución.
    - Configuraciones de conectividad.
 
-- `OLAP` utilizando `OpenSearch` será útil para almacenar datos para auditorías de todas las operaciones del sistema. También será la base para la generación de reportes analíticos. Se almacenará:
-   - Registro detallado de usuarios.
-   - Estado operativo de servicios.
-   - Trazabilidad del consumo de `datasets`.
-
 
 `Almacenamiento de Objetos` atreves de `AWS S3` será utilizado para almacenar grandes volúmenes de datos no estructurados y semiestructurados. Esto incluye:
 
@@ -8754,11 +8596,8 @@ El Backoffice debe estar disponible 99.9% del tiempo para garantizar operaciones
 - **Tecnología Cloud:**
    - **Amazon RDS**
    - **Amazon DynamoDB**
-   - **Amazon OpenSearch**
    - **Amazon S3**
    - **Amazon Redis**
-   - **AWS Glue**
-   - **Apache Airflow**
 
 - **Políticas y Reglas:**
 - **Single-region:** Toda la infraestructura estará localizada en `us-east-1` para simplificar la gestión y reducir la latencia.
@@ -8908,9 +8747,8 @@ Al centralizar la gestión de los elementos de IA en el Backoffice:
   -  **Garantizamos la Gobernanza:** Tenemos un control centralizado para supervisar y auditar los modelos de IA y el uso de sus datos en todo momento.
   -  **Facilitamos la Innovación:** Agilizamos el desarrollo y la mejora de soluciones de IA para todo Data Pura Vida continuamente.
 
-- **Diagrama de Base de Datos**
-A continuación, se describen las tablas principales para PostgreSQL, así como una mención de cómo se relacionan con DynamoDB y OpenSearch para sus propósitos específicos
-
+### Diagrama de Base de Datos
+A continuación, se describen las tablas principales para PostgreSQL:
 
 ![image](img/DiagramaBDBackoffice.png)
 
