@@ -10,9 +10,52 @@
   - [1.7 Evaluación de Riesgos](#17-evaluación-de-riesgos)
   - [1.8 Definición de KPIs](#18-definición-de-kpis)
 - [2. Supuestos del proyecto](#2-supuestos-del-proyecto)
-- [2.1 Estándares y Regulaciones](#21-estándares-y-regulaciones)
+  - [2.1 Estándares y Regulaciones](#21-estándares-y-regulaciones)
+  - [2.2 Prácticas de Manejo de Código](#22-prácticas-de-manejo-de-código)
+  - [2.3 Sistema de Versionamiento](#23-sistema-de-versionamiento)
+  - [2.4 Sistemas de Terceros](#24-sistemas-de-terceros)
+  - [2.5 Aspectos de Calidad/SLA](#25-aspectos-de-calidadsla)
+- [3. Stack Tecnológico](#3-stack-tecnológico)
+  - [3.1. Frontend](#frontend)
+  - [3.2. Backend](#backend)
+  - [3.3. Data](#data)
+  - [3.4. AI](#ai)
+  - [3.5. Sistemas de Terceros](#sistemas-de-terceros)
+  - [3.6. Cloud](#cloud)
+  - [3.7. DevOps y Testing](#devops-y-testing)
+- [4. Diseño de los componentes](#4-diseño-de-los-componentes)
+  - [4.1. Bioregistro](#41-bioregistro)
+    - [Diseño del Frontend](#diseño-del-frontend)
+    - [Diseño del backend](#diseño-del-backend)
+    - [Diseño de los Datos](#diseño-de-los-datos)
+
+  - [4.2. La Bóveda](#42-la-bóveda)
+    - [Diseño del backend](#diseño-del-backend-1)
+    - [Diseño de los Datos](#diseño-de-los-datos-1)   
+
+  - [4.3. Centro de Carga](#43-centro-de-carga)
+    - [Diseño del Frontend](#diseño-del-frontend-1)
+    - [Diseño del backend](#diseño-del-backend-2)
+    - [Diseño de los Datos](#diseño-de-los-datos-2) 
+
+  - [4.4. Motor De Transformación](#44-motor-de-transformación)
+    - [Diseño del backend](#diseño-del-backend-3)
+
+  - [4.5. MarketPlace](#45-marketplace)
+    - [Diseño del Frontend](#diseño-del-frontend-2)
+    - [Diseño del backend](#diseño-del-backend-4)
+    - [Diseño de los Datos](#diseño-de-los-datos-3) 
+
+  - [4.6. Centro de Visualización y Consumo](#46-centro-de-visualización-y-consumo)
+    - [Diseño del Frontend](#diseño-del-frontend-3)
+    - [Diseño del backend](#diseño-del-backend-5)
+    - [Diseño de los Datos](#diseño-de-los-datos-4) 
 
 
+  - [4.7. Backoffice Administrativo](#47-backoffice-administrativo)
+    - [Diseño del Frontend](#diseño-del-frontend-4)
+    - [Diseño del backend](#diseño-del-backend-6)
+    - [Diseño de los Datos](#diseño-de-los-datos-4)
 
 # 1. Planeamiento
 
@@ -6400,7 +6443,7 @@ frontend/
 
 ### Microservicios
 
-### marketplace-catalog-service
+#### marketplace-catalog-service
 
 **Responsabilidad Principal**
 Gestión del catálogo de datasets con capacidades avanzadas de búsqueda, indexación y agregación de métricas de calidad.
@@ -6430,7 +6473,7 @@ Activo constantemente con picos durante búsquedas matutinas (8-10 AM) y sincron
 
 
 
-### marketplace-payment-service
+#### marketplace-payment-service
 
 **Responsabilidad Principal**
 Procesamiento de pagos únicos y recurrentes, gestión de suscripciones, detección de fraude y generación automática de facturas.
@@ -6461,9 +6504,9 @@ POST /api/v1/payments/webhooks/{provider} - Webhooks de providers
 **Operación**
 Alta disponibilidad 24/7 con picos durante horarios de oficina y finales de mes. Distribuido en pods con affinity a nodos dedicados para cumplir PCI DSS compliance.
 
----
 
-### marketplace-access-service
+
+#### marketplace-access-service
 
 **Responsabilidad Principal**
 Control granular de acceso a datasets, generación de tokens JWT, tracking de uso en tiempo real y auditoría completa de accesos.
@@ -6494,7 +6537,7 @@ GET /api/v1/access/usage - Estadísticas de uso del usuario
 Ejecuta continuamente con activación intensa post-compra. Opera distribuido para manejar múltiples usuarios simultáneos durante horarios peak.
 
 
-### marketplace-user-service
+#### marketplace-user-service
 
 **Responsabilidad Principal**
 Gestión de perfiles comerciales, tracking de comportamiento de navegación y preferencias de usuarios con sincronización cross-device.
@@ -6525,7 +6568,7 @@ Activo 24/7 para gestión de sesiones globales, con mayor carga durante horarios
 
 
 
-### marketplace-recommendation-service
+#### marketplace-recommendation-service
 
 **Responsabilidad Principal**
 Motor de recomendaciones personalizadas basado en machine learning, análisis de comportamiento y similitud de contenido.
@@ -6644,9 +6687,9 @@ Finalmente, existe una capa de repositorios para la persistencia de datos (Postg
 
 ![image](img/ClasesMarketplace3.png)
 
-# Servicios AWS
+### Servicios AWS
 
-## Amazon EKS (Elastic Kubernetes Service)
+#### Amazon EKS (Elastic Kubernetes Service)
 **Propósito**: Orquestación de microservicios del marketplace
 
 **Configuración**:
@@ -6662,47 +6705,7 @@ Finalmente, existe una capa de repositorios para la persistencia de datos (Postg
 - `marketplace-access-service`: Control de acceso a datasets
 - `marketplace-notification-service`: Notificaciones del marketplace
 
-## Amazon RDS PostgreSQL
-**Propósito**: Almacenamiento transaccional
-
-**Configuración**:
-- **Motor**: PostgreSQL
-- **Tipo de instancia**: db.t3.medium o superior
-- **Almacenamiento**: EBS gp3 escalable
-- **Multi-AZ**: Habilitado para alta disponibilidad
-
-**Tablas del marketplace**:
-- `MarketplaceOrder`: Órdenes de compra
-- `Subscription`: Suscripciones activas
-- `PaymentTransaction`: Historial de transacciones
-- `DatasetRating`: Calificaciones y reseñas
-
-## Amazon DynamoDB
-**Propósito**: Almacenamiento NoSQL para datos temporales
-
-**Configuración**:
-- **Modo**: On-Demand
-- **TTL**: Habilitado para limpieza automática
-
-**Tablas**:
-- `UserBehaviorMarketplace`: Tracking de navegación (TTL: 90 días)
-- `MarketplaceSessionData`: Sesiones de usuario (TTL: 8 horas)
-- `DatasetRecommendationCache`: Cache de recomendaciones (TTL: 4 horas)
-
-## Amazon OpenSearch
-**Propósito**: Motor de búsqueda de datasets
-
-**Configuración**:
-- **Versión**: OpenSearch 2.3
-- **Cluster**: 2 nodos t3.small.search
-- **Almacenamiento**: 50GB EBS por nodo
-- **Seguridad**: VPC privada, HTTPS obligatorio
-
-**Índices**:
-- `datasets-marketplace-catalog`: Metadatos con búsqueda full-text
-- `user-marketplace-searches`: Historial de búsquedas
-
-## Amazon S3
+#### Amazon S3
 **Propósito**: Almacenamiento de objetos
 
 **Buckets**:
@@ -6714,7 +6717,7 @@ Finalmente, existe una capa de repositorios para la persistencia de datos (Postg
 - Lifecycle policies a Glacier después de 90 días
 - Versionado habilitado
 
-## AWS Lambda
+#### AWS Lambda
 **Propósito**: Funciones serverless
 
 **Funciones**:
@@ -6728,15 +6731,12 @@ Finalmente, existe una capa de repositorios para la persistencia de datos (Postg
   - Actualiza índices de OpenSearch
   - Memoria: 256MB, Timeout: 1min
 
-## Amazon API Gateway
-**Propósito**: Gateway de APIs REST
-
 **Configuración**:
 - Rate limiting: 1000 requests/minuto por usuario
 - Autenticación vía Cognito
 - Caching: 5 minutos para búsquedas
 
-## Amazon Cognito
+#### Amazon Cognito
 **Propósito**: Autenticación y autorización
 
 **Configuración**:
@@ -6748,7 +6748,7 @@ Finalmente, existe una capa de repositorios para la persistencia de datos (Postg
 - `marketplace:buyer`: Usuarios que pueden comprar
 - `marketplace:seller`: Organizaciones que venden datasets
 
-## AWS Secrets Manager
+#### AWS Secrets Manager
 **Propósito**: Gestión segura de credenciales
 
 **Secrets almacenados**:
@@ -6759,7 +6759,7 @@ Finalmente, existe una capa de repositorios para la persistencia de datos (Postg
 - Cifrado con AWS KMS
 - Rotación automática configurada
 
-## Amazon SES
+#### Amazon SES
 **Propósito**: Envío de emails
 
 **Configuración**:
@@ -6768,7 +6768,7 @@ Finalmente, existe una capa de repositorios para la persistencia de datos (Postg
 - Bounce handling automático
 - Políticas anti-spam
 
-## AWS KMS
+#### AWS KMS
 **Propósito**: Gestión de claves de cifrado
 
 **Claves especializadas**:
@@ -6779,7 +6779,8 @@ Finalmente, existe una capa de repositorios para la persistencia de datos (Postg
 **Configuración**:
 - Rotación automática anual
 - Políticas de acceso por servicio
-###### Sistema de Monitoreo
+
+### Sistema de Monitoreo
 El monitoreo del componente Marketplace de Datos de Data Pura Vida será utilizado para lograr que todo funcione bien, sea seguro y esté siempre disponible.
 
 **Métricas y Rendimiento**
@@ -6864,7 +6865,7 @@ El sistema de monitoreo no solo detectará problemas, sino que también proporci
 -	**Análisis de Embudos de Conversión:** Usar los datos de marketplace-analytics-service (generados a partir de eventos de user-behavior-tracker-service y payment-processor-service) para identificar dónde los usuarios abandonan el flujo de compra o búsqueda, permitiendo mejoras en la UX del portal.
 -	**Evaluación de Modelos de ML:** Monitorear el rendimiento de los modelos de recomendación (behavioral-ml-service, content-similarity-service, recommendation-engine-service) y detección de fraude (fraud-detection-service) y la efectividad de las recomendaciones servidas.
 
-### Modelo de Seguridad Detallado - Marketplace
+### Modelo de Seguridad Detallado
 
 El módulo de Marketplace maneja transacciones financieras, datos de comportamiento de usuarios y acceso a datasets premium. Su backend implementa un modelo de seguridad robusto que previene accesos no autorizados, garantiza integridad financiera y mantiene confidencialidad de transacciones.
 
@@ -6894,16 +6895,16 @@ La autorización se ejecuta síncronamente al iniciar pagos, evaluando eligibili
 
 Las políticas se configuran con principio de menor privilegio, otorgando a cada microservicio únicamente permisos específicos necesarios. Las condiciones IAM se evalúan dinámicamente durante operaciones de base de datos, restringiendo acceso a registros del usuario autenticado mediante `LeadingKeys` correspondientes al identificador único obtenido desde tokens Cognito.
 
-### 2. Cifrado de Datos
+#### 2. Cifrado de Datos
 
-#### Cifrado en Tránsito
+##### Cifrado en Tránsito
 TLS 1.3 obligatorio para todas las comunicaciones, con certificate pinning para payment providers validado antes de establecer conexiones SSL:
 
 - **Frontend ↔ API Gateway:** HTTPS con certificados AWS Certificate Manager auto-renovables
 - **Payment providers:** Certificate pinning que bloquea certificados fraudulentos automáticamente
 - **Microservicios internos:** mTLS en EKS service mesh autenticando ambos extremos
 
-#### Cifrado en Reposo
+##### Cifrado en Reposo
 Estrategia diferenciada por sensibilidad de datos con claves KMS específicas y rotación automática:
 
 | Tipo de Dato | Ubicación | Cifrado | Clave KMS | Rotación |
@@ -6913,12 +6914,12 @@ Estrategia diferenciada por sensibilidad de datos con claves KMS específicas y 
 | Facturas | S3 | SSE-KMS | `dpv-marketplace-documents` | 12 meses |
 | Cache | Redis | Aplicación | `dpv-marketplace-cache` | 30 días |
 
-#### Cifrado de Campo PII
+##### Cifrado de Campo PII
 Para datos personalmente identificables, se implementa cifrado a nivel de campo que se ejecuta antes del almacenamiento utilizando contexto específico de transacción. La clave de cifrado se genera dinámicamente para cada operación utilizando AWS KMS con contexto de encriptación específico, nunca almacenándose en texto plano.
 
-### 3. Auditoría y Logging
+#### 3. Auditoría y Logging
 
-#### Eventos Auditados
+##### Eventos Auditados
 Sistema de captura en tiempo real con doble escritura en OpenSearch (búsquedas inmediatas) y DynamoDB (almacenamiento largo plazo):
 
 - **Transacciones:** Pagos iniciados/completados/fallidos, reembolsos
@@ -6926,7 +6927,7 @@ Sistema de captura en tiempo real con doble escritura en OpenSearch (búsquedas 
 - **Seguridad:** Fraude detectado, comportamiento anómalo, límites excedidos
 - **Administrativos:** Suscripciones creadas/canceladas, precios actualizados
 
-#### Implementación de Auditoría
+##### Implementación de Auditoría
 Middleware automático captura eventos mediante decoradores aplicados a funciones críticas, registrando:
 
 - **Parámetros de entrada:** Sanitizados para eliminar información sensible
@@ -6937,7 +6938,7 @@ Middleware automático captura eventos mediante decoradores aplicados a funcione
 
 Los eventos de alto riesgo disparan alertas inmediatas al equipo de seguridad mediante SNS y SES.
 
-#### Retención Automatizada
+##### Retención Automatizada
 Políticas ejecutadas durante ventanas nocturnas moviendo datos históricos a S3 Glacier según regulaciones:
 
 - **Pagos:** 7 años (regulaciones financieras)
@@ -6945,9 +6946,9 @@ Políticas ejecutadas durante ventanas nocturnas moviendo datos históricos a S3
 - **Fraude:** 5 años (investigaciones seguridad)
 - **Accesos:** 3 años (auditorías)
 
-### 4. Protección contra Fraude
+#### 4. Protección contra Fraude
 
-#### Detección en Tiempo Real
+##### Detección en Tiempo Real
 Motor híbrido ML + reglas de negocio ejecutándose en <200ms durante cada transacción:
 
 **Modelo de Machine Learning:**
@@ -6963,7 +6964,7 @@ Motor híbrido ML + reglas de negocio ejecutándose en <200ms durante cada trans
 
 **Scoring Combinado:** 70% ML + 30% reglas de negocio, con umbral configurable para bloqueo automático.
 
-#### Rate Limiting
+##### Rate Limiting
 Protección granular por usuario e IP utilizando ventanas deslizantes Redis:
 
 | Operación | Límite Usuario | Límite IP | Ventana |
@@ -6975,9 +6976,9 @@ Protección granular por usuario e IP utilizando ventanas deslizantes Redis:
 
 El sistema aplica el límite más restrictivo entre usuario e IP, registrando violaciones para análisis de patrones de ataque.
 
-### 5. Gestión de Secretos
+#### 5. Gestión de Secretos
 
-#### Credenciales de Payment Providers
+##### Credenciales de Payment Providers
 AWS Secrets Manager con validación de integridad automática detectando compromisos:
 
 **Funcionalidades:**
@@ -6986,16 +6987,16 @@ AWS Secrets Manager con validación de integridad automática detectando comprom
 - **Detección de compromisos:** Alertas automáticas ante modificaciones no autorizadas
 - **Acceso controlado:** Solo microservicios autorizados pueden acceder a credenciales específicas
 
-#### Rotación Automática
+##### Rotación Automática
 Calendario Terraform con funciones Lambda especializadas coordinando con providers durante ventanas de mantenimiento:
 
 - **Stripe:** Rotación cada 30 días con coordinación automática para generar nuevas claves antes de invalidar anteriores
 - **BAC Credomatic:** Rotación cada 60 días con notificación previa al provider
 - **Claves internas:** Rotación cada 90 días para claves de sesión y cache
 
-### 6. Monitoreo de Seguridad
+#### 6. Monitoreo de Seguridad
 
-### Detección de Anomalías
+##### Detección de Anomalías
 Queries predefinidas ejecutándose contra OpenSearch con frecuencias diferenciadas:
 
 **Alta Criticidad (cada 30 segundos):**
@@ -7010,7 +7011,7 @@ Queries predefinidas ejecutándose contra OpenSearch con frecuencias diferenciad
 
 Los umbrales se ajustan automáticamente basándose en patrones históricos para reducir falsos positivos.
 
-### Alertas Críticas
+##### Alertas Críticas
 Escalación automática con notificaciones inmediatas:
 
 | Alerta | Umbral | Duración | Acción |
@@ -7019,9 +7020,9 @@ Escalación automática con notificaciones inmediatas:
 | Sistema de pagos caído | >50 fallos | 2 minutos | Llamar ingeniero de guardia |
 | Acceso masivo no autorizado | >100 intentos | 1 minuto | Activar contención automática |
 
-### 7. Compliance PCI DSS
+#### 7. Compliance PCI DSS
 
-#### Validación Automática
+##### Validación Automática
 Verificación antes de procesar operaciones de pago, bloqueando automáticamente operaciones no conformes:
 
 **Controles Verificados:**
@@ -7030,7 +7031,7 @@ Verificación antes de procesar operaciones de pago, bloqueando automáticamente
 - **Seguridad de red:** Confirmación de conexiones TLS válidas
 - **Monitoreo:** Validación de que logs de auditoría se estén generando correctamente
 
-#### Reportes Automatizados
+##### Reportes Automatizados
 Generación mensual con firmas digitales y distribución automática a stakeholders:
 
 **Contenido de Reportes:**
@@ -7042,9 +7043,9 @@ Generación mensual con firmas digitales y distribución automática a stakehold
 
 Los reportes se firman digitalmente para garantizar integridad y se cifran antes del almacenamiento y distribución.
 
-### 8. Respuesta a Incidentes
+#### 8. Respuesta a Incidentes
 
-#### Clasificación y Escalación Automática
+##### Clasificación y Escalación Automática
 Algoritmos ML determinando severidad y disparando respuestas según tipo de incidente:
 
 **Niveles de Severidad:**
@@ -7053,7 +7054,7 @@ Algoritmos ML determinando severidad y disparando respuestas según tipo de inci
 - **MEDIO:** Anomalías de comportamiento, violaciones de límites
 - **BAJO:** Eventos informativos, mantenimiento programado
 
-#### Contención Automatizada
+##### Contención Automatizada
 Medidas automáticas reversibles activándose según tipo de amenaza:
 
 **Fraude de Pagos:**
@@ -7071,9 +7072,9 @@ Medidas automáticas reversibles activándose según tipo de amenaza:
 - Invalidación de tokens de sesión sospechosos
 - Auditoría intensiva de accesos recientes
 
-### 9. Testing de Seguridad
+#### 9. Testing de Seguridad
 
-#### Pruebas Automatizadas
+##### Pruebas Automatizadas
 Suite de pruebas ejecutándose en pipeline CI/CD verificando controles de seguridad antes de despliegues:
 
 - **Tests de cifrado:** Validación de que datos sensibles estén protegidos
@@ -7082,7 +7083,7 @@ Suite de pruebas ejecutándose en pipeline CI/CD verificando controles de seguri
 - **Tests de rate limiting:** Validación de límites configurados
 - **Tests de compliance PCI:** Verificación de cumplimiento de controles
 
-#### Penetration Testing
+##### Penetration Testing
 Pruebas semanales automatizadas simulando vectores de ataque reales:
 
 - **Inyección SQL:** Resistencia a ataques de base de datos
@@ -7091,23 +7092,23 @@ Pruebas semanales automatizadas simulando vectores de ataque reales:
 - **Escalación de privilegios:** Validación de controles RBAC
 - **Exposición de datos:** Verificación de que información sensible no sea accesible
 
-## Elementos de Alta Disponibilidad
+### Elementos de Alta Disponibilidad
 
-###### 1. Replicación de Base de Datos
+#### 1. Replicación de Base de Datos
 
-#### PostgreSQL Multi-AZ en marketplace-payment-service y marketplace-catalog-service
+##### PostgreSQL Multi-AZ en marketplace-payment-service y marketplace-catalog-service
 - **Ubicación**: Instancia principal en us-east-1a, réplica en us-east-1b
 - **Aplicación**: Replicación síncrona de transacciones críticas (`MarketplaceOrder`, `PaymentTransaction`, `Subscription`)
 - **Activación**: Failover automático en <30 segundos durante fallas del payment-processor-service
 
-#### DynamoDB en marketplace-user-service y marketplace-analytics-service
+##### DynamoDB en marketplace-user-service y marketplace-analytics-service
 - **Ubicación**: Replicación automática entre 3 AZs
 - **Aplicación**: `UserBehaviorMarketplace`, `MarketplaceSessionData`, `DatasetRecommendationCache` gestionadas por user-behavior-tracker-service
 - **Activación**: Sincronización en milisegundos, Point-in-Time Recovery (35 días) en event-ingestion-service
 
 #### 2. Balanceador de Carga
 
-#### Application Load Balancer delante del cluster EKS
+##### Application Load Balancer delante del cluster EKS
 - **Ubicación**: Entrada al cluster EKS del marketplace
 - **Aplicación**:
   - Weighted round-robin distribuye tráfico entre pods de microservicios
@@ -7117,7 +7118,7 @@ Pruebas semanales automatizadas simulando vectores de ataque reales:
 
 #### 3. Auto-Scaling
 
-#### EKS Horizontal Pod Autoscaler aplicado a todos los microservicios
+##### EKS Horizontal Pod Autoscaler aplicado a todos los microservicios
 - **Ubicación**: Microservicios desplegados en cluster EKS (nodos t3.large: 2 vCPU, 8 GB RAM)
 - **Aplicación**:
   - Monitoreo en marketplace-catalog-service, marketplace-payment-service, marketplace-access-service
@@ -7129,20 +7130,20 @@ Pruebas semanales automatizadas simulando vectores de ataque reales:
 
 #### 4. Almacenamiento Resiliente
 
-#### Amazon S3 utilizado por marketplace-analytics-service
+##### Amazon S3 utilizado por marketplace-analytics-service
 - **Ubicación**: Buckets `dpv-marketplace-assets` y `dpv-marketplace-invoices` replicados cross-region a us-west-1
 - **Aplicación**:
   - Thumbnails y previews gestionados por catalog-metadata-sync-service
   - Facturas PDF generadas por invoice-generator-service
 - **Activación**: Versionado automático, lifecycle policies a Glacier después de 90 días
 
-#### Backups de microservicios críticos
+##### Backups de microservicios críticos
 - **marketplace-payment-service**: cada 6 horas (horarios laborales)
 - **marketplace-access-service**: cada 24 horas (fines de semana)
 
 #### 5. Motor de Búsqueda
 
-#### OpenSearch Multi-Nodo para catalog-search-engine-service
+##### OpenSearch Multi-Nodo para catalog-search-engine-service
 - **Ubicación**: 2 nodos t3.small.search distribuidos entre AZs con 50GB EBS por nodo
 - **Aplicación**:
   - Índices `datasets-marketplace-catalog` y `user-marketplace-searches`
@@ -7151,7 +7152,7 @@ Pruebas semanales automatizadas simulando vectores de ataque reales:
 
 #### 6. Cache Distribuido
 
-#### Redis Cluster compartido entre microservicios
+##### Redis Cluster compartido entre microservicios
 - **Ubicación**: Amazon ElastiCache para Redis en modo cluster distribuido entre AZs
 - **Aplicación**:
   - **marketplace-recommendation-service**: cache de recomendaciones personalizadas (TTL: 4h)
@@ -7161,7 +7162,7 @@ Pruebas semanales automatizadas simulando vectores de ataque reales:
 
 #### 7. Monitoreo y Auto-Remediación
 
-#### CloudWatch Alarms monitoreando endpoints de microservicios
+##### CloudWatch Alarms monitoreando endpoints de microservicios
 - **Ubicación**: Endpoints críticos monitoreados cada 30 segundos
 - **Aplicación**:
   - `/api/v1/catalog/search` (marketplace-catalog-service)
@@ -7174,7 +7175,7 @@ Pruebas semanales automatizadas simulando vectores de ataque reales:
 
 #### 8. Recuperación de Desastres
 
-#### Estrategia aplicada por criticidad de microservicio
+##### Estrategia aplicada por criticidad de microservicio
 
 | Microservicio | RTO | RPO | Aplicación |
 |---------------|-----|-----|------------|
@@ -8216,12 +8217,9 @@ El frontend sigue estrictamente el patrón MVVM:
 
 #### Patrones y Principios Aplicados
 
----
 
 - **Diseño Responsivo:**  
   Todo el sistema de componentes visuales del Backoffice está desarrollado bajo un esquema completamente responsivo. Se utiliza Tailwind CSS como framework principal de estilos, aplicando unidades relativas (`rem`, `%`, `vw`, `vh`) y breakpoints definidos para adaptar automáticamente el diseño a diferentes resoluciones de pantalla, incluyendo desktop, tablets y laptops corporativos. Aunque el Backoffice está orientado a usuarios administrativos, el diseño mantiene compatibilidad con resoluciones múltiples para máxima accesibilidad.
-
----
 
 - **Principios SOLID:**
 
@@ -8240,12 +8238,10 @@ El frontend sigue estrictamente el patrón MVVM:
   - **Dependency Inversion Principle:**  
     La lógica de negocio es totalmente consumida a través de los ViewModels (custom hooks). Los componentes visuales no conocen ni interactúan directamente con los servicios o el backend.
 
----
 
 - **DRY (Don’t Repeat Yourself):**  
   Los formularios administrativos (`UserForm`, `KeyForm`, `PipelineForm`) utilizan componentes de formulario reutilizables, validadores comunes y estructuras de inputs parametrizables. Además, los mensajes de error, validaciones de negocio y lógicas de estado están centralizadas, evitando duplicación de código en distintos módulos.
 
----
 
 - **Separation of Concerns (Separación de Responsabilidades):**  
   La responsabilidad de cada capa está claramente delimitada:
@@ -8254,7 +8250,6 @@ El frontend sigue estrictamente el patrón MVVM:
   - Los **Models** definen las estructuras de datos.
   - El **ApiConnector** gestiona la comunicación con el backend.
 
----
 
 - **Atomic Design Aplicado:**
 
@@ -8266,15 +8261,12 @@ El frontend sigue estrictamente el patrón MVVM:
 | **Templates** | `AdminLayout`, `ConfigLayout`, `AuditLayout` |
 | **Pages** | `AdminDashboardPage`, `UserManagementPage`, `PipelineConfigPage`, `KeyManagementPage`, `AuditLogPage` |
 
----
 
 - **Adaptabilidad y mantenibilidad:**  
   Gracias a esta estructura, el sistema permite:
   - Agregar nuevos módulos administrativos (por ejemplo: gestión de roles o integración de APIs externas) sin afectar los módulos existentes.
   - Reutilizar patrones visuales homogéneos en todas las pantallas.
   - Mantener la coherencia visual y funcional del sistema completo.
-
----
 
 
 ## Diseño del Backend
@@ -8410,14 +8402,6 @@ Sistema de auditoría y compliance que registra todas las operaciones administra
 - pipeline.intervention.required
 - security.anomaly.detected
 - backup.completed
-
-##### Amazon API Gateway
-**Propósito**: Gateway unificado
-
-**Configuración**:
-- Autenticación: Cognito User Pool
-- Rate limiting por rol
-- Request validation habilitada
 
 
 #### Backup & Recovery
