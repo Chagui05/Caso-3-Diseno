@@ -1,5 +1,10 @@
 # Caso-3-Diseno
 
+# Índice 
+
+- [Planeamiento](#bioregistro)
+
+
 
 # 1. Planeamiento
 
