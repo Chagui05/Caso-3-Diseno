@@ -2,7 +2,7 @@
 
 # Índice 
 
-- [Planeamiento](#bioregistro)
+- [Planeamiento](#diagrama-del-frontend)
 
 
 
@@ -7636,7 +7636,7 @@ frontend/
 A continuación se presenta el diagrama del frontend del Centro de Visualización y consumo, en el se evidencia como las peticiones al frontend se envían gracias a cloudfront, y dentro de un S3 bucket con react usando CSR se envían las páginas html ya listas para ser renderizadas en cliente. Dichas páginas usan Plotly para poder crear gráficos dinámicamente dependiendo del tipo de consulta. 
 
 
-![Diagrama Front](img/FrontCvC.png.png)
+![Diagrama Front](img/FrontCvC.png)
 
 
 ## Diseño del Backend
