@@ -1,7 +1,11 @@
 # Caso-3-Diseno
 
 # Índice 
-1. [Planeamiento](#diagrama-del-frontend)
+1. [Planeamiento](#planeamiento)
+  1. [Estructura del Equipo, Stakeholders, Key Players](#estructura-del-equipo,-stakeholders,-key--players)
+  2. [Planeamiento](#planeamiento)
+  3. [Planeamiento](#planeamiento)
+  4. [Planeamiento](#planeamiento)
 2. [Planeamiento](#diagrama-del-frontend-1)
 3. [Planeamiento](#diagrama-del-frontend-2)
 
