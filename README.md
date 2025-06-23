@@ -6211,50 +6211,59 @@ Se muestra cómo la contenerización de cada microservicio se realizará utiliza
 
 ### Arquitectura del Cliente
 
-Nuestra arquitectura de cliente consistirá en Client Side Rendering con rendering estático, con una única capa dedicada a la web. Esta decisión se toma porque los bundles de React generados en el build de cada proyecto serán almacenados en un bucket de S3, el cual será servido a los clientes mediante el CDN provisto por CloudFront.
+Nuestra arquitectura de cliente consistirá en Client Side Rendering (CSR) combinado con rendering estático (Static Site Generation), manteniendo una única capa dedicada exclusivamente a la web. Durante el proceso de build, los bundles de React (archivos JavaScript, HTML, CSS y assets) son generados mediante un proceso optimizado y empaquetados para su despliegue. Estos bundles estáticos son almacenados en un bucket de Amazon S3, configurado como origen de almacenamiento de archivos públicos.
 
-Además, para acceder al backend se utilizará una única API, desarrollada en FastAPI alojada en EKS.
+Para asegurar un rendimiento óptimo, baja latencia global y alta disponibilidad, estos archivos estáticos son distribuidos a los usuarios finales a través de Amazon CloudFront, el servicio de Content Delivery Network (CDN) de AWS, el cual replica el contenido en múltiples edge locations alrededor del mundo. Este enfoque permite tiempos de carga rápidos, independientemente de la ubicación geográfica de los usuarios.
+
+Toda la comunicación hacia el backend se canaliza a través de una única API centralizada, implementada sobre el framework FastAPI, desplegada y orquestada dentro de un clúster de contenedores en AWS Elastic Kubernetes Service (EKS). De esta forma, el frontend queda completamente desacoplado de la lógica de negocio, consumiendo únicamente servicios expuestos vía HTTP REST, permitiendo escalabilidad, mantenibilidad y control centralizado de las operaciones de negocio.
 
 ### Patrones de Diseño de Objetos
 
-El diseño del frontend del componente Marketplace de Data Pura Vida sigue principios de diseño orientado a objetos que buscan flexibilidad, mantenibilidad y escalabilidad. Los principales patrones aplicados son los siguientes:
+El diseño del frontend del componente Marketplace de Data Pura Vida sigue principios sólidos de diseño orientado a objetos, enfocados en lograr una solución altamente flexible, mantenible y escalable a largo plazo. Esta estructura permite que el sistema pueda adaptarse fácilmente a cambios futuros, incorporar nuevas funcionalidades de forma incremental y garantizar una separación clara de responsabilidades en cada módulo. Los patrones aplicados organizan tanto los componentes visuales como la lógica de negocio y comunicación con el backend, favoreciendo el desacoplamiento, la reutilización de código, el aislamiento de funcionalidades y la facilidad de pruebas unitarias. Gracias a esta arquitectura, el desarrollo continuo puede realizarse sin afectar negativamente la estabilidad ni el crecimiento evolutivo del sistema.
 
 #### 1 **Patrón de Strategy**
 
-- Ubicación: En los filtros de búsqueda de datasets.
-- Descripción: El frontend permite al usuario aplicar distintos tipos de filtros (por precio, categoría, tipo de dataset, popularidad, etc). Cada filtro implementa una estrategia diferente de ordenamiento o filtrado, pero todos heredan de una interfaz común, lo que permite agregar nuevos filtros en el futuro sin modificar el flujo principal.
-- Beneficio: Permite extender fácilmente nuevos criterios de búsqueda sin alterar el resto del sistema.
+#### 1 **Patrón de Strategy**
+
+- **Ubicación:** En los filtros de búsqueda de datasets.
+- **Descripción:** El frontend permite al usuario aplicar distintos tipos de filtros (por precio, categoría, tipo de dataset, popularidad, fecha de publicación, calificación, entre otros). Cada uno de estos filtros encapsula su propia lógica de ordenamiento o filtrado dentro de clases o funciones específicas que implementan una estrategia concreta. Todos los filtros implementan una interfaz común definida en el sistema, lo que permite que los componentes de búsqueda trabajen de forma genérica sin preocuparse por la lógica interna de cada filtro. De esta manera, el flujo principal de búsqueda permanece estable, mientras que es posible introducir nuevas estrategias de filtrado en el futuro sin modificar el código base existente.
+- **Beneficio:** Esta implementación facilita la extensión del sistema de búsqueda, permite escalar la funcionalidad de filtrado conforme evolucionen los requerimientos de negocio, reduce la posibilidad de errores al introducir cambios y mejora la mantenibilidad del código al aislar cada criterio de filtrado de forma independiente.
 
 #### 2️ **Patrón de Singleton**
 
-- Ubicación: Cliente HTTP centralizado (por ejemplo ApiConnector o MarketplaceApiClient).
-- Descripción: Todo el frontend utiliza una única instancia para gestionar las conexiones al backend (requests HTTP a la API REST de Marketplace).
-- Beneficio: Garantiza un único punto de configuración de headers, manejo de tokens, interceptores de error, y manejo centralizado de respuestas.
+- **Ubicación:** Cliente HTTP centralizado (ApiConnector o MarketplaceApiClient).
+- **Descripción:** En el frontend, toda la comunicación hacia el backend es gestionada por una única instancia del cliente HTTP, implementada como un singleton. Este cliente centralizado es responsable de manejar todas las solicitudes REST hacia la API, asegurando consistencia en la configuración de headers, manejo de autenticación, refresco de tokens, implementación de políticas de reintento, manejo uniforme de errores y control centralizado de los interceptores. Al mantener una única instancia compartida en toda la aplicación, se evita la duplicación de lógica de conexión y se garantiza que todos los módulos del frontend utilicen exactamente los mismos mecanismos de comunicación, seguridad y logging.
+- **Beneficio:** Permite simplificar el mantenimiento de las integraciones con el backend, facilita la trazabilidad de los llamados API, centraliza la configuración de seguridad y reduce significativamente los errores relacionados a inconsistencias en las llamadas HTTP realizadas desde diferentes partes de la aplicación.
+
 
 #### 3️ **Patrón de Observer (Pub-Sub)**
 
-- Ubicación: Sistema de notificaciones y actualización de componentes de UI.
-- Descripción: Algunos componentes de la interfaz están suscritos a eventos globales como la finalización de una compra, actualización de un dataset o expiración de accesos.
-- Beneficio: Desacopla los componentes visuales del flujo de negocio, permitiendo que reaccionen a eventos sin depender directamente unos de otros.
+- **Ubicación:** Sistema de notificaciones y actualización de componentes de UI.
+- **Descripción:** Dentro del frontend, algunos componentes de la interfaz están suscritos a eventos globales a través de un sistema de publicación-suscripción (Pub-Sub). Estos eventos pueden ser generados por múltiples acciones del usuario o del backend, como la finalización de una compra, la actualización de los datos de un dataset, el cambio en el estado de un pedido o la expiración de accesos. Los componentes suscritos escuchan únicamente los eventos relevantes para su funcionalidad, permitiendo actualizar su estado de forma reactiva sin necesidad de tener dependencias directas entre módulos. Esta lógica es gestionada principalmente mediante Contextos de React, Event Emitters o sistemas de estado global controlado.
+- **Beneficio:** Permite un alto grado de desacoplamiento entre los componentes de UI y la lógica de negocio. Facilita la escalabilidad del sistema, ya que nuevos eventos pueden ser integrados sin necesidad de modificar la lógica de los componentes existentes, reduciendo la complejidad, mejorando la mantenibilidad y aumentando la robustez de la interfaz.
+
 
 #### 4️ **Patrón de Facade**
 
-- Ubicación: Módulo de servicios de pago.
-- Descripción: Las operaciones de compra, validación de pagos, visualización de precios y confirmación de compra son orquestadas desde un único módulo de servicios, el cual encapsula la comunicación con Stripe y la lógica de negocio asociada.
-- Beneficio: Simplifica el uso de APIs externas, ocultando la complejidad de validaciones, formatos de respuesta y errores.
+- **Ubicación:** Módulo de servicios de pago.
+- **Descripción:** Las operaciones relacionadas al flujo de pago dentro del Marketplace están centralizadas en un único módulo de servicios que actúa como fachada (Facade). Este módulo es responsable de orquestar todo el proceso de compra, desde la inicialización del pago, validación de transacciones, cálculo y visualización de precios, hasta la confirmación y registro final de la compra. Internamente, este módulo encapsula toda la lógica de integración con proveedores de pago como Stripe (para pagos internacionales) y BAC (para pagos locales), gestionando la comunicación, los formatos de mensajes, validaciones de seguridad, respuesta de los webhooks, tratamiento de errores y actualización del estado de la orden. Los componentes del frontend consumen únicamente métodos simplificados expuestos por esta fachada, sin necesidad de conocer la complejidad interna de cada proveedor externo.
+- **Beneficio:** Simplifica enormemente la integración con múltiples servicios de pago, reduce la duplicación de lógica de negocio, encapsula todas las reglas y validaciones específicas en un único lugar, y permite modificar o extender los proveedores de pago en el futuro sin afectar al resto de la aplicación.
+
 
 #### 5️ Patrón MVVM (Model-View-ViewModel)
 
-- Ubicación: Arquitectura general del frontend.
-- Descripción:
-  - Model: Define los objetos de negocio como Dataset, Order, PaymentTransaction.
-  - ViewModel: Implementado mediante custom hooks como useDatasetSearch(), useMarketplaceCart().
-  - View: Los componentes visuales de React, organizados bajo Atomic Design.
-- Beneficio: Separa de forma clara la lógica de presentación, la lógica de negocio y el manejo de estado de UI.
+- **Ubicación:** Arquitectura general del frontend.
+- **Descripción:** El frontend del Marketplace sigue el patrón arquitectónico **Model-View-ViewModel (MVVM)** para separar de forma clara las distintas responsabilidades dentro de la interfaz.  
+  - **Model:** Define las estructuras de negocio como `Dataset`, `Order`, `PaymentTransaction` y otros objetos de dominio, centralizando las reglas de validación de datos, transformación de estructuras y representación de entidades que viajan entre el frontend y el backend.
+  - **ViewModel:** Implementado mediante **custom hooks** como `useDatasetSearch()`, `useMarketplaceCart()`, `usePayment()`, `useRecommendation()` entre otros. Los ViewModels encapsulan la lógica de negocio específica de cada pantalla o flujo, gestionando el estado de los componentes, control de errores, llamadas al API y cualquier transformación intermedia de datos.
+  - **View:** Los componentes visuales desarrollados en React, estructurados bajo el principio de **Atomic Design**, renderizan la información recibida desde los ViewModels y presentan las interfaces interactivas al usuario.
+- **Beneficio:** La aplicación logra una alta modularidad y mantenibilidad. Las vistas quedan libres de lógica compleja de negocio, los hooks son fácilmente testeables, los modelos centralizan las estructuras de datos, y el sistema completo permite escalar nuevas funcionalidades de forma ordenada y sin generar dependencias cruzadas innecesarias.
+
 
 ### Estructura de Carpetas del Sistema
 
-El frontend del componente Marketplace sigue una estructura modular basada en el patrón de diseño Atomic Design, el patrón MVVM y principios de escalabilidad y mantenibilidad. La organización permite extender fácilmente nuevos módulos de negocio dentro del Marketplace.
+El frontend del componente Marketplace sigue una estructura modular claramente organizada, basada en la combinación de los patrones Atomic Design y MVVM, lo cual permite mantener una separación estricta de responsabilidades entre componentes visuales, lógica de negocio y gestión de datos. Esta estructura facilita la escalabilidad, mantenibilidad y extensibilidad del sistema, permitiendo incorporar nuevos módulos de negocio o funcionalidades sin impactar negativamente el código existente. Además, favorece la reutilización de componentes, simplifica las pruebas unitarias y mejora la claridad general del proyecto durante el desarrollo colaborativo.
+
 
 ```plaintext
 frontend/
@@ -6311,26 +6320,48 @@ frontend/
 
 | Tecnología    | Descripción                                |
 | ------------- | ------------------------------------------ |
-| React         | Framework principal para UI                |
+| React.js      | Framework principal de construcción de la UI |
+| Vite          | Bundler de desarrollo rápido y optimizado  |
 | Tailwind CSS  | Framework de estilos responsivos           |
-| Axios         | Cliente HTTP centralizado                  |
-| Stripe        | Gestión de pagos y facturación             |
+| Axios         | Cliente HTTP centralizado (ApiConnector)   |
 | React Context | Manejo de estado global (usuario, carrito) |
 | React Router  | Control de rutas y navegación              |
+| React Query   | Sincronización eficiente de datos (fetching y caching) |
+| Formik + Yup  | Validación y control de formularios complejos |
+| Stripe        | Gestión de pagos y facturación internacionales |
+| Amplify       | Despliegue estático y automatización CI/CD en AWS |
+| Cognito       | Autenticación de usuarios con MFA          |
+| Plotly.js     | Visualización de gráficos interactivos     |
+
 
 
 ### Componentes Visuales
 
 #### Patrones y Principios:
 
-- **Diseño Responsivo:** Aplicado desde el desarrollo inicial, permitiendo que el Marketplace sea visualizado correctamente en desktop, tablets y móviles. Se utiliza Tailwind para web. Las clases CSS usan unidades relativas (rem, %, vw) y los breakpoints de Tailwind manejan la adaptación automática.
+- **Diseño Responsivo:**  
+  Desde el inicio del desarrollo, todo el sistema de componentes visuales del Marketplace ha sido diseñado para adaptarse correctamente a múltiples tamaños de pantalla, incluyendo desktops, tablets y dispositivos móviles.  
+  Se emplea Tailwind CSS como framework de estilos, el cual permite definir clases responsivas de forma declarativa utilizando breakpoints predefinidos. Las unidades de medida utilizadas son relativas (como `rem`, `%`, `vw` y `vh`) lo que asegura escalabilidad fluida de los elementos visuales según la resolución del dispositivo.  
+  Además, los componentes visuales fueron construidos siguiendo el principio mobile-first, permitiendo que la interfaz priorice el correcto renderizado en pantallas reducidas sin sacrificar la experiencia de usuario en dispositivos de escritorio.  
+  Esta estructura permite que el Marketplace pueda ser consumido de forma cómoda, accesible y visualmente consistente en todos los dispositivos donde los usuarios acceden a la plataforma.
+
 
 - **SOLID:**
-  - Single Responsibility: Cada componente de React cumple una única función. Los componentes visuales están completamente separados de los hooks de lógica.
-  - Open/Closed Principle: Los componentes son extensibles sin modificar su código interno, como los botones (Button) o tarjetas de datasets (DatasetCard).
-  - Liskov Substitution Principle: Las listas de datasets permiten diferentes tarjetas de visualización que pueden reemplazar a las generales según el tipo de dataset.
-  - Interface Segregation Principle: Gracias a Atomic Design, los componentes solo exponen las props necesarias.
-  - Dependency Inversion Principle: La lógica de negocio reside en los ViewModels (custom hooks), manteniendo los componentes visuales desacoplados.
+
+  - **Single Responsibility Principle (SRP):**  
+    Cada componente de React está diseñado para cumplir estrictamente una única responsabilidad visual o de interacción. Los componentes visuales únicamente manejan el renderizado y la presentación de los datos, mientras que toda la lógica de negocio, validación o manipulación de datos se encuentra completamente aislada dentro de los hooks de ViewModel. Esto facilita el mantenimiento, pruebas unitarias y la evolución de cada componente de manera independiente.
+
+  - **Open/Closed Principle (OCP):**  
+    Los componentes visuales están preparados para ser extendidos sin necesidad de modificar su código interno. Por ejemplo, los botones (`Button`), tarjetas de datasets (`DatasetCard`) y formularios son altamente parametrizables a través de sus props, lo que permite modificar su comportamiento o presentación externa sin alterar su implementación interna.
+
+  - **Liskov Substitution Principle (LSP):**  
+    Las listas de datasets y sus tarjetas de visualización están diseñadas para aceptar distintos tipos de visualizaciones que implementan una misma interfaz de props. Esto permite reemplazar un componente de visualización por otro (por ejemplo, una tarjeta simple por una tarjeta premium o recomendada) sin que el resto de la aplicación requiera cambios.
+
+  - **Interface Segregation Principle (ISP):**  
+    Gracias al uso de **Atomic Design**, los componentes exponen únicamente las props estrictamente necesarias para su funcionamiento. No se obliga a los consumidores de los componentes a manejar props innecesarias o irrelevantes, reduciendo así el acoplamiento y simplificando la integración de los componentes.
+
+  - **Dependency Inversion Principle (DIP):**  
+    Toda la lógica de negocio reside en los ViewModels implementados como custom hooks. Los componentes visuales no conocen los detalles de cómo se obtiene, manipula o procesa la información. En su lugar, reciben los datos ya preparados por los hooks, manteniéndose completamente desacoplados de la lógica de negocio o del acceso a datos.
 
 - **DRY (Don't Repeat Yourself):** Los componentes son reutilizables (atoms, molecules). Además, las funciones utilitarias en `utils/` centralizan validaciones de pago, cálculos de carrito, formateo de precios, etc.
 
@@ -7998,509 +8029,415 @@ A continuación se presenta el diagrama de base de datos correspondiente al mód
 
 ### Arquitectura de Construcción del Backoffice Administrativo
 
-El módulo de Backoffice Administrativo permite a los operadores internos gestionar todos los aspectos críticos de la operación, seguridad, auditoría y configuración del ecosistema de Data Pura Vida. La arquitectura está diseñada bajo los mismos principios de escalabilidad, modularidad, seguridad avanzada y desacoplamiento que los demás módulos.
+El módulo de Backoffice Administrativo permite a los operadores internos gestionar todos los aspectos críticos de la operación, seguridad, auditoría y configuración del ecosistema de Data Pura Vida. Su arquitectura sigue los mismos principios de escalabilidad, modularidad, seguridad avanzada y desacoplamiento que el resto de los módulos del sistema.
 
-### Flujo funcional principal:
+El frontend del Backoffice está completamente desacoplado de los microservicios backend, consumiendo únicamente las APIs expuestas por los servicios administrativos centralizados. La aplicación utiliza Client Side Rendering (CSR) en React, desplegado de forma estática sobre S3 y servido globalmente mediante CloudFront.
 
-1. El usuario (operador administrativo) accede mediante login protegido por MFA en Cognito.
-2. El frontend permite administrar usuarios, llaves, flujos de trabajo y auditoría mediante distintos paneles desacoplados.
-3. Cada acción del backoffice es enviada al backend mediante API REST protegida.
-4. El backend valida roles RBAC, ejecuta lógica de negocio, actualiza bases de datos (PostgreSQL, DynamoDB, S3) y dispara eventos a EventBridge y RabbitMQ según corresponda.
-5. Se registran logs completos de auditoría y trazabilidad para cada operación sensible.
-6. El frontend permite consultar en tiempo real el estado de las operaciones y extraer reportes auditables.
+Todo el ciclo de gestión administrativa (usuarios, llaves de seguridad, flujos de datos, auditoría de operaciones, monitoreo de tareas, configuración de pipelines, manejo de custodios y autorizaciones mancomunadas) es orquestado desde esta interfaz, garantizando visibilidad centralizada, control granular de permisos, validación de identidades, auditoría continua y trazabilidad completa.
 
+La arquitectura modular permite extender nuevos módulos administrativos de forma independiente, manteniendo una estricta separación entre vistas, lógica de negocio, y acceso a servicios backend a través de clientes HTTP centralizados, aplicando los principios de MVVM, Atomic Design y Patrones de Diseño de Objetos para su mantenimiento escalable.
 
-### Diseño de la arquitectura
+### Patrones de Diseño de Objetos - Backoffice Administrativo
 
-- **Frontend**
-  - Construido en React con Tailwind, siguiendo patrón MVVM.
-  - Atomic Design para la composición de pantallas administrativas.
-  - Integración con React Query para sincronización eficiente con el backend.
-  - Alta separación de lógica de negocio en hooks: `useUserManagement()`, `useAuditLogs()`, `useKeyManagement()`, `usePipelineManager()`.
+El diseño del frontend del módulo Backoffice Administrativo de Data Pura Vida sigue estrictamente principios de diseño orientado a objetos para lograr un sistema altamente desacoplado, escalable, mantenible y seguro.  
+Dado que este módulo administra operaciones críticas del ecosistema (usuarios, llaves de seguridad, auditoría, pipelines y permisos), se aplican múltiples patrones de diseño para asegurar la extensibilidad y robustez de la solución.
 
-- **Backend**
-  - Microservicio independiente sobre FastAPI desplegado en EKS.
-  - Capa de seguridad API Gateway → Cognito → RBAC interno.
-  - Persistencia híbrida:
-    - PostgreSQL (metadata administrativa y control de usuarios)
-    - DynamoDB (logs y eventos)
-    - S3 (reportes y backups)
-  - Event-Driven para integraciones: RabbitMQ y EventBridge.
-  - Coordinación con el Bioregistro, La Bóveda y el Motor de Transformación mediante gRPC.
+A continuación, se describen los principales patrones aplicados en la arquitectura:
 
-- **Seguridad avanzada**
-  - Todos los accesos requieren autenticación multifactor con Cognito.
-  - Cada acción administrativa produce un evento de auditoría.
-  - Toda interacción sensible es auditada y registrada en OpenSearch.
+#### 1️ Patrón Strategy
 
+- **Ubicación:** Gestión de configuraciones administrativas.
+- **Uso:** Cada módulo de configuración (usuarios, roles, llaves, pipelines, custodia) implementa su propia estrategia de validación y operación, pero todos exponen una interfaz común. Por ejemplo, al crear nuevas políticas de pipelines, cada tipo de flujo sigue una estrategia específica de configuración, permitiendo extender validaciones y reglas sin afectar el flujo global del sistema.
+- **Beneficio:** Permite agregar nuevas reglas de negocio o validadores administrativos de forma desacoplada, sin necesidad de modificar el núcleo del sistema de configuración.
 
-### Construcción de objetos de negocio
+#### 2️ Patrón Singleton
 
-**Tablas principales gestionadas:**
+- **Ubicación:** Cliente HTTP centralizado (BackofficeApiClient).
+- **Uso:** Gestiona las conexiones HTTP hacia el backend administrativo mediante una única instancia compartida. Toda configuración de headers, manejo de tokens de autenticación, interceptores de error, retries y logging de requests se concentra en un único punto.
+- **Beneficio:** Evita duplicación de lógica de comunicación, asegura consistencia en todas las llamadas al backend y facilita el mantenimiento centralizado de seguridad y auditoría de requests.
 
-| Tabla | Descripción |
-|-------|--------------|
-| Users | Administración de operadores internos |
-| UserRoles | Roles y permisos RBAC |
-| PipelinesConfig | Gestión de pipelines activos |
-| SecurityKeys | Llaves de cifrado activas, revocadas y expiradas |
-| AuditLogs | Trazabilidad completa de cada operación |
-| Custodians | Custodios de llaves con validación mancomunada |
-| APIIntegrations | Conexiones externas habilitadas |
+#### 3️ Patrón Observer (Pub-Sub)
 
-**Eventos generados en el backend:**
+- **Ubicación:** Actualización reactiva de estado en la UI.
+- **Uso:** Cuando ocurren eventos administrativos (creación de usuarios, cambios de llaves, actualizaciones de pipelines), los componentes visuales suscritos a los contextos globales de React reciben las actualizaciones en tiempo real, actualizando la UI automáticamente sin necesidad de refrescar el estado global de forma manual.
+- **Beneficio:** Desacopla completamente los componentes de visualización de los flujos de negocio, permitiendo que cualquier acción administrativa propague sus efectos en los paneles correspondientes de forma automática y reactiva.
 
-- `user.updated`
-- `pipeline.config.changed`
-- `key.revoked`
-- `audit.logged`
-- `permission.assigned`
-- `external.integration.modified`
+#### 4️ Patrón Facade
 
+- **Ubicación:** Servicios administrativos de integración.
+- **Uso:** Cada dominio de negocio expone una fachada que encapsula la lógica interna de interacción con los servicios backend. Por ejemplo: UserService, KeyService, PipelineService o AuditService centralizan la interacción de cada módulo con el API, ocultando los detalles de validación de endpoints, manejo de errores, transformaciones de datos y validación de permisos.
+- **Beneficio:** Simplifica la integración entre el frontend y el backend, facilita el testing unitario de los servicios de negocio y centraliza la lógica de orquestación administrativa.
 
-### Principios de diseño aplicados
+#### 5️ Patrón Dependency Injection
 
-- **MVVM**
-  El frontend sigue estrictamente MVVM con separación en `models`, `hooks` (ViewModel), `components` (View).
+- **Ubicación:** Hooks de negocio (ViewModel).
+- **Uso:** Los hooks de cada módulo (`useUserManagement()`, `usePipelineManagement()`, `useKeyManagement()`) reciben como dependencias los servicios de backend que encapsulan el acceso a datos. Esto permite desacoplar completamente la lógica de negocio de los detalles de infraestructura.
+- **Beneficio:** Facilita la prueba aislada de cada ViewModel, reduce el acoplamiento entre capas, permite mockear servicios en testing y mejora la mantenibilidad a largo plazo.
 
-- **SOLID**
-  - **Single Responsibility:** Cada hook gestiona un solo dominio (usuarios, llaves, pipelines, auditoría).
-  - **Open/Closed:** Es sencillo extender nuevos formularios de administración sin romper flujos actuales.
-  - **Liskov Substitution:** Interfaz única para CRUD administrativo de cualquier objeto gestionable.
-  - **Interface Segregation:** Los hooks solo exponen las props mínimas requeridas.
-  - **Dependency Inversion:** El backend está completamente desacoplado de la UI, expone solo APIs REST bien definidas.
+#### 6️ Patrón MVVM (Model-View-ViewModel)
 
-- **Separation of Concerns:**
-  Roles claramente aislados entre visualización, lógica de negocio, persistencia y auditoría.
+- **Model:** Define los objetos de negocio (User, Role, Pipeline, Key, AuditLog, Custodian), estableciendo sus validaciones, transformaciones y estructuras de datos compartidas entre frontend y backend.
+- **ViewModel:** Implementado en hooks altamente especializados para cada dominio (`useUserManagement()`, `usePipelineManager()`, `useAuditLogs()`, etc.). Gestionan el estado de la interfaz, control de formularios, validación previa, llamadas al API y propagación de eventos.
+- **View:** Los componentes visuales de React, diseñados bajo Atomic Design, presentan las pantallas administrativas consumiendo exclusivamente los datos gestionados por los ViewModels.
 
-- **DRY:**
-  Formularios, validadores y modales reutilizados por cada panel de administración.
+- **Beneficio:** Permite una separación clara y robusta entre la lógica de presentación, la lógica de negocio y el acceso a datos, mejorando la mantenibilidad, escalabilidad y capacidad de evolución del sistema sin riesgo de introducir errores cruzados.
 
+#### 7️ Patrón Atomic Design
 
-### Herramientas utilizadas
+- **Aplicación en el Backoffice:**
+  - **Atoms:** Button, Input, Checkbox, Modal, TableRow.
+  - **Molecules:** UserForm, PipelineEditor, KeyConfigForm.
+  - **Organisms:** AuditLogTable, PipelineDashboard, UserManagementPanel.
+  - **Templates:** AdminLayout, FormLayout.
+  - **Pages:** AdminDashboardPage.
 
-| Herramienta | Función |
-|--------------|---------|
-| React + Tailwind | Frontend de la UI administrativa |
-| Plotly.js | Visualización de reportes de uso |
-| React Hook Form | Formularios administrativos |
-| FastAPI | Backend de servicios administrativos |
-| PostgreSQL | Metadata administrativa transaccional |
-| DynamoDB | Logs de auditoría y seguridad |
-| EventBridge + RabbitMQ | Eventos de orquestación |
-| Cognito + MFA | Control de acceso y autenticación |
-| OpenSearch | Auditoría de logs en tiempo real |
-| AWS KMS | Gestión de llaves de cifrado |
-| AWS SES | Notificaciones administrativas |
-| AWS Secrets Manager | Manejo seguro de credenciales internas |
+- **Beneficio:** Facilita la reutilización de componentes visuales en distintas vistas, garantiza consistencia visual y simplifica el mantenimiento de la UI.
 
+#### 8️ Separation of Concerns (Separación de Responsabilidades)
 
-### Estructura de carpetas Frontend
+- **Uso:** Cada capa (View, ViewModel, Model, API Service) tiene responsabilidades bien delimitadas, evitando cruces de lógica entre capas.
+- **Beneficio:** Permite desarrollar, probar y mantener cada módulo del frontend de forma aislada, minimizando el riesgo de errores regresivos y facilitando la incorporación de nuevos programadores al equipo.
+
+#### 9️ DRY (Don’t Repeat Yourself)
+
+- **Uso:** La lógica repetitiva de validación, manejo de formularios, transformación de datos y comunicación con el API se encapsula en servicios y utilitarios reutilizables.
+- **Beneficio:** Minimiza la duplicación de código, reduce el mantenimiento y asegura consistencia de comportamiento en toda la aplicación.
+
+### Estructura de Carpetas del Sistema - Backoffice Administrativo
+
+El frontend del Backoffice sigue una estructura modular organizada bajo los principios de **MVVM**, **Atomic Design** y principios de escalabilidad, permitiendo una separación clara entre lógica de negocio, visualización, modelos de datos y comunicación con el backend.
 
 ```plaintext
-frontend/
+frontend-backoffice/
+├── public/                       # Archivos estáticos
 ├── src/
-│   ├── api/
+│   ├── api/                      # Servicios de comunicación con el backend
 │   │   └── backofficeApi.ts
-│   ├── models/
+│   │
+│   ├── models/                   # Modelos de negocio
 │   │   ├── User.ts
+│   │   ├── Role.ts
 │   │   ├── Key.ts
 │   │   ├── Pipeline.ts
 │   │   ├── Custodian.ts
 │   │   └── AuditLog.ts
-│   ├── hooks/
+│   │
+│   ├── hooks/                    # ViewModels - lógica de negocio
 │   │   ├── useUserManagement.ts
+│   │   ├── useRoleManagement.ts
 │   │   ├── useKeyManagement.ts
-│   │   ├── usePipelineManager.ts
+│   │   ├── usePipelineManagement.ts
+│   │   ├── useCustodianManagement.ts
 │   │   └── useAuditLogs.ts
-│   ├── components/
-│   │   ├── atoms/
-│   │   ├── molecules/
-│   │   ├── organisms/
-│   │   └── templates/
-│   ├── pages/
-│   │   └── AdminDashboardPage.tsx
-│   └── App.tsx
+│   │
+│   ├── components/               # Componentes visuales siguiendo Atomic Design
+│   │   ├── atoms/                # Inputs, botones, iconos
+│   │   ├── molecules/            # Formularios, tablas, filtros
+│   │   ├── organisms/            # Dashboards, tablas de auditoría, paneles de administración
+│   │   └── templates/            # Layouts completos
+│   │
+│   ├── pages/                    # Páginas principales del Backoffice
+│   │   ├── AdminDashboardPage.tsx
+│   │   ├── UserManagementPage.tsx
+│   │   ├── PipelineConfigPage.tsx
+│   │   ├── KeyManagementPage.tsx
+│   │   ├── AuditLogPage.tsx
+│   │   └── CustodianPage.tsx
+│   │
+│   ├── contexts/                 # Contexto global de estado (opcional)
+│   │   ├── UserContext.tsx
+│   │   └── SessionContext.tsx
+│   │
+│   ├── utils/                    # Funciones utilitarias reutilizables
+│   ├── constants/                # Constantes de configuración o enumerados
+│   └── App.tsx                   # Entry point de la aplicación
+│
+├── amplify/                      # Configuración de despliegue en Amplify
+│   ├── backend/
+│   └── aws-exports.js
+│
+└── tests/                        # Pruebas unitarias e integración
+    ├── unit/
+    └── integration/
 ```
+### Arquitectura del Cliente - Backoffice Administrativo
+
+La arquitectura del cliente para el módulo de Backoffice Administrativo de Data Pura Vida está diseñada bajo los principios de desacoplamiento, modularidad y mantenibilidad, aplicando el patrón MVVM (Model-View-ViewModel) combinado con Atomic Design para la construcción de interfaces escalables.
+
+#### Modelo de despliegue
+
+- El frontend es construido mediante Vite, optimizando los tiempos de build.
+- Los artefactos generados (archivos estáticos de React: HTML, JS, CSS y assets) son desplegados sobre Amazon S3.
+- El contenido es distribuido globalmente a través de Amazon CloudFront para asegurar baja latencia y alta disponibilidad para los operadores internos.
+- El sistema opera bajo un esquema de Client Side Rendering (CSR), manteniendo una única capa web desacoplada del backend.
+
+#### Comunicación con el backend
+
+- Todas las operaciones administrativas se comunican con los microservicios administrativos desplegados en FastAPI sobre AWS EKS.
+- La comunicación HTTP es gestionada mediante un cliente centralizado (`BackofficeApiClient`), implementado como un Singleton.
+- Este cliente maneja:
+  - Inyección automática de headers de autenticación (JWT de Cognito).
+  - Gestión de renovación de tokens.
+  - Interceptores globales de error.
+  - Retrys controlados para operaciones críticas.
+
+#### Flujo de arquitectura del cliente
+
+El frontend sigue estrictamente el patrón MVVM:
+
+```plaintext
+[ Usuario Operador ]
+   ↓
+[ View (React Components / Pages) ]
+   ↓
+[ ViewModel (Custom Hooks especializados) ]
+   ↓
+[ Model (Entidades de negocio) ]
+   ↓
+[ ApiConnector (BackofficeApiClient) ]
+   ↓
+[ Backend REST (FastAPI sobre EKS) ]
+```
+
+### Componentes Visuales - Backoffice Administrativo
+
+#### Patrones y Principios Aplicados
+
+---
+
+- **Diseño Responsivo:**  
+  Todo el sistema de componentes visuales del Backoffice está desarrollado bajo un esquema completamente responsivo. Se utiliza Tailwind CSS como framework principal de estilos, aplicando unidades relativas (`rem`, `%`, `vw`, `vh`) y breakpoints definidos para adaptar automáticamente el diseño a diferentes resoluciones de pantalla, incluyendo desktop, tablets y laptops corporativos. Aunque el Backoffice está orientado a usuarios administrativos, el diseño mantiene compatibilidad con resoluciones múltiples para máxima accesibilidad.
+
+---
+
+- **Principios SOLID:**
+
+  - **Single Responsibility:**  
+    Cada componente visual cumple una única función de renderizado. Los componentes no contienen lógica de negocio; ésta es gestionada exclusivamente por los hooks (ViewModel). Por ejemplo, `UserTable`, `PipelineForm` o `KeyEditor` se encargan únicamente de presentar datos y recibir eventos de interacción.
+
+  - **Open/Closed Principle:**  
+    Los componentes son completamente extensibles vía props sin necesidad de modificar su estructura interna. Agregar nuevos campos en formularios o parámetros en dashboards de auditoría puede realizarse sin alterar los componentes existentes.
+
+  - **Liskov Substitution Principle:**  
+    Las tablas administrativas (ej. `UserTable`) permiten utilizar distintas variantes de filas o celdas (ej.: filas ampliadas para custodios, roles o auditoría detallada), sin alterar el comportamiento del componente principal.
+
+  - **Interface Segregation Principle:**  
+    Cada componente recibe exclusivamente las props que necesita. No existen props innecesarias ni parámetros opcionales forzados.
+
+  - **Dependency Inversion Principle:**  
+    La lógica de negocio es totalmente consumida a través de los ViewModels (custom hooks). Los componentes visuales no conocen ni interactúan directamente con los servicios o el backend.
+
+---
+
+- **DRY (Don’t Repeat Yourself):**  
+  Los formularios administrativos (`UserForm`, `KeyForm`, `PipelineForm`) utilizan componentes de formulario reutilizables, validadores comunes y estructuras de inputs parametrizables. Además, los mensajes de error, validaciones de negocio y lógicas de estado están centralizadas, evitando duplicación de código en distintos módulos.
+
+---
+
+- **Separation of Concerns (Separación de Responsabilidades):**  
+  La responsabilidad de cada capa está claramente delimitada:
+  - Las **Views** presentan la información.
+  - Los **ViewModels** gestionan el estado, validaciones y lógica de negocio.
+  - Los **Models** definen las estructuras de datos.
+  - El **ApiConnector** gestiona la comunicación con el backend.
+
+---
+
+- **Atomic Design Aplicado:**
+
+| Nivel | Ejemplos de componentes utilizados |
+|-------|------------------------------------|
+| **Atoms** | `Button`, `Input`, `Select`, `Badge`, `Modal`, `TableRow` |
+| **Molecules** | `UserForm`, `PipelineForm`, `KeyForm`, `AuditLogFilter` |
+| **Organisms** | `UserTable`, `PipelineManager`, `KeyManagementPanel`, `AuditLogTable` |
+| **Templates** | `AdminLayout`, `ConfigLayout`, `AuditLayout` |
+| **Pages** | `AdminDashboardPage`, `UserManagementPage`, `PipelineConfigPage`, `KeyManagementPage`, `AuditLogPage` |
+
+---
+
+- **Adaptabilidad y mantenibilidad:**  
+  Gracias a esta estructura, el sistema permite:
+  - Agregar nuevos módulos administrativos (por ejemplo: gestión de roles o integración de APIs externas) sin afectar los módulos existentes.
+  - Reutilizar patrones visuales homogéneos en todas las pantallas.
+  - Mantener la coherencia visual y funcional del sistema completo.
+
+---
+
 
 ## Diseño del Backend
 
 ### Microservicios del Backoffice Administrativo
 
-#### 1. admin-validation-service
+#### 1. admin-operations-service
 
-**Responsabilidad**: Validación y aprobación de registros pendientes del Bio Registro, sin duplicar datos primarios.
-
-#### Componentes Clave
-- **ValidationController**: APIs REST para gestión de validaciones pendientes
-- **DocumentAnalyzer**: Validación automatizada con IA usando modelos unificados de Hugging Face
-- **ApprovalWorkflow**: Sistema de flujo de aprobación con múltiples niveles
-- **ValidationStatusManager**: Gestión de estados de validación (pendiente, aprobado, rechazado)
-- **BioRegistroConnector**: Cliente para consultar datos primarios del Bio Registro
-
-##### Operación
-Los administradores revisan registros pendientes consultando datos del Bio Registro via API. Las validaciones usan scoring automático de IA con modelos de Hugging Face unificados. Las aprobaciones disparan eventos para crear cuentas y notificar usuarios. No almacena datos de usuario, solo estados de validación.
-
-**Tecnologías**: FastAPI, PostgreSQL (solo estados), Hugging Face, Bio Registro API
-
-**Base de Datos**: `admin_validation_db`
-- Tablas: `validation_requests`, `document_analysis_results`, `approval_workflows`
-
-**Eventos**:
-- *Consume*: `user.registration.submitted`, `document.uploaded`
-- *Produce*: `validation.approved`, `validation.rejected`, `manual.review.required`
-
----
-
-#### 2. pipeline-operations-service
-
-**Responsabilidad**: Supervisión y gestión operacional de pipelines de transformación con intervención manual.
-
-#### Componentes Clave
-- **PipelineController**: Dashboard en tiempo real y controles operacionales
-- **AirflowIntegrator**: Integración directa con Airflow API para gestión de DAGs
-- **SparkMonitor**: Métricas específicas de rendimiento Spark y detección de cuellos de botella
-- **InterventionManager**: Gestión de intervenciones manuales con trazabilidad completa
-- **ResourceOptimizer**: Optimización de clusters basada en patrones históricos
-
-##### Operación
-Monitoreo continuo durante ventanas de procesamiento batch. Los operadores intervienen en fallos, analizan logs específicos de Spark (memory spill, shuffle operations, task failures) y deciden reintentos o escalación. Todas las intervenciones quedan auditadas.
-
-**Tecnologías**: Apache Airflow API, Spark History Server, PostgreSQL, OpenSearch
-
-**Base de Datos**: `pipeline_management_db`
-- Tablas: `pipeline_configurations`, `execution_history`, `manual_interventions`, `performance_metrics`
-
-**Eventos**:
-- *Consume*: `pipeline.execution.failed`, `data.quality.issue.detected`, `resource.threshold.exceeded`
-- *Produce*: `pipeline.manually.restarted`, `intervention.logged`, `resource.optimization.applied`
-
-
-#### 3. security-key-orchestrator-service
-
-**Responsabilidad**: Orquestación de llaves tripartitas con custodios distribuidos, sin almacenar llaves sensibles.
+**Responsabilidad**: Operaciones administrativas centrales y gestión de configuraciones.
 
 ##### Componentes Clave
-- **KeyOrchestrationController**: Gestión de metadatos y orquestación de llaves
-- **CustodianCoordinator**: Coordinación de custodios geográficamente distribuidos
-- **RotationScheduler**: Programación y coordinación de rotaciones automáticas
-- **EmergencyProtocolManager**: Protocolos de emergencia con tiempos de respuesta definidos
-- **CryptoIntegrityValidator**: Verificación de integridad matemática sin acceso a llaves
+- **UserValidationController**: Validación y aprobación de registros del Bio Registro 
+- **DataRulesManager**: Gestión de reglas de carga de datos, formatos y validaciones 
+- **ExternalConnectionsManager**: Configuración de APIs, BDs y callbacks externos 
+- **PipelineController**: Supervisión y control de pipelines de datos 
+- **SecurityKeyManager**: Gestión básica de llaves de seguridad 
+- **CustodianCoordinator**: Administración de custodios de llaves 
+- **RBACManager**: Control de acceso basado en roles 
+- **ConfigurationController**: Gestión flexible de accesos y configuraciones 
 
-##### Operación
-Coordina generación de llaves para organizaciones aprobadas sin almacenar las llaves reales. Gestiona metadatos, programación de rotaciones y protocolos de emergencia. Las llaves permanecen en AWS KMS y con custodios distribuidos.
+#### Operación
+Interfaz administrativa unificada para todas las operaciones de gestión. Los administradores validan usuarios, configuran reglas de negocio, supervisan pipelines y gestionan configuraciones del sistema. Integra con Bio Registro vía API para consultar datos sin duplicarlos.
 
-**Tecnologías**: AWS KMS, AWS Secrets Manager, PostgreSQL (metadatos), AWS Lambda (rotaciones)
-
-**Base de Datos**: `security_keys_metadata_db`
-- Tablas: `key_metadata`, `custodian_assignments`, `rotation_schedules`, `emergency_protocols`
-
-**Geografía de Custodios**:
-- Custodio 1: San José (Gobierno Central)
-- Custodio 2: Cartago (Academia)
-- Custodio 3: Heredia (Sector Privado)
-- Custodio 4: Alajuela (Sector Financiero)
-- Custodio 5: Puntarenas (Representación Regional)
-
-**Eventos**:
-- *Consume*: `organization.approved`, `security.threat.detected`, `rotation.scheduled`
-- *Produce*: `keys.orchestrated`, `key.revoked`, `emergency.access.initiated`, `custodian.notified`
+**Tecnologías**: FastAPI, PostgreSQL, Redis, AWS Cognito
 
 
+#### 2. audit-compliance-service
 
-#### 4. audit-intelligence-service
-
-**Responsabilidad**: Sistema de auditoría inteligente con análisis ML y evidencia forense.
-
-#### Componentes Clave
-- **AuditController**: APIs para búsqueda forense y reportes regulatorios
-- **EventCorrelationEngine**: Correlación distribuida de eventos con OpenTelemetry
-- **SecurityAnalyzer**: Detección de anomalías usando modelos Hugging Face unificados
-- **ComplianceReporter**: Reportes automáticos para regulaciones específicas
-- **ForensicsManager**: Preservación de evidencia con cadena de custodia
-
-##### Operación
-Recopilación continua con procesamiento via Kafka Streams para alto volumen. Correlación de eventos distribuidos y análisis ML para patrones sospechosos. Investigaciones formales con preservación inmutable de evidencia.
-
-**Tecnologías**: Apache Kafka, OpenSearch (separado por propósito), Hugging Face, PostgreSQL
-
-**Base de Datos**: `audit_cases_db`
-- Tablas: `investigation_cases`, `evidence_chain`, `compliance_reports`, `anomaly_alerts`
-
-**OpenSearch Clusters**:
-- `audit-logs-cluster`: Time-series para logs de auditoría
-- `security-events-cluster`: Eventos de seguridad en tiempo real
-
-**Eventos**:
-- *Consume*: Todos los eventos del ecosistema via Kafka
-- *Produce*: `security.threat.critical`, `compliance.violation.detected`, `investigation.initiated`
-
-
-#### 5. system-configuration-service
-
-**Responsabilidad**: Configuración global del sistema con feature flags y gestión de integraciones.
+**Responsabilidad**: Auditoría, compliance y reportería del sistema.
 
 ##### Componentes Clave
-- **ConfigController**: APIs para configuración global y feature management
-- **FeatureToggleManager**: Feature flags granulares con estrategias de rollout
-- **IntegrationManager**: Gestión de integraciones externas con SLAs específicos
-- **HealthOrchestrator**: Orquestación de health checks distribuidos
-- **BackupCoordinator**: Coordinación de respaldos con validación automática
+- **AuditController**: Auditoría de operaciones por usuario, fecha y acción 
+- **ReportGenerator**: Generación de reportes de uso, calidad e integración 
+- **SystemMonitor**: Monitoreo del estado operativo de servicios 
+- **EvidenceManager**: Extracción de evidencias para procesos legales 
+- **AnomalyDetector**: Detección de patrones anómalos básica
 
 ##### Operación
-Gestión centralizada de configuraciones con versionado y rollback. Feature flags con deployment strategies (canary, blue-green, ring). Monitoreo de integraciones con circuit breakers y fallback automático.
+Sistema de auditoría y compliance que registra todas las operaciones administrativas. Genera reportes automáticos y bajo demanda. Preserva evidencia para procesos legales con cadena de custodia.
 
-**Tecnologías**: AWS Systems Manager, PostgreSQL, Circuit Breaker Pattern, AWS Backup
-
-**Base de Datos**: `system_configuration_db`
-- Tablas: `feature_flags`, `integration_configs`, `system_parameters`, `deployment_strategies`
-
-**SLAs de Integraciones**:
-- Stripe API: timeout 10s, retry 3 veces
-- SumSub API: timeout 30s, retry 2 veces
-- Banco Central: timeout 60s, retry 1 vez
-
-**Eventos**:
-- *Consume*: `service.health.degraded`, `integration.external.failed`, `backup.completed`
-- *Produce*: `config.updated`, `feature.toggle.changed`, `integration.circuit.opened`
-
-
-
-#### 6. ai-analysis-service (NUEVO)
-
-**Responsabilidad**: Servicio unificado de IA para todo el Backoffice usando stack consolidado.
-
-##### Componentes Clave
-- **AIAnalysisController**: APIs unificadas para análisis de IA
-- **DocumentClassifier**: Clasificación de documentos usando modelos Hugging Face
-- **AnomalyDetector**: Detección de anomalías en logs y comportamiento
-- **RiskScorer**: Scoring de riesgo para usuarios y transacciones
-- **ModelManager**: Gestión unificada de modelos con cache inteligente
-
-##### Operación
-Punto único para todas las operaciones de IA del Backoffice. Usa modelos Hugging Face compartidos con el Motor de Transformación. SageMaker solo para casos específicos que requieren entrenamiento custom.
-
-**Tecnologías**: Hugging Face Transformers, FastAPI, Redis (cache), AWS SageMaker (casos específicos)
-
-**Modelos Utilizados**:
-- `distilbert-base-multilingual-cased`: Análisis de texto en español
-- `microsoft/DialoGPT-medium`: Generación de reportes
-- `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`: Embeddings
-
-**Eventos**:
-- *Consume*: `document.uploaded`, `security.event.detected`, `audit.analysis.requested`
-- *Produce*: `document.classified`, `anomaly.detected`, `risk.score.calculated`
-
----
+**Tecnologías**: FastAPI, PostgreSQL, CloudWatch, S3
 
 ### Servicios AWS
 
 #### Compute Services
 
-##### Amazon EKS
-**Propósito**: Orquestación de los 6 microservicios del backoffice
-- **Configuración**: Cluster multi-AZ con node groups t3.medium (2 vCPU, 8 GB RAM)
-- **Auto Scaling**: HPA basado en CPU >70%, memoria >80% por 5 minutos
-- **Networking**: VPC privada con security groups restrictivos
-- **Uso**: Despliega admin-validation, pipeline-operations, security-key-orchestrator, audit-intelligence, system-configuration, ai-analysis services
+#### Amazon EKS
+**Propósito**: Orquestación de los 2 microservicios del backoffice
+- **Configuración**: Cluster multi-AZ con node groups t3.medium
+- **Auto Scaling**: HPA basado en CPU >70% por 5 minutos
+- **Servicios**: admin-operations-service, audit-compliance-service
 
 ##### AWS Lambda
-**Propósito**: Funciones serverless para operaciones programadas y event-driven
-- **Configuración**: Python 3.11, 512MB-1GB memoria, timeout variable por función
+**Propósito**: Funciones auxiliares programadas
 
 **Funciones Específicas**:
-- **key_rotation_scheduler**: Coordinación semanal de rotación de llaves con custodios (512MB, 15min timeout)
-- **audit_log_processor**: Procesamiento de eventos de auditoría de alto volumen (1GB, 5min timeout)
-- **backup_validator**: Validación de integridad de respaldos automáticos (256MB, 2min timeout)
-- **compliance_reporter**: Generación mensual de reportes de cumplimiento (1GB, 30min timeout)
-- **integration_health_checker**: Monitoreo cada 5 minutos de APIs externas (256MB, 1min timeout)
-- **emergency_notifier**: Notificaciones inmediatas de emergencias de seguridad (128MB, 30sec timeout)
-- **feature_flag_coordinator**: Coordinación de despliegues de features (256MB, 2min timeout)
-- **data_retention_manager**: Gestión diaria de ciclo de vida de datos (512MB, 10min timeout)
+- **daily_reports_generator**: Reportes diarios automáticos
+- **backup_validator**: Validación de respaldos
+- **health_checker**: Monitoreo de servicios externos
+- **emergency_notifier**: Notificaciones de emergencia
 
-#### Storage & Database
+### Storage & Database
 
-##### Amazon RDS PostgreSQL
-**Propósito**: Almacenamiento especializado por dominio funcional
-- **Configuración**: Multi-AZ, encrypted storage, automated backups
-- **Instancia**: db.t3.medium (2 vCPU, 4 GB RAM) por base
+#### Amazon RDS PostgreSQL
+**Propósito**: Base de datos unificada con esquemas separados
+- **Configuración**: Multi-AZ, db.t3.large, encrypted storage
+- **Esquemas especializados**:
 
-**Bases de Datos Especializadas**:
+**admin_operations_schema** (100 GB inicial):
+- user_validations, data_rules, external_connections
+- pipeline_configs, security_keys_metadata, custodian_assignments
+- rbac_permissions, system_configurations
 
-**shared_reference_db** (20 GB inicial):
-- Referencias a datos primarios de otros componentes
-- Tablas: user_references, dataset_references, organization_references
+**audit_compliance_schema** (200 GB inicial):
+- audit_logs, compliance_reports, system_monitoring
+- evidence_records, anomaly_alerts
 
-**admin_validation_db** (50 GB inicial):
-- Estados de validación únicamente
-- Tablas: validation_requests, document_analysis_results, approval_workflows
+#### Amazon ElastiCache Redis
+**Propósito**: Cache unificado
+- **Configuración**: 3 nodos cache.t3.medium, cluster mode
+- **Uso**: Sesiones admin, cache de permisos, configuraciones
 
-**pipeline_management_db** (100 GB inicial):
-- Configuración y monitoreo de pipelines
-- Tablas: pipeline_configurations, execution_history, manual_interventions, performance_metrics
+#### Amazon S3
+**Propósito**: Almacenamiento con organización por prefijos
 
-**security_keys_metadata_db** (10 GB inicial):
-- Metadatos de llaves sin almacenar llaves reales
-- Tablas: key_metadata, custodian_assignments, rotation_schedules, emergency_protocols
+**Bucket Único**: `backoffice-storage`
+- `audit-evidence/` - Evidencia forense inmutable
+- `compliance-reports/` - Reportes regulatorios  
+- `system-backups/` - Respaldos de configuraciones
+- `temp-uploads/` - Archivos temporales
 
-**audit_cases_db** (200 GB inicial):
-- Casos de investigación y compliance
-- Tablas: investigation_cases, evidence_chain, compliance_reports, anomaly_alerts
-
-**system_configuration_db** (5 GB inicial):
-- Configuraciones globales del sistema
-- Tablas: feature_flags, integration_configs, system_parameters, deployment_strategies
-
-##### Amazon ElastiCache Redis
-**Propósito**: Cache distribuido especializado por uso
-
-**session_cache**: 2 nodos cache.t3.micro para sesiones de administradores (TTL: 8 horas)
-
-**permission_cache**: 3 nodos cache.t3.small para cache de permisos RBAC (TTL: 1 hora, invalidación inteligente)
-
-**ai_model_cache**: 2 nodos cache.t3.medium para cache de modelos Hugging Face (TTL: 24 horas)
-
-**integration_status_cache**: 2 nodos cache.t3.micro para estado de APIs externas (TTL: 5 minutos)
-
-##### Amazon S3
-**Propósito**: Almacenamiento especializado con lifecycle policies
-
-**Buckets Especializados**:
-
-**backoffice-audit-evidence**: Evidencia forense inmutable con cifrado SSE-KMS, versionado habilitado con MFA delete, migración a Glacier después de 90 días, retención permanente
-
-**backoffice-compliance-reports**: Reportes regulatorios con cifrado SSE-S3, migración a IA después de 30 días y Glacier después de 365 días, retención mínima de 7 años
-
-**backoffice-system-backups**: Respaldos de configuraciones con cifrado SSE-KMS, replicación cross-region a us-west-2, migración a Glacier después de 30 días
-
-**backoffice-ai-models**: Modelos Hugging Face cacheados con cifrado SSE-S3, eliminación automática después de 90 días por ser regenerables
+**Lifecycle Policies**:
+- Evidencia: Glacier después de 90 días, retención permanente
+- Reportes: IA después de 30 días, Glacier después de 1 año
+- Backups: Glacier después de 30 días
 
 #### Security & Identity
 
 ##### AWS Cognito
-**Propósito**: Autenticación exclusiva para administradores del backoffice
+**Propósito**: Autenticación administrativa
 
-**User Pool Configuration**:
-- Nombre: backoffice-administrators
-- MFA: Obligatorio (TOTP + SMS)
-- Política de contraseñas: mínimo 12 caracteres con símbolos, números y mayúsculas requeridas
-- Atributos personalizados: admin_level (junior/senior/super), clearance_level (standard/elevated/maximum), geo_restriction por provincia
-
-**Identity Pool Roles**:
-- **backoffice_junior_admin**: Lectura de auditoría, validación de documentos
-- **backoffice_senior_admin**: Gestión de pipelines, configuración de sistema
-- **backoffice_super_admin**: Gestión de llaves, acceso de emergencia
+**User Pool**: backoffice-administrators
+- MFA obligatorio (TOTP + SMS)
+- Atributos: admin_level, clearance_level
+- Roles: admin_junior, admin_senior, admin_super
 
 ##### AWS KMS
-**Propósito**: Llaves especializadas por tipo de datos
+**Propósito**: Cifrado especializado
 
-**Key Strategy**:
+**Llaves**:
+- `backoffice-main-key`: Datos generales, rotación trimestral
+- `backoffice-audit-key`: Evidencia forense, rotación manual
+- `backoffice-security-key`: Metadatos de llaves, rotación semestral
 
-**backoffice-audit-evidence-key**: Para cifrado de evidencia forense, rotación manual únicamente para preservar evidencia, acceso solo para super admins
+##### AWS Secrets Manager
+**Propósito**: Credenciales con rotación
 
-**backoffice-compliance-reports-key**: Para reportes regulatorios, rotación anual automática, acceso para senior y super admins
-
-**backoffice-config-key**: Para configuraciones sensibles, rotación trimestral automática, acceso para todos los admins
-
-**tripartite-orchestration-key**: Para metadatos de llaves tripartitas, rotación semestral automática, acceso solo para super admins + servicios KMS
-
-#### AWS Secrets Manager
-**Propósito**: Credenciales con rotación automática
-
-**Secrets Management**:
-
-**external-api-credentials**: SumSub API key (rotación cada 90 días), Stripe keys (rotación cada 60 días), certificado Banco Central (rotación anual)
-
-**database-credentials**: admin_validation_db (rotación cada 30 días), pipeline_management_db (rotación cada 30 días), audit_cases_db (rotación cada 15 días por ser sensible)
-
-**integration-certificates**: Certificado PKI gubernamental (rotación según PKI nacional), certificados de servicios internos (rotación cada 90 días)
-
-#### AI & Analytics
-
-#### Amazon SageMaker (Uso Limitado)
-**Propósito**: Solo para casos específicos que requieren entrenamiento custom
-
-**Limited Use Cases**:
-
-**custom_document_classifier**: Clasificación de documentos costarricenses específicos usando DistilBERT fine-tuned para documentos legales CR, entrenamiento mensual con nuevos datos
-
-**fraud_detection_model**: Detección de fraude específico para patrones CR usando XGBoost con features locales, entrenamiento semanal
-
-**compliance_text_analyzer**: Análisis de compliance para regulaciones CR usando custom NER para entidades regulatorias, entrenamiento trimestral
-
-**Infrastructure**: Instancias de entrenamiento ml.m5.large on-demand, endpoints de inferencia ml.t3.medium (máximo 3 endpoints), model registry con versionado automático
-
-##### Apache Kafka (en EKS)
-**Propósito**: Stream processing para alto volumen de eventos de auditoría
-
-**Kafka Configuration**: 3 brokers en diferentes AZs, retención de 7 días para eventos de auditoría, 10 particiones por topic crítico, factor de replicación 3
-
-**Topics Structure**:
-
-**audit-events-high-volume**: Eventos de auditoría en tiempo real, retención 7 días, 15 particiones
-
-**security-events-critical**: Eventos críticos de seguridad, retención 30 días, 5 particiones
-
-**compliance-events**: Eventos para compliance, retención 90 días, 8 particiones
+**Secrets**:
+- external-api-credentials (SumSub, Stripe, Banco Central)
+- database-credentials (rotación cada 30 días)
 
 #### Integration & Communication
 
 ##### Amazon EventBridge
-**Propósito**: Integración cross-component y eventos programados
+**Propósito**: Eventos administrativos simples
 
-**Event Buses**:
+**Buses**:
+- backoffice-events: Eventos internos
+- external-integration: Bio Registro, La Bóveda
 
-**backoffice-internal-bus**: Para eventos internos del backoffice con 12 reglas y targets hacia Lambda functions, SQS, SNS
-
-**cross-component-bus**: Para integración con Bio Registro, La Bóveda, etc. con 8 reglas y targets hacia HTTP endpoints y Lambda
-
-**Custom Rules**:
-
-**user-validation-approved**: Source desde admin-validation-service hacia Bio Registro API y notification Lambda
-
-**security-incident-detected**: Source desde audit-intelligence-service hacia emergency Lambda y CERT webhook
-
-**backup-completed**: Source desde AWS Backup hacia validation Lambda y compliance reporter
+**Eventos Clave**:
+- user.validation.approved/rejected
+- pipeline.intervention.required
+- security.anomaly.detected
+- backup.completed
 
 ##### Amazon API Gateway
-**Propósito**: Gateway unificado con seguridad robusta
+**Propósito**: Gateway unificado
 
-**Gateway Configuration**:
+**Configuración**:
 - Autenticación: Cognito User Pool
-- Autorización: Custom authorizer con RBAC
-- Rate limiting: junior_admin 100 req/min, senior_admin 300 req/min, super_admin 1000 req/min
-- Throttling: burst limit 200, rate limit 100
-- Request validation: Body validation habilitada con JSON Schema, parameter validation habilitada, headers requeridos enforced
+- Rate limiting por rol
+- Request validation habilitada
 
-**API Stages**:
-- **Development**: Caching deshabilitado, logging completo de request/response
-- **Production**: Caching de 5 minutos para endpoints de lectura, logging solo de errores más audit trail
 
-#### Backup & Disaster Recovery
+#### Backup & Recovery
 
-##### AWS Backup (Estrategia Cross-Region)
-**Propósito**: Respaldos automatizados con DR geográfico
+##### AWS Backup
+**Propósito**: Respaldos automatizados
 
-**Backup Strategy**:
+**Estrategia**:
+- RDS: Snapshots diarios, retención 30 días
+- Cross-region: us-west-2 por 7 días
+- Compliance: Retención 7 años para auditoría
 
-**daily_snapshots**: Recursos incluyen instancias RDS y volúmenes EBS, retención 30 días local, cross-region a us-west-2 por 7 días
+### Diagrama de Clases
 
-**weekly_full_backup**: Recursos incluyen todas las bases RDS y buckets S3 críticos, retención 90 días local, cross-region a us-west-2 por 30 días
+![alt text](diagrama_clases_Backoffice.png)
 
-**compliance_backup**: Recursos incluyen audit_cases_db y compliance reports, retención 7 años local, cross-region a us-west-2 por 7 años
+#### Explicación de los Patrones:
 
-**Recovery Objectives**: RTO menor a 2 horas para servicios críticos, RPO menor a 15 minutos para datos críticos, testing con DR drills automáticos mensuales
+**(Morado) Facade:**
+**AdminController** y **AuditController** actúan como fachadas que simplifican el acceso a las funciones complejas del backoffice
 
-##### AWS Route 53 Health Checks
-**Propósito**: Monitoreo y failover automático
+**(Amarillo) Observer:**
+**EventManager** notifica a los servicios correspondientes cuando ocurren eventos administrativos
 
-**Health Check Strategy**:
+**(Azul) Factory:**
+**ServiceFactory** crea las instancias apropiadas de los servicios según se necesite
 
-**Primary region endpoints**: admin-validation-service cada 30 segundos, audit-intelligence-service cada 30 segundos, security-key-orchestrator cada 10 segundos
+**(Verde) Strategy:**
+**Repository** permite cambiar entre diferentes tipos de almacenamiento (PostgreSQL, DynamoDB, S3) sin afectar la lógica de negocio
 
-**Failover configuration**: Primario en us-east-1, secundario en us-west-2, umbral de failover de 2 fallas consecutivas
+**(Rojo) Singleton:**
+**DBConnection** garantiza una única instancia para manejar las conexiones a base de datos
 
-**Notification**: SNS topic backoffice-health-alerts con lista de email admin-team@datapuravida.cr
 
 ### Monitoreo
 
@@ -8558,322 +8495,215 @@ Eventos que registramos siempre:
 - **Performance & Latency:** Señala los endpoints más cargados y ayuda a identificar qué podría optimizarse.
 
 
-### Modelo de Seguridad Detallado
+---
 
-El módulo de Backoffice Administrativo maneja operaciones críticas del sistema incluyendo validación de registros, gestión de llaves tripartitas, configuración de pipelines y auditoría completa. Su backend implementa un modelo de seguridad robusto que protege operaciones administrativas y mantiene trazabilidad completa.
+## Modelo de Seguridad Detallado
 
-#### 1. Control de Acceso Granular
+El Backoffice Administrativo maneja operaciones críticas del ecosistema Data Pura Vida, requiriendo el más alto nivel de seguridad dado que gestiona validaciones de usuarios, llaves tripartitas, configuraciones de sistema y evidencia legal.
 
-##### RBAC Específico para Administración con Cognito
+### 1. Control de Acceso Granular
 
-El sistema valida roles administrativos **en cada petición HTTP** mediante middleware FastAPI (capa de software que intercepta peticiones) **desplegado en el cluster EKS del backoffice**. La validación ocurre **antes de que cualquier operación llegue a los endpoints críticos** (puntos de acceso de la API) mediante **verificación de tokens JWT contra AWS Cognito User Pool** (servicio de autenticación de usuarios). Los roles validados se almacenan **temporalmente en los 4 clusters Redis especializados** (sistemas de almacenamiento temporal rápido) **durante las sesiones activas de 4-8 horas** según el nivel de clearance.
+#### Autenticación Multi-Factor Obligatoria
+Todos los administradores deben completar un proceso de autenticación robusto:
 
-| Rol Cognito | Clearance Level | Permisos |
-|-------------|-----------------|----------|
-| `backoffice_junior_admin` | standard | Lectura de auditoría, validación de documentos básicos |
-| `backoffice_senior_admin` | elevated | Todo lo anterior + gestión de pipelines, configuración de sistema |
-| `backoffice_super_admin` | maximum | Acceso total: gestión de llaves, acceso de emergencia, custodios |
+**Proceso de Login:**
+1. **Credenciales primarias**: Usuario/contraseña con política estricta (mínimo 12 caracteres, números, símbolos, mayúsculas)
+2. **MFA obligatorio**: TOTP (Google Authenticator) + SMS backup
+3. **Validación geográfica**: Restricción por provincia configurada en Cognito
+4. **Sesión limitada**: Máximo 8 horas con re-autenticación para operaciones críticas
 
-##### Flujo de Autorización de Operaciones Críticas
+#### RBAC Detallado por Nivel de Clearance
 
-La autorización se ejecuta **síncronamente al recibir cada request administrativo**, evaluando clearance level, contexto de operación y scoring de riesgo **antes de ejecutar cambios críticos en cualquiera de las 6 bases de datos especializadas**:
+| Rol | Clearance | Operaciones Permitidas | Restricciones Adicionales |
+|-----|-----------|------------------------|---------------------------|
+| **admin_junior** | standard | - Validar registros de usuarios básicos<br>- Leer reportes de auditoría<br>- Consultar configuraciones (solo lectura) | - No puede aprobar registros de organizaciones<br>- Máximo 10 validaciones/hora |
+| **admin_senior** | elevated | - Todo lo anterior<br>- Gestionar pipelines de datos<br>- Configurar conexiones externas<br>- Generar reportes personalizados<br>- Supervisar estado del sistema | - Requiere aprobación para cambios críticos<br>- Re-autenticación MFA cada 4 horas |
+| **admin_super** | maximum | - Acceso total al sistema<br>- Gestión de llaves tripartitas<br>- Administración de custodios<br>- Acceso a evidencia legal<br>- Configuraciones de emergencia | - Todas las acciones son auditadas<br>- Re-autenticación MFA para cada operación crítica<br>- Notificación automática al CERT nacional |
 
-```python
-@router.post("/admin/approve-registration",
-            dependencies=[Depends(requires_cognito_role("backoffice_senior_admin"))])
-async def approve_registration(request: ApprovalRequest, user: dict = Depends(get_current_admin)):
-    # Validación ejecutada DONDE: en el pod del admin-validation-service
-    # CUANDO: antes de cada operación de aprobación
-    # CÓMO: verificación de clearance level contra el request
-    if request.risk_level == "HIGH" and user.get("clearance_level") != "maximum":
-        raise HTTPException(status_code=403, detail="Insufficient clearance level")
+#### Validación de Contexto en Tiempo Real
+Cada operación administrativa se valida contra múltiples factores:
 
-    # Log ejecutado DONDE: audit_cases_db + OpenSearch + S3
-    # CUANDO: inmediatamente antes de la operación principal
-    # CÓMO: escritura simultánea en 3 ubicaciones para trazabilidad
-    await audit_logger.log_operation("registration_approval", user["sub"], request.dict())
-```
+**Validaciones Automáticas:**
+- **Clearance Level**: Verificación de que el usuario tiene el nivel de autorización requerido
+- **Horario**: Operaciones críticas restringidas a horario laboral (6:00-18:00 GMT-6)
+- **Ubicación**: Validación de IP contra provincias autorizadas en el perfil del usuario
+- **Rate Limiting**: Límites por rol para prevenir abuso o compromiso de cuentas
+- **Contexto**: Validación de que la operación es apropiada para el estado actual del sistema
 
-#### 2. Cifrado de Datos Administrativos
+### 2. Cifrado de Datos Multicapa
 
-##### Cifrado en Tránsito
-Todas las comunicaciones administrativas utilizan TLS 1.3 (protocolo de seguridad para conexiones web) **activado permanentemente en API Gateway y ALB** con certificate pinning (validación estricta de certificados de seguridad) **ejecutado durante el handshake SSL**:
+#### Cifrado en Tránsito
+**Nivel 1 - Cliente a Gateway:**
+- HTTPS/TLS 1.3 obligatorio con certificados AWS Certificate Manager
+- HSTS (HTTP Strict Transport Security) habilitado
+- Certificate pinning para prevenir ataques man-in-the-middle
 
-- **Frontend ↔ API Gateway:** HTTPS **implementado en CloudFront y ALB** con certificados AWS Certificate Manager **renovados automáticamente cada 60 días**
-- **Microservicios internos:** mTLS **configurado en Istio service mesh dentro del cluster EKS** (red segura entre servicios) con certificados **rotados cada 30 días mediante cert-manager**
-- **APIs externas:** Certificate pinning **validado al establecer conexiones** con SumSub, Stripe y Banco Central
-
-##### Cifrado en Reposo Especializado por Base de Datos
-
-Estrategia específica por cada una de las 6 bases de datos especializadas:
-
-| Base de Datos | Ubicación | Cifrado | Clave KMS | Rotación |
-|---------------|-----------|---------|-----------|----------|
-| admin_validation_db | PostgreSQL | TDE | `backoffice-validation-key` | 6 meses |
-| security_keys_metadata_db | PostgreSQL | Campo-específico | `tripartite-orchestration-key` | 3 meses |
-| audit_cases_db | PostgreSQL | TDE | `backoffice-audit-evidence-key` | Manual |
-| pipeline_management_db | PostgreSQL | TDE | `backoffice-config-key` | 3 meses |
-| system_configuration_db | PostgreSQL | TDE | `backoffice-config-key` | 3 meses |
-| shared_reference_db | PostgreSQL | TDE | `backoffice-config-key` | 6 meses |
-
-#### 3. Auditoría y Trazabilidad Administrativa
-
-##### Eventos Auditados por Microservicio
-
-Sistema de captura **ejecutándose 24/7 en cada microservicio** con triple escritura (almacenamiento simultáneo en tres ubicaciones) **realizada asincrónicamente** hacia PostgreSQL especializada, OpenSearch, y S3:
-
-**admin-validation-service:**
-- Aprobaciones/rechazos de registros del Bio Registro **registradas en admin_validation_db al momento de la decisión**
-- Revisiones documentales con IA **logueadas en OpenSearch durante el procesamiento en tiempo real**
-- Cambios de estados de validación **almacenados inmediatamente en las 3 ubicaciones mediante event streaming**
-
-**security-key-orchestrator-service:**
-- Generación de metadatos de llaves tripartitas
-- Coordinación con custodios distribuidos
-- Rotaciones programadas y de emergencia
-
-**pipeline-operations-service:**
-- Intervenciones manuales en pipelines Airflow
-- Optimizaciones de recursos Spark
-- Reintentos y escalaciones
-
-**audit-intelligence-service:**
-- Correlación de eventos distribuidos
-- Detección de anomalías con ML
-- Generación de reportes de compliance
-
-**system-configuration-service:**
-- Cambios en feature flags
-- Modificaciones de configuración global
-- Gestión de integraciones externas
-
-**ai-analysis-service:**
-- Clasificación de documentos
-- Scoring de riesgo
-- Detección de anomalías
-
-#### 4. Protección de Operaciones Críticas
-
-##### Validación Multi-Factor para Operaciones Sensibles
-Operaciones críticas requieren **re-autenticación MFA ejecutada en el momento de la operación** más allá del login inicial **mediante TOTP o SMS enviado por AWS SNS**:
-
-**Operaciones que requieren re-autenticación MFA:**
-- Revocación de llaves tripartitas **ejecutada en security-key-orchestrator-service con confirmación de 3 custodios**
-- Aprobación masiva de registros >10 simultáneos **procesada en admin-validation-service durante horarios laborales**
-- Cambios en configuración de custodios **aplicados inmediatamente en security_keys_metadata_db tras validación**
-- Activación de protocolos de emergencia **disparada desde system-configuration-service con notificación a CERT**
-
-##### Rate Limiting por Rol Cognito
-
-| Operación | junior_admin | senior_admin | super_admin | Escalación |
-|-----------|-------------|-------------|-------------|------------|
-| Aprobar registros | 10/hora | 50/hora | 100/hora | Super admin notificado |
-| Gestionar pipelines | No permitido | 20/hora | 50/hora | Revisión obligatoria |
-| Configurar sistema | No permitido | 10/hora | 30/hora | Auditoría inmediata |
-| Acceso emergencia | No permitido | No permitido | 1/día | CERT notificado |
-
-#### 5. Gestión de Secretos Administrativos
-
-##### AWS Secrets Manager por Microservicio
-
-Gestión especializada según el patrón definido en el README:
-
-```python
-# Secretos por categoría según README
-EXTERNAL_API_CREDENTIALS = {
-    "sumsub-api-key": "external-api-credentials/sumsub",
-    "stripe-keys": "external-api-credentials/stripe",
-    "banco-central-cert": "external-api-credentials/banco-central"
-}
-
-DATABASE_CREDENTIALS = {
-    "admin_validation_db": "database-credentials/validation",
-    "pipeline_management_db": "database-credentials/pipeline",
-    "audit_cases_db": "database-credentials/audit"  # Rotación cada 15 días
-}
-
-INTEGRATION_CERTIFICATES = {
-    "pki-gubernamental": "integration-certificates/gov-pki",
-    "servicios-internos": "integration-certificates/internal"
-}
-```
-
-#### 6. Monitoreo de Seguridad Administrativa
-
-##### Detección de Anomalías por Microservicio
-
-Algoritmos ML del ai-analysis-service especializados para detectar comportamientos administrativos sospechosos:
-
-- **admin-validation-service:** Patrones de aprobación inusuales fuera de horario laboral
-- **security-key-orchestrator-service:** Intentos de acceso a custodios sin clearance máximo
-- **pipeline-operations-service:** Intervenciones masivas que podrían indicar compromiso
-- **system-configuration-service:** Cambios de configuración desde ubicaciones geográficas inusuales
+**Nivel 2 - Entre Microservicios:**
+- mTLS (mutual TLS) en todas las comunicaciones internas
+- Certificados rotados automáticamente cada 30 días
+- Service mesh con Istio para enforcar políticas de red
 
 ---
 
-### Elementos de Alta Disponibilidad
+## Modelo de Seguridad Detallado
 
-#### 1. Replicación de Bases de Datos Especializadas
+El Backoffice Administrativo maneja las operaciones más críticas del sistema, por lo que requiere el máximo nivel de seguridad.
 
-##### PostgreSQL Multi-AZ por Base de Datos Crítica
+### 1. Control de Acceso por Niveles
 
-**Configuración por Base:**
-- **security_keys_metadata_db**: Instancia principal **desplegada en us-east-1a**, réplica **sincronizada en us-east-1b**, failover (cambio automático de servidor principal) **ejecutado mediante AWS RDS automatic failover**
-- **audit_cases_db**: Instancia principal **ubicada en us-east-1a**, réplica **replicada síncronamente en us-east-1b**, failover **activado automáticamente durante fallos detectados por health checks**
-- **admin_validation_db**: Instancia principal **operando en us-east-1a**, réplica **mantenida en us-east-1b con replicación continua**, failover **disparado cuando primary instance falla**
-- **audit_cases_db**: Instancia principal us-east-1a, réplica us-east-1b, failover <15 segundos
-- **admin_validation_db**: Instancia principal us-east-1a, réplica us-east-1b, failover <20 segundos
-- **pipeline_management_db**: Instancia principal us-east-1b, réplica us-east-1c, failover <30 segundos
-- **system_configuration_db**: Instancia principal us-east-1c, réplica us-east-1a, failover <30 segundos
-- **shared_reference_db**: Instancia principal us-east-1a, réplica us-east-1b, failover <30 segundos
+#### Autenticación Obligatoria
+Todos los administradores deben pasar por:
+- **Usuario y contraseña** con política estricta (12+ caracteres)
+- **Autenticación de dos factores** (Google Authenticator + SMS)
+- **Verificación de ubicación** (solo desde Costa Rica)
+- **Sesión limitada** a 8 horas máximo
 
-#### 2. Clusters Redis Especializados con Alta Disponibilidad
+#### Roles y Permisos
 
-##### Amazon ElastiCache Redis - 4 Clusters Especializados
+| Rol | Nivel | Qué Puede Hacer | Restricciones |
+|-----|-------|-----------------|---------------|
+| **Junior Admin** | Básico | Validar usuarios nuevos, ver reportes | Max 10 validaciones/hora |
+| **Senior Admin** | Avanzado | Todo lo anterior + gestionar pipelines y configuraciones | Re-autenticación cada 4 horas |
+| **Super Admin** | Máximo | Acceso total + llaves de seguridad y emergencias | Cada acción es auditada |
 
-**session_cache:**
-- **Configuración**: 2 nodos cache.t3.micro **distribuidos entre us-east-1a y us-east-1b**
-- **Aplicación**: Sesiones de administradores **almacenadas durante 8 horas con TTL automático**
-- **Failover**: Automático **ejecutado mediante Redis Sentinel**
+#### Validaciones en Tiempo Real
+El sistema verifica constantemente:
+- **Nivel de autorización** necesario para cada acción
+- **Horario permitido** (operaciones críticas solo 6AM-6PM)
+- **Ubicación** del administrador
+- **Frecuencia** de operaciones para detectar comportamiento anómalo
 
-**permission_cache:**
-- **Configuración**: 3 nodos cache.t3.small **balanceados entre las 3 AZs**
-- **Aplicación**: Cache de permisos RBAC **actualizado cada hora con invalidación inteligente activada por cambios de rol**
-- **Failover**: Automático **completado en 10 segundos usando consistent hashing para redistribución**
+### 2. Protección de Datos
 
-**ai_model_cache:**
-- **Configuración**: 2 nodos cache.t3.medium distribuidos entre AZs
-- **Aplicación**: Cache de modelos Hugging Face (TTL: 24 horas)
-- **Failover**: Automático en 20 segundos
+#### Cifrado de Comunicaciones
+- **HTTPS obligatorio** con certificados SSL automáticos
+- **Comunicación interna** cifrada entre servicios
+- **APIs externas** con validación de certificados
 
-**integration_status_cache:**
-- **Configuración**: 2 nodos cache.t3.micro distribuidos entre AZs
-- **Aplicación**: Estado de APIs externas (TTL: 5 minutos)
-- **Failover**: Automático en 15 segundos
+#### Cifrado de Almacenamiento
+- **Base de datos** completamente cifrada
+- **Archivos en S3** cifrados con llaves específicas
+- **Cache Redis** cifrado en memoria y disco
+- **Rotación de llaves** automática según criticidad
 
-#### 3. Auto-Scaling por Microservicio
+### 3. Auditoría Completa
 
-##### EKS Horizontal Pod Autoscaler Especializado
-
-**Configuración del Cluster:**
-- **Nodos**: t3.medium (2 vCPU, 8 GB RAM) **desplegados en us-east-1a, us-east-1b, us-east-1c** (zonas de disponibilidad para redundancia)
-- **Auto-scaling**: **Activado cuando** CPU >70%, memoria >80% **sostenido durante 5 minutos consecutivos**
-- **Networking**: VPC privada (red virtual privada) **10.0.100.0/24 dedicada exclusivamente para backoffice**
-
-**Escalado por Microservicio:**
-
-| Microservicio | Pods Min | Pods Max | Trigger | **Cuándo se Activa** | **Dónde se Ejecuta** |
-|---------------|----------|----------|---------|----------------------|----------------------|
-| security-key-orchestrator | 3 | 6 | CPU >60% | **Durante operaciones de custodios** | **Nodos con taints security=critical** |
-| admin-validation | 2 | 8 | CPU >70% | **En picos de validaciones matutinas** | **Distribuido entre las 3 AZs** |
-| audit-intelligence | 2 | 10 | Memory >80% | **Al procesar eventos masivos** | **Nodos optimizados para memoria** |
-
-#### 4. Almacenamiento Resiliente Especializado
-
-##### Amazon S3 - 4 Buckets Especializados con Políticas Diferenciadas
-
-**backoffice-audit-evidence:**
-- **Configuración**: Cifrado SSE-KMS, versionado con MFA delete
-- **Replicación**: Cross-region a us-west-2 inmediata
-- **Lifecycle**: Migración a Glacier después de 90 días, retención permanente
-- **Aplicación**: Evidencia forense inmutable del audit-intelligence-service
-
-**backoffice-compliance-reports:**
-- **Configuración**: Cifrado SSE-S3, versionado habilitado
-- **Replicación**: Cross-region a us-west-2 después de 24 horas
-- **Lifecycle**: IA después de 30 días, Glacier después de 365 días
-- **Aplicación**: Reportes regulatorios con retención mínima 7 años
-
-**backoffice-system-backups:**
-- **Configuración**: Cifrado SSE-KMS, replicación inmediata
-- **Replicación**: Cross-region a us-west-2 sincronizada
-- **Lifecycle**: Glacier después de 30 días
-- **Aplicación**: Respaldos de configuraciones del system-configuration-service
-
-**backoffice-ai-models:**
-- **Configuración**: Cifrado SSE-S3, sin versionado (regenerable)
-- **Replicación**: No requerida (cache temporal)
-- **Lifecycle**: Eliminación automática después de 90 días
-- **Aplicación**: Modelos Hugging Face cacheados del ai-analysis-service
-
-#### 5. Monitoreo Proactivo Especializado
-
-##### CloudWatch Alarms por Microservicio
-
-**security-key-orchestrator-service:**
-- **Monitoreo**: Cada 10 segundos
-- **Alertas**: Error rate >1%, latencia >200ms
-- **Escalación**: Notificación inmediata a super admins
-
-**admin-validation-service:**
-- **Monitoreo**: Cada 30 segundos
-- **Alertas**: Error rate >2%, validaciones fallidas >5%
-- **Escalación**: Auto-restart de pods, escalado inmediato
-
-**audit-intelligence-service:**
-- **Monitoreo**: Cada 60 segundos
-- **Alertas**: Pérdida de eventos, correlación fallida
-- **Escalación**: Backup a storage alternativo
-
-#### 6. Recuperación de Desastres por Criticidad
-
-##### Estrategia RTO/RPO Diferenciada
-
-| Microservicio | RTO | RPO | Base de Datos | Estrategia |
-|---------------|-----|-----|---------------|------------|
-| **security-key-orchestrator** | 5 min | 30 seg | security_keys_metadata_db | Replicación síncrona, custodios distribuidos |
-| **admin-validation** | 15 min | 2 min | admin_validation_db | Backup incremental cada 4 horas |
-| **audit-intelligence** | 30 min | 5 min | audit_cases_db | Point-in-Time Recovery habilitado |
-| **pipeline-operations** | 1 hora | 15 min | pipeline_management_db | Backup diario, logs en OpenSearch |
-| **system-configuration** | 2 horas | 30 min | system_configuration_db | Backup semanal, config en S3 |
-| **ai-analysis** | 4 horas | 2 horas | No persistente | Regeneración desde modelos base |
-
-#### 7. Kubernetes Self-Healing Especializado
-
-##### EKS Configuration para Backoffice
-
-**Configuración del Cluster:**
-- **Cluster dedicado**: backoffice-admin-cluster
-- **Node groups**: Anti-affinity entre microservicios críticos
-- **Taints**: Nodos especializados para security-key-orchestrator
-
-**Health Checks Especializados:**
-
-**Liveness Probes:** (verificaciones de que el servicio está funcionando)
-- security-key-orchestrator: **ejecutado cada 5 segundos en endpoint /health/live**
-- admin-validation: **verificado cada 10 segundos mediante HTTP GET a /status**
-- audit-intelligence: **monitoreado cada 15 segundos con timeout de 3 segundos**
-- Otros microservicios: **checkeados cada 30 segundos por Kubernetes**
-
-**Readiness Probes:** (verificaciones de que el servicio está listo para recibir tráfico)
-- Validación completa de conectividad con custodios **ejecutada antes de recibir requests** (security-key-orchestrator)
-- Verificación de conectividad SumSub **realizada cada 30 segundos con retry automático** (admin-validation)
-- Validación de escritura en OpenSearch **probada al startup y cada 2 minutos** (audit-intelligence)
-- Check de APIs externas **validado durante el readiness check con circuit breaker** (pipeline-operations, system-configuration)
-
-**PodDisruptionBudgets:**
-- security-key-orchestrator: mínimo 75% pods operacionales
-- admin-validation: mínimo 70% pods operacionales
-- audit-intelligence: mínimo 65% pods operacionales
-- Otros microservicios: mínimo 60% pods operacionales
-
-#### 8. Conectividad Redundante Administrativa
-
-##### Network Architecture Especializada
-
-**VPC Dedicada para Backoffice:**
-- **Subnets privadas**: Una por AZ para cada microservicio crítico
-- **NAT Gateways**: Múltiples para conectividad externa a custodios
-- **VPN Site-to-Site**: Para acceso seguro de administradores remotos
-- **Direct Connect**: Como backup para conexiones críticas con entidades gubernamentales
-
-**Security Groups Especializados:**
-- security-key-orchestrator: Acceso solo desde custodios autorizados
-- admin-validation: Conectividad con SumSub y Bio Registro
-- audit-intelligence: Acceso amplio para recolección de eventos
-- pipeline-operations: Conectividad con Airflow y Spark clusters
+#### Qué se Registra
+Cada acción administrativa genera un registro con:
+- **Quién** realizó la acción (usuario y rol)
+- **Qué** se hizo exactamente
+- **Cuándo** ocurrió (fecha y hora precisa)
+- **Desde dónde** (IP y ubicación)
+- **Resultado** (exitoso, fallido, parcial)
 
 
+#### Dónde se Almacena
+- **PostgreSQL**: Para consultas rápidas y reportes
+- **S3**: Para evidencia legal permanente e inmutable
+- **CloudWatch**: Para monitoreo en tiempo real
+
+### 4. Protección Avanzada
+
+#### Detección de Anomalías
+El sistema aprende el comportamiento normal de cada administrador y alerta cuando detecta:
+- **Horarios inusuales** de acceso
+- **Ubicaciones** no habituales
+- **Velocidad anormal** de operaciones
+- **Patrones sospechosos** de acceso a datos
+
+#### Protección Interna
+- **Separación de funciones**: Operaciones críticas requieren dos personas
+- **Rotación de responsabilidades** cada 6 meses
+- **Monitoreo cruzado** entre administradores
+
+### 5. Gestión Segura de Credenciales
+
+#### Secretos y Contraseñas
+- **Rotación automática** de todas las credenciales del sistema
+- **Almacenamiento seguro** en AWS Secrets Manager
+- **Acceso controlado** por rol y función específica
+
+#### Llaves de Seguridad
+- **Solo metadatos** almacenados en el backoffice (nunca las llaves reales)
+- **Coordinación segura** con custodios distribuidos
+- **Protocolos de emergencia** con tiempos definidos
+
+---
+
+## Elementos de Alta Disponibilidad
+
+El Backoffice debe estar disponible 99.9% del tiempo para garantizar operaciones continuas.
+
+### 1. Base de Datos Redundante
+
+#### PostgreSQL con Respaldo Automático
+- **Servidor principal** en una zona de disponibilidad
+- **Servidor de respaldo** en otra zona, siempre sincronizado
+- **Cambio automático** en menos de 2 minutos si el principal falla
+- **Respaldos automáticos** cada 6 horas guardados por 30 días
+
+### 2. Aplicaciones Escalables
+
+#### Pods de Kubernetes que Crecen Según Demanda
+- **Mínimo 2 instancias** de cada servicio siempre activas
+- **Escalado automático** cuando CPU >70% o memoria >80%
+- **Máximo 8 instancias** para manejar picos de carga
+- **Distribución** en múltiples zonas para evitar puntos únicos de falla
+
+### 3. Cache Distribuido
+
+#### Redis Cluster Resistente a Fallos
+- **3 servidores** distribuidos en diferentes zonas
+- **Cambio automático** en 15 segundos si un servidor falla
+- **Datos importantes** como sesiones y permisos siempre disponibles
+- **Respaldo automático** cada hora
+
+### 4. Almacenamiento Seguro
+
+#### S3 con Múltiples Copias
+- **Copia principal** en us-east-1
+- **Copia de seguridad** automática en us-west-2
+- **Versionado** para recuperar archivos anteriores
+- **Políticas automáticas** que mueven archivos antiguos a almacenamiento más barato
+
+### 5. Monitoreo Continuo
+
+#### Vigilancia 24/7 del Sistema
+- **Verificación** cada 30 segundos de que los servicios respondan
+- **Alertas automáticas** cuando algo no funciona bien
+- **Escalado preventivo** basado en patrones históricos
+- **Reinicio automático** de servicios que fallan
+
+### 6. Recuperación ante Desastres
+
+#### Planes Específicos por Tipo de Falla
+
+| Problema | Tiempo Máximo de Recuperación | Estrategia |
+|----------|------------------------------|------------|
+| **Falla de servidor** | 5 minutos | Cambio automático a servidor de respaldo |
+| **Falla de zona completa** | 30 minutos | Activación de servicios en otra zona |
+| **Falla de región** | 2 horas | Activación manual en otra región |
+
+#### Pruebas Regulares
+- **Simulación mensual** de fallas para verificar que todo funciona
+- **Prueba trimestral** de recuperación completa
+- **Validación** de que no se pierde información durante los cambios
+
+### 7. Red Redundante
+
+#### Múltiples Caminos de Comunicación
+- **Conexiones redundantes** a internet
+- **Rutas alternativas** entre servicios
+- **Protección** contra ataques de red
+- **Monitoreo** de la calidad de las conexiones
+
+### 8. Mejora Continua
+  
+#### Aprendizaje de Cada Incidente
+- **Análisis** de cada problema para evitar que se repita
+- **Automatización** de nuevas tareas basadas en experiencias
+- **Actualización** de procedimientos de recuperación
+- **Capacitación** continua del equipo de operaciones
 
 
 
