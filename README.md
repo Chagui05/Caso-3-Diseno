@@ -2289,4 +2289,4 @@ A continuación se mencionará como es que se cumplieron todos los requerimiento
 - **R89.** Debe ofrecer una interfaz robusta y segura solo para personal autorizado.
   - **Si se cumple**, la interfáz es completamente separada del acceso al resto del sistema.
 - **R90.** Debe permitir gestión flexible pero estricta de accesos y configuraciones.
-  - **Si se cumple**, todas las opciones que proporciona el backend son posibles de ser administradas desde el frontend.
+  - **Si se cumple**, todas las opciones que proporciona el backend son posibles de ser administradas desde el frontendz.
