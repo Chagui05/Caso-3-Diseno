@@ -1,6 +1,6 @@
 # Caso-3-Diseno
 
-# Índice 
+# Índice
 - [1. Planeamiento](#1-planeamiento)
   - [1.1. Estructura del Equipo, Stakeholders, Key Players](#11-estructura-del-equipo-stakeholders-key-players)
   - [1.2. Gestión de la Comunicación y Documentación del proyecto](#12-gestión-de-la-comunicación-y-documentación-del-proyecto)
@@ -2073,8 +2073,220 @@ Antes de comenzar cabe por dejar en claro algunas especificaciones generales que
 
 - Todos los microservicios del backend estarán desplegados en un cluster de EKS.
 
-- Se tendrá un API general para todo el backend, para poder acceder a las funcionalidades de todos los microservicios se debde consultar a dicha API (será RESTful). Además, estará construida en FastAPI, para favorecernos de sus características asincrónicas que la hacen sumamente rápida y apta para manejar carga pesada. Estará desplegada en el cluster de EKS, como un deployment con N replicas (Antes de pasar a producción se le realizarán pruebas de carga con Gatling, para poder determinar exactamente cuantas replicas ocupará). Los aspectos de seguridad y rutas del API serán discutidos en cada microservicio, ya que cada uno expondrá un endpoint al API, que se verá reflejado posteririormente como un endpoint en la misma. 
+- Se tendrá un API general para todo el backend, para poder acceder a las funcionalidades de todos los microservicios se debde consultar a dicha API (será RESTful). Además, estará construida en FastAPI, para favorecernos de sus características asincrónicas que la hacen sumamente rápida y apta para manejar carga pesada. Estará desplegada en el cluster de EKS, como un deployment con N replicas (Antes de pasar a producción se le realizarán pruebas de carga con Gatling, para poder determinar exactamente cuantas replicas ocupará). Los aspectos de seguridad y rutas del API serán discutidos en cada microservicio, ya que cada uno expondrá un endpoint al API, que se verá reflejado posteririormente como un endpoint en la misma.
 
 - Los documentos que describen cada componente del proyecto se encuentran en el directorio docs, donde cada uno cuenta con su propio archivo markdown correspondiente.
 
 # 5. Validación de los requerimientos
+
+A continuación se mencionará como es que se cumplieron todos los requerimientos estipulados para cada uno de los componentes del sistema.
+
+## bioregistro verde
+
+- **R1.** El componente debe permitir el registro de personas físicas, jurídicas, instituciones, cámaras, grupos y empresas.
+  - **Si se cumple**, en el formulario de registro se manejan adecuadamente todo tipo de form, y con la ayuda de SumSub se maneja todo tipo de colectivo.
+- **R2.** El formulario de registro debe adaptarse dinámicamente según el tipo de entidad seleccionada.
+  - **Si se cumple**, en el formulario de registro se manejan adecuadamente todo tipo de form, y con la ayuda de SumSub se maneja todo tipo de colectivo.
+- **R3.** El registro de usuarios debe estar asegurado con MFA y biometría, cumpliendo estándares de identidad digital avanzada.
+  - **Si se cumple**, se solicita prueba de vida, foto de la identificación y luego en el inicio de sesión el MFA es necesario.
+- **R4.** El componente debe solicitar y capturar información personal, societaria, legal y tributaria según el tipo de entidad.
+  - **Si se cumple**, gracias a SumSub se logra capturar toda información legal de las empresas.
+- **R5.** El componente debe revisar que cuando se van a asignar personas físicas a la organización al crearla, efectivamente formen parte de dicho conjunto.
+  - **Si se cumple**, en la verificación de SumSub se revisa que las personas si formen parte de la organización.
+- **R6.** El registro debe pasar por una etapa de validación interna manual para el registro de empresas.
+  - **Si se cumple**, en caso de que el registro con SumSub no sea aprobado se da la opción a una prórroga con revisión manual.
+- **R7.** El componente debe implementar validación automática por inteligencia artificial de los documentos subidos.
+  - **Si se cumple**, nosotros no lo implementamos directamente, pero SumSub internamente usa IA para realizar algunas de las validaciones.
+- **R8.** El componente debe exigir a los representantes legales el registro como individuos con: identidad digital, biometría, prueba de vida y autenticación multifactor (MFA).
+  - **Si se cumple**, se solicita prueba de vida, foto de la identificación y luego en el inicio de sesión el MFA es necesario.
+- **R9.** Cada organización debe recibir llaves de seguridad que le permitan delegar o revocar accesos a sus usuarios.
+  - **Si se cumple**, se realiza la creación y distribución de llaves tripartita por medio del key-management-service.
+- **R10.** Un usuario debe poder administrar múltiples organizaciones desde una única cuenta.
+  - **Si se cumple**, el diseño de los datos no restringe a un usuario a solo ser administrador de una organización, le permite formar parte de múltiples.
+- **R11.** El componente debe capturar datos preliminares de cuentas IBAN y/o tarjetas de crédito como parte del registro.
+  - **Si se cumple**, durante el registro se solicitan los datos de una tarjeta de crédito/débito.
+- **R12.** El componente debe enviar una notificación por correo electrónico cuando un registro sea aprobado.
+  - **Si se cumple**, por medio del notification-service se manejan dichas notificaciones asíncronamente, y se usa AWS SES para poder enviarlos.
+- **R13.** El componente debe exigir documentos específicos según el tipo de entidad: cédulas físicas o jurídicas, actas, RTN, dirección, etc.
+  - **Si se cumple**, los workflows personalizados de SumSub permiten tener distintos formularios para cada tipo de colectivo
+- **R14.** El componente debe permitir registrar direcciones IP institucionales (listas blancas) para permitir acceso autorizado.
+  - *No se hace el registro de IPs directamente.
+- **R15.** El componente debe permitir únicamente IPs costarricenses en el registro.
+  - Gracias al lambda@edge function en medio de Cloudfront, solo se sirve el frontend del registro a IPs de Costa Rica.
+- **R16.** El sistema debe proteger las claves generadas mediante un esquema de llave tripartita, distribuidas entre Data Pura Vida y dos custodios.
+  - **Si se cumple**, se realiza la creación y distribución de llaves tripartita por medio del key-management-service.
+
+## La Bóveda
+
+- **R17.** La Bóveda tiene que almacenar los datos en un solo formato, por más de que las fuentes externas sean de distintos tipos (relacionales, documentales, csv, excel).
+  - **Si se cumple**, mediante todo el proceso de ETDL se termina dejando todo el contenido en Parquet, y finalmente es almacenado en la bóveda en el almacenamiento interno columnar de redshift.
+- **R18.** La Bóveda debe permitir especificar columnas que relacionan un dataset con otros datasets del ecosistema.
+  - **Si se cumple**, el diseño de los datos permiten que tablas entre datasets puedan ser compartidas.
+- **R19.** La Bóveda debe de estar monitoreada en todo momento para detectar movimientos sospechosos, para dar contenido de uso de un dataset, y para asegurar trazabilidad y diagnóstico rápido de fallas.
+  - **Si se cumple**, Redshift está monitoreado 24/7 gracias a los Redshift Logs que son almacenados en CloudFront.
+- **R20.** Debe ser resiliente, auditable y alineado con estándares de gobierno de datos.
+  - **Si se cumple**, Redshift ofrece un sistema que es resiliente y auditable.
+- **R21.** Debe permitir crecimiento dinámico sin perder eficiencia.
+  - **Si se cumple**, Redshift con su formato columnar (y también al ser serverless) permite que el volumen de datos en el escale y aún así el rendimiento sea óptimo.
+- **R22.** Debe escalar a millones de registros y miles de usuarios concurrentes.
+  - **Si se cumple**, Redshift con su formato columnar (y también al ser serverless) permite que el volumen de datos en el escale y aún así el rendimiento sea óptimo.
+- **R23.** Mantener trazabilidad de datos usados, no usados y descartados.
+  - **Si se cumple**, el proceso de ETDL del Motor de Transformación deja registro de cada uno de los pasos y cuales datos fueron usados y cuales no en un directorio para cada dataset en un S3.
+- **R24.** Todos los datos cargados deben estar protegidos mediante cifrado, incluso frente al personal técnico ("ingenieros de la plataforma").
+  - **Si se cumple**, Todo está cifrado en reposo y tránsito, además gracias a la gestión de políticas con AWS IAM y Lakeformation ni siquiera los "Ingenieros de la plataforma" pueden tener acceso a los datos.
+- **R25.** Cifrar toda la data en tránsito y en reposo, dejando trazabilidad auditable.
+  - **Si se cumple**, Todo está cifrado en reposo y tránsito, y se registra toda consulta a la bóveda en Cloudwatch.
+- **R26.** Permitir almacenamiento masivo de datos estructurados y semiestructurados.
+  - **Si se cumple**, independientemente de si los datos venían ordenados o no, el proceso del motor de transformación los deja listos para ser insertados a La Bóveda.
+- **R27.** Controlar accesos lógicos por entidad, usuario o tipo de dato.
+  - **Si se cumple**, se tienen dos níveles de protección, el administrado por Lakeformation y AWS IAM, y el RBAC manual que se lleva registro en RDS.
+- **R28.** Implementar control de acceso a nivel de rol (RBAC) y a nivel de fila (RLS) o equivalentes.
+  - **Si se cumple**, se tienen dos níveles de protección, el administrado por Lakeformation y AWS IAM, y el RBAC manual que se lleva registro en RDS.
+
+## Centro de Carga
+
+- **R29.** Permitir a los usuarios decidir qué datos compartir dentro del ecosistema.
+  - **Si se cumple**, se da la opción de elegir que tablas (o su equivalente) del dataset deben ser súbidas al sistema.
+- **R30.** Requerir que cada dataset tenga un nombre único.
+  - **Si se cumple**, el diseño de los datos solo permite nombres únicos para los datasets.
+- **R31.** Soportar múltiples métodos de carga de datos: archivos Excel, CSV, JSON, APIs y conexiones directas a bases de datos SQL y NoSQL.
+  - **Si se cumple**, el alcance fue enfocado en: Excel, CSV, JSON, Parquet, REST APIs, Mongo, MariaDB, MySQL, PostgreSQL y SQL Server.
+- **R32.** Requerir nombre, descripción y metadata útil para IA sobre las columnas del dataset.
+  - **Si se cumple**, se solicita descripciones breves para que despues en el motor de transformación se añada dicho contexto a los registros.
+- **R33.** Permitir configurar los parámetros de conexión de forma cifrada para cada medio de carga.
+  - **Si se cumple**, toda conexión al exterior viene cifrada en tránsito.
+- **R34.** Los parámetros de conexión de bases de datos y APIs deben almacenarse de forma cifrada.
+  - **Si se cumple**, en RDS y AWS secret manager se almacenan cifrados todos estos parámetros.
+- **R35.** Permitir configurar si el dataset es público o privado, gratuito o pagado, permanente o con disponibilidad temporal.
+  - **Si se cumple**, se da la opción de tener datasets con todos esos tipos en los formularios, y luego el diseño de los datos lo legitimiza.
+- **R36.** El sistema de permisos debe prevenir accesos no autorizados a datasets privados o pagos.
+  - **Si se cumple**, como se mencionó en La Bóveda el sistema de RBAC es de doble capa, por lo que es improbable que se irrespeste el requerimiento.
+- **R37.** Asignar permisos de acceso a los datasets privados.
+  - **Si se cumple**, se permite dar acceso a datasets privados.
+- **R38.** Permitir definir montos de acceso para datasets con modelo de cobro.
+  - **Si se cumple**, el módelo de los datos, y las políticas de trazabilidad dejan definir distintos módelos de cobro.
+- **R39.** Restringir acceso a datos por tiempo, volumen o frecuencia de consulta.
+  - **Si se cumple**, por medio de Redshift Logs y RDS se logra llevar cuenta de dichas métricas.
+- **R40.** Indicar si la carga es única o recurrente, completa o por deltas.
+  - **Si se cumple**, se permite tener esos tipos de carga, se maneja gracias al Scheduler de airflow.
+- **R41.** Configurar parámetros para carga por deltas: campos diferenciales, frecuencia (timed pull) o mediante callbacks.
+  - **Si se cumple**,se aplican distintos métodos y restricciones al momento de subir los datasets, en caso de que se deseen habilitar estas opciones.
+- **R42.** Habilitar control granular de acceso por institución, persona o grupo.
+- **Si se cumple**, se tienen dos níveles de protección, el administrado por Lakeformation y AWS IAM, y el RBAC manual que se lleva registro en RDS.
+
+## Motor de Transformación
+
+- **R43.** Validar el formato, estructura y contenido de cada dataset cargado sea correcto, o bien adaptarlo al interno de la Bóveda (formatos de fecha, booleans, etc.).
+  - **Si se cumple**, todo dataset pasa por un proceso de análisis en el que se adapta al formato por medio del formatter.
+- **R44.** Validar el formato, estructura y contenido de cada dataset cargado coincida con lo especificado en el proceso de carga.
+  - **Si se cumple**, Este requirimiento es cumplido por el centro de cargam ya que hace estas validaciones.
+- **R45.** Automatizar el proceso de carga mediante un motor de IA que aplique un flujo ETDL (extracción, transformación, limpieza, detección de contexto, modelado y carga).
+  - **Si se cumple**, nuestro flujo de transformación aplica el ETL por medio de Spark y el D lo logra gracias a los Agentes que realizan cambios al diseño de los datos de un dataset.
+- **R46.** Aplicar IA para normalizar, rediseñar modelos de datos y vincularlos automáticamente.
+  - **Si se cumple**, el schema-architect se encarga de que se revise el modelado y normalización de los datasets.
+- **R47.** Detectar duplicidades, optimizar relaciones y ajustar el modelo de datos automáticamente según las interrelaciones detectadas.
+  - **Si se cumple**, el cleaner se encarga de realizar esta tarea.
+- **R48.** Monitorear el proceso completo con métricas de transferencia, carga, limpieza, eliminación, modelado, volumen, datos omitidos, datos consultados y tasa de éxito.
+  - **Si se cumple**, se deja registro de las transformaciones de cada paso, los prompts de la IA, los archivos de transformaciones, y se manejan los errores gracias al envío de notificaciones coordinado por Airflow.
+- **R49.** El sistema debe ser capaz de procesar cargas recurrentes y automatizadas sin intervención manual.
+  - **Si se cumple**, gracias al diseño de los datos en RDS y el Cron Scheduler de Airflow se logra manejar cargas recurrentes sin intervención manual.
+- **R50.** Soportar cargas delta con identificación de cambios.
+  - **Si se cumple**, el schema-enforcer se encarga de revisar de que no hayan cambios en el schema esperado y luego el uploader maneja la lógica para realizar inserciones/updates inteligentes.
+- **R51.** Realizar merges eficientes sin pérdida de integridad.
+  - **Si se cumple**, el schema-enforcer se encarga de revisar de que no hayan cambios en el schema esperado y luego el uploader maneja la lógica para realizar inserciones/updates inteligentes.
+
+
+## Centro de Visualización y Consumo
+
+### Generador de dashboards
+
+- **R52.** El sistema debe permitir la construcción de dashboards personalizados de forma manual.
+  - **Si se cumple**, se pueden crear dashboards fácilmente gracias a Plotly.
+- **R53.** El sistema debe permitir construir dashboards manualmente o mediante prompts inteligentes que generen visualizaciones automáticas.
+  - **Si se cumple**, la forma de crear gráficos es por medio de lenguaje natural.
+- **R54.** El sistema debe permitir representar visualmente los datos en tablas, gráficos, conteos, tendencias y predicciones.
+  - **Si se cumple**, se integraron gracias a Plotly diversos tipos de gráficos.
+- **R55.** El sistema debe permitir a los usuarios guardar sus dashboards personalizados.
+  - **Si se cumple**, se pueden guardar los dashboards fácilmente gracias al diseño de los datos y la flexibilidad de DynamoDB.
+- **R56.** El sistema debe permitir compartir dashboards con otros usuarios o hacerlos públicos dentro de la plataforma.
+  - **Si se cumple**, el dashboard-manager permite compartir dashboards de forma segura.
+- **R57.** La interfaz de construcción de dashboards debe ser segura, intuitiva y con capacidad de respuesta en tiempo real.
+  - **Si se cumple**, el sistema es sumamente intuitivo, gracias a que no se necesita ser muy técnico para crear gráficas, y las respuestas son completamente síncronas.
+
+### Visualización y Consumo
+
+- **R58.** El sistema debe permitir visualizar todos los datasets accesibles como una fuente consolidada.
+  - **Si se cumple**, la visualización de dashboards es la misma independientemente del contenido de los datasets, toda es manejada con gráficas de Plotly.
+- **R59.** El sistema debe bloquear toda exportación directa de datos y gráficos desde el portal.
+  - **Si se cumple**, los gráficos solo muestran la información, no se da ni una opción que permita exportarlos.
+- **R60.** El sistema debe mostrar datos de forma preliminar en modo de construcción de dashboard y luego con datos reales al ejecutar consultas.
+  - **Si se cumple**, en la creación de dashboards se da ejemplo de que hace cada tipo de gráfico, pero al crearlo se genera la consulta al dataset real.
+- **R61.** El sistema debe deshabilitar temporalmente el acceso a datasets cuando se superen los límites de consumo.
+  - **Si se cumple**, se lleva registro de las consultas a los datasets por lo que si es de pago se sabe cuando se superan los límites de consumo.
+- **R62.** El sistema debe registrar todas las transacciones y consumos de datos en un historial accesible para cada usuario.
+  - **Si se cumple**, en Cloudwatch y Openasearch se lleva registro de las consultas de cada usuario.
+- **R63.** El sistema debe mostrar métricas de uso: volumen de datos consultados, número de consultas realizadas, tiempo restante o límites alcanzados.
+  - **Si se cumple**, se lleva registro de cuanto se ha invertido en el dashboard, además se lleva el registro general de cuanto consumo queda.
+- **R64.** El sistema no debe permitir en ningún momento la descarga directa de datasets o gráficos generados.
+  - **Si se cumple**, los gráficos solo muestran la información, no se da ni una opción que permita exportarlos.
+- **R65.** La visualización de datos debe realizarse exclusivamente dentro del portal, sin opciones de exportación, captura o embedding externo.
+  - **Si se cumple**, los gráficos solo muestran la información, no se da ni una opción que permita exportarlos.
+- **R66.** Los límites de consumo deben aplicarse en tiempo real, sin permitir bypasses o reintentos abusivos.
+  - **Si se cumple**, los límites de consumo son registrados y aplicados en tiempo real gracias a Redshift Logs y RDS.
+
+### Consumo para IA
+
+- **R67.** El sistema debe permitir el acceso sistema a sistema únicamente para alimentar modelos de IA aprobados.
+  - **Si se cumple**, no se exportan datos, solo para IA.
+- **R68.** La entrega de datos para modelos de IA debe ser monitoreada, registrada y limitada a contextos aprobados explícitamente por Data Pura Vida.
+  - **Si se cumple**, se registra cuando un usuario usa IA para la ingesta de un módelo, solo se le dan 2 oportunidades.
+- **R69.** El sistema debe ofrecer plataformas limitadas y controladas para esta alimentación de IA. Solo permitirá 2 por usuario.
+  - **Si se cumple**, se registra cuando un usuario usa IA para la ingesta de un módelo, solo se le dan 2 oportunidades.
+- **R70.** El sistema debe minimizar al máximo el riesgo de descargas indirectas mediante presunción de uso en IA.
+  - **Si se cumple**, ya que el formato de exportación no es el de los datos en sí, el sistema se asegura que esto no ocurra.
+- **R71.** Los datos deben ser envíados en un formato que no permita poder ser desencriptado para otro uso que no sea alimentar IA (por ejemplo uso de embeddings).
+  - **Si se cumple**, los datos no son exportados en crudo, se convierten en vectores y solo se pueden guardar en Elasticsearc, Mongo y Vespa como destino.
+
+## Marketplace
+
+- **R72.** La experiencia de compra de datasets debe ser fluida, transparente y accesible desde los dashboards personales.
+  - **Si se cumple**, la búsqueda de datasets es fluida y personalizable.
+- **R73.** Incluir un módulo de compra donde se visualicen datasets disponibles bajo acceso pagado.
+  - **Si se cumple**, se muestra la sección de datasets de pago.
+- **R74.** Permitir seleccionar un dataset, visualizar precio, términos de uso, duración del acceso y condiciones de cobro.
+  - **Si se cumple**, antes de comprar un dataset se permite visualizar sus características.
+- **R75.** Soportar múltiples métodos de pago: tarjeta de crédito, débito y otros mecanismos nacionales compatibles.
+  - **Si se cumple**, se usa stripe para poder gestionar los pagos.
+- **R76.** Mostrar confirmaciones de transacción y activar el acceso según condiciones (tiempo, volumen, frecuencia).
+  - **Si se cumple**, se hace toda la gestión necesaria para mostrar confirmaciones de compra y activar el acceso.
+- **R77.** El sistema debe mostrar opciones para renovar o ampliar los paquetes de acceso en caso de superar el límite.
+  - **No se cumple**, dicha funcionalidad no es mencionada explicitamente en la documentación.
+
+## Backoffice Administrativo
+
+- **R78.** Administrar usuarios: validación de identidad, membresía y roles.
+  - **No se cumple**.
+- **R79.** Gestionar reglas de carga de datos (formatos, estructuras, validaciones).
+  - **Si se cumple**, se da un portal para poder parametrizar las reglas de carga de datos.
+- **R80.** Configurar conexiones externas (APIs, BDs, callbacks).
+  - **Si se cumple**, por medio del ExternalConnectionsManager.
+- **R81.** Activar, desactivar y supervisar objetos de datos, pipelines y flujos.
+  - **Si se cumple**, por medio del PipelineController.
+- **R82.** Revocar o regenerar llaves de seguridad (simétricas, asimétricas, tri-partitas).
+  - **Si se cumple**, por medio del SecurityKeyManager y CustodianCoordinator.
+- **R83.** Administrar custodios de llaves y flujos de confirmación.
+  - **Si se cumple**, por medio del SecurityKeyManager y CustodianCoordinator.
+- **R84.** Auditar operaciones por usuario, fecha, acción y resultado.
+  - **Si se cumple**, por medio del audit-compliance-service
+- **R85.** Generar reportes de uso, calidad, integración y anomalías.
+  - **Si se cumple**, por medio del audit-compliance-service
+- **R86.** Monitorear el estado operativo de servicios y tareas.
+  - **Si se cumple**, por medio del audit-compliance-service
+- **R87.** Extraer evidencias para procesos legales bajo autorización.
+  - **Si se cumple**, por medio del audit-compliance-service
+- **R88.** Gestionar permisos y accesos mediante RBAC.
+  - **Si se cumple**, por medio del RBACManager.
+- **R89.** Debe ofrecer una interfaz robusta y segura solo para personal autorizado.
+  - **Si se cumple**, la interfáz es completamente separada del acceso al resto del sistema.
+- **R90.** Debe permitir gestión flexible pero estricta de accesos y configuraciones.
+  - **Si se cumple**, todas las opciones que proporciona el backend son posibles de ser administradas desde el frontend.

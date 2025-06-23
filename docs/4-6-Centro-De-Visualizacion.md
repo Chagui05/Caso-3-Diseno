@@ -108,7 +108,7 @@ frontend/
 
 ### Diagrama del Frontend
 
-A continuación se presenta el diagrama del frontend del Centro de Visualización y consumo, en el se evidencia como las peticiones al frontend se envían gracias a cloudfront, y dentro de un S3 bucket con react usando CSR se envían las páginas html ya listas para ser renderizadas en cliente. Dichas páginas usan Plotly para poder crear gráficos dinámicamente dependiendo del tipo de consulta. 
+A continuación se presenta el diagrama del frontend del Centro de Visualización y consumo, en el se evidencia como las peticiones al frontend se envían gracias a cloudfront, y dentro de un S3 bucket con react usando CSR se envían las páginas html ya listas para ser renderizadas en cliente. Dichas páginas usan Plotly para poder crear gráficos dinámicamente dependiendo del tipo de consulta.
 
 
 ![Diagrama Front](../img/FrontCvC.png)
@@ -419,7 +419,7 @@ Grafana integrará métricas de CloudWatch y Prometheus para crear dashboards:
 Los microservicios del Centro de Visualización usarán health checks monitoreados por Kubernetes:
 
   -	**Liveness Probe:** Verifica que el microservicio esté activo. Kubernetes (EKS) lo usará para autorecuperación.
-  -	**Readiness Probe:** Verifica que el microservicio pueda procesar solicitudes (conectividad con S3, OpenSearch, DBs). Kubernetes (EKS) lo usará para gestionar el tráfico.
+  -	**Readiness Probe:** Verifica que el microservicio pueda procesar solicitudes (conectividad con S3, DBs). Kubernetes (EKS) lo usará para gestionar el tráfico.
   -	**Deep Health Checks:** Verificaciones exhaustivas de integridad de configuraciones y flujo de consultas simuladas. El Módulo de Diagnóstico del Servicio de Visualización las ejecutará.
 
 - **Análisis y Mejora Continua**
@@ -501,4 +501,3 @@ A continuación se presenta el diagrama de base de datos correspondiente al mód
 - **AICuota**: Lleva la cuenta de cuantos usos le quedan a un usuario para hacer consumo de IA sobre un dataset.
 
 ![image](../img/DiagramaBDCvC.png)
-
