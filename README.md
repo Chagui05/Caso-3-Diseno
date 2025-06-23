@@ -2265,7 +2265,7 @@ Además, para acceder al backend se utilizará una única API, desarrollada en F
 
 A Continuación el diagrama de clases del frontend del Bioregistro:
 
-![Patrones de Diseño de Objetos](img/FrontBioregistro.png)
+![Patrones de Diseño de Objetos](img/ClasesFrontBio.png)
 
 - **Caja Verde**: La caja verde representa el patrón de Chain of Responsability. Está asociado a los distintos tipos de forms que existen en el sistema, y gracias a la naturaleza del CoR, permite declararlos dinámicamente. Inclusive, permite que si en un futuro se desea agregar otra capa, sea sumamente sencillo.
 - **Cajas Celeste**: Las cajas celestes representan el strategy pattern, ya que por medio de herencia se aisla los distintos tipos de forms para colectivos, y de colectivos.
@@ -2304,7 +2304,7 @@ A Continuación el diagrama de clases del frontend del Bioregistro:
 
 ### Estructura de Carpetas
 
-```bash
+```txt
 frontend/
 ├── public/                   #Assets como imagenes
 ├── src/
@@ -2352,7 +2352,7 @@ frontend/
     └── integration/
 ```
 
-### Diagrama del Front
+### Diagrama del Frontend
 
 A continuación se presenta el diagrama del frontend de Bioregistro. En él se muestra cómo el contenido estático generado por React se almacena en un bucket de S3, donde residen todos los componentes visuales, su ViewModel a través de funciones y custom hooks, y las clases modelo como Person y Collective.
 
@@ -7494,51 +7494,39 @@ Las tablas que se usan directamente en el Marketplace son:
 
 ## Diseño del Frontend
 
-### Construcción Arquitectónica
+### Arquitectura del Cliente
 
-El Generador de Dashboards es el subcomponente principal encargado de permitir la creación, visualización y personalización de gráficos de análisis sobre los datasets cargados y procesados previamente en el sistema.
+Nuestra arquitectura de cliente consistirá en Client Side Rendering con rendering estático, con una única capa dedicada a la web. Esta decisión se toma porque los bundles de React generados en el build de cada proyecto serán almacenados en un bucket de S3, el cual será servido a los clientes mediante el CDN provisto por CloudFront.
 
-Su arquitectura técnica sigue las siguientes capas:
-
-- **Frontend:** Construido en React.js con Vite, estilizado en Tailwind CSS, empleando Plotly.js como librería principal de gráficos.
-- **Backend:** Implementado sobre la API REST general del backend centralizada en FastAPI desplegada en EKS.
-- **Persistencia de datos:** Los dashboards generados se almacenan en PostgreSQL bajo el dominio de usuarios, configuraciones y plantillas personalizadas.
+Además, para acceder al backend se utilizará una única API, desarrollada en FastAPI.
 
 
 ### Flujo Completo de Funcionamiento
 
 1. **Selección y configuración inicial:**
    - El usuario accede a la interfaz gráfica desde el portal web.
-   - Selecciona los datasets disponibles a los que tiene acceso según los permisos RBAC y RLS ya aplicados por la bóveda de datos.
+   - Selecciona los datasets disponibles a los que tiene acceso según los permisos RBAC ya aplicados por la bóveda de datos.
 
 2. **Definición del gráfico:**
-   - El usuario selecciona el tipo de visualización: barras, líneas, series temporales, pie chart o scatter plot.
-   - La interfaz presenta un formulario dinámico (construido con Formik + Yup) para que el usuario configure los ejes, medidas, filtros y parámetros adicionales de cada gráfico.
+   - El usuario selecciona el tipo de visualización: tabla, barras, líneas, series temporales, pie chart o scatter plot.
+   - Debe definir el nombre que tendrá el gráfico
+   - Luego de ello, el usuario debe presentar con lenguajes natural la consulta que desea hacer al dataset.
 
-3. **Interacción con IA (opcional):**
-   - El usuario puede emplear prompts naturales que son procesados por el backend vía LangChain y OpenAI/SageMaker para autogenerar gráficos sugeridos.
+4. **Renderización de gráficos:**
+   - Una vez el backend procesa la respuesta devuelve los datos en el formato requerido por el tipo de gráfico de Plotly.js seleccionado.
 
-4. **Procesamiento Backend:**
-   - El backend valida los permisos del usuario, ejecuta la consulta al datalake y transforma los datos al formato requerido por Plotly.
-   - El backend responde al frontend con el JSON específico requerido por Plotly.js.
+### Patrones de Diseño de Objetos
 
-5. **Renderización de gráficos:**
-   - Plotly.js renderiza los gráficos directamente en el navegador en base al dataset recibido.
+A Continuación el diagrama de clases del frontend del Centro de Visualización y Consumo:
 
-6. **Persistencia:**
-   - Los dashboards completos (estructura, consultas, configuraciones) se almacenan en PostgreSQL y DynamoDB para permitir recuperación, edición y compartición futura.
+![Patrones de Diseño de Objetos](img/ClasesFrontCvC.png)
 
-7. **Control de consumo:**
-   - Se aplica control de límites en tiempo real (volumen de datos consultados, frecuencia de uso, número de dashboards activos).
-
-
+- **Caja Verde**: La caja verde representa el patrón de Strategy, permite que el dashboard pueda tener distintos tipos de charts.
+- **Caja Rosada**: Representa un facade, ya que la clase del APIGateway actua como fachada ante el API del Backend.
 
 ### Principios de Diseño Aplicados
 
-- **MVVM:**
-  - `Model:` Las estructuras de dashboards, gráficos y datasets.
-  - `ViewModel:` Custom Hooks como `useDatasetSearch()` o `usePromptVisualization()` gestionan la lógica de negocio desacoplada de la interfaz.
-  - `View:` Componentes React bajo Atomic Design (atoms, molecules, organisms, templates).
+- **Responsive Design**: Aunque el enfoque principal de nuestro sistema está en el uso desde web desktop, también se dará un interfáz responsive por si ocasionalmente se desea visualizar algún dashboard. Este diseño responsivo se logrará aprovechando las opciones que ofrece Tailwind CSS para distintos tamaños de pantalla, utilizando prefijos como sm:, md:, lg:, y xl:, que permiten adaptar los estilos según el dispositivo.
 
 - **Atomic Design:**
   - Átomos: Botones, inputs, selects.
@@ -7547,73 +7535,73 @@ Su arquitectura técnica sigue las siguientes capas:
   - Templates: Editor completo de dashboards.
 
 - **SOLID:**
-  - SRP: Cada Hook maneja una responsabilidad única.
-  - OCP: Nuevos tipos de gráficos pueden añadirse sin modificar código existente.
-  - LSP: Cada gráfico implementa la misma interfaz de renderizado.
-  - ISP: Los hooks y APIs exponen solo los parámetros estrictamente necesarios.
-  - DIP: Backend completamente desacoplado de la lógica frontend, interactúan mediante APIs REST y contratos JSON bien definidos.
+  - SRP: Las clases están bien separadas el Dashboard Manager se encarga solo de tareas relacionadas a los dashboards. O bien cada chart está especializado para mostrar información solo asociada a ese tipo.
+  - OCP: Nuevos tipos de gráficos pueden añadirse sin modificar código existente gracias a que se usa un strategy pattern en la clase Chart.
+  - LSP: Se usa herencia solo cuando es necesario, por ejemplo en los charts.
+  - ISP: El diseño actual no contempla interfaces, pero en caso de ser necesarias hay que recordar este principio.
+  - DIP: La clase de dashboard sirve igual de bien con cualquier tipo de chart, no importa las subclases todas deben funcionar igual que su clase padre.
 
-- **Clean Code & DRY:**
-  - Reutilización máxima de componentes.
-  - Custom Hooks independientes y altamente testeables.
-  - Estricta separación de capas de presentación, lógica y acceso a datos.
+- **Dry principle**: En la medida de lo posible se usará la menor cantidad de código repetido. Dos ejemplos de esto son: gracias a que usaremos atomic design, componentes como botones o labels serán reutilizado no solo en el centro de visualización y consumo, pero en todo el sistema; y otro ejemplo es que en los charts se reutilizarán los métodos que compartan los distintos tipos  .
 
-- **Separation of Concerns:**
-  - Clarísima división entre vistas (React Components), lógica de negocio (Hooks) y acceso a datos (API Connector).
+- **Separation of Concern**: Se cumple este principio ya que las distintas capas del frontend estarán bien definidas. En la capa de datos solo se gestionarán los objetos como Charts. Luego por medio de CustomHooks se gestionará la lógica del ViewModel, por ejemplo, las funciones como CreateChart(). Y Finalmente la capa de Vista se dedicará a tan solo eso, hacer el render de los componentes.
 
-
-
-### Herramientas y Librerías utilizadas
-
-| Capa       | Herramienta |
-|------------|-------------|
-| Frontend   | React.js, Vite, Tailwind CSS, Formik, Yup, React Router, Plotly.js |
-| Backend    | FastAPI, LangChain, OpenAI/SageMaker, PostgreSQL, DynamoDB |
-| Infraestructura | AWS S3, CloudFront, EKS, Cognito, Lambda@Edge, Redis, RabbitMQ |
-| Seguridad  | OAuth2, JWT, MFA, RBAC, RLS, SecretsManager |
-| DevOps     | GitHub Actions, Terraform, Prometheus, Grafana, CloudWatch |
-| Testing    | Jest (Frontend), Pytest (Backend), Postman, Gatling |
+- **Toolkits y Standards**:
+  - Vite: Se usará como servidor local para el desarrollo, y también para hacer el bundle de la aplicación.
+  - React Router: Herramienta que permite manejar un app de react por medio de rutas.
+  - ESlint: Se usará para mantener un estándar de código y evitar errores comunes.
 
 
-### Consideraciones de Seguridad
 
-- Todos los accesos a dashboards pasan por validación OAuth2 + JWT emitidos por Cognito.
-- El acceso a datasets sigue las reglas RBAC y RLS definidas en la bóveda.
-- Los dashboards nunca exportan datos en crudo, sólo visualización interna.
-- Se aplica protección contra abusos de consumo vía throttling, rate-limiting y monitoreo con CloudWatch.
+### Estructura de Carpetas
 
-
-### Observabilidad Específica
-
-- Dashboards de monitoreo propios en Grafana:
-  - Volumen de dashboards generados por usuario
-  - Tiempo promedio de renderización
-  - Fallos en consultas al datalake
-  - Consumo acumulado de datasets por dashboard
-  - Tasa de uso de IA para generación automática
-
-
-### Esquema Simplificado de Componentes Frontend
-
-```plaintext
+```txt
 frontend/
+├── public/                   #Assets como imagenes
 ├── src/
-│   ├── api/
-│   │   └── dashboardApiConnector.js
-│   ├── model/
-│   │   └── DashboardModel.js
-│   ├── components/
-│   │   ├── atoms/
+│   ├── api/                  #Acá estarán las funciones del API
+│   ├── model/                #Acá se almacenarán las clases del modelo
+│   │   └── Chart
+│   ├── components/           #Atomic Design
+│   │   ├── atoms/            #Componentes más básicos
+│   │   │   ├── Button.jsx
+│   │   │   └── Icon.jsx
+│   │   │
 │   │   ├── molecules/
+│   │   │   └── TableChart.jsx
+│   │   │
 │   │   ├── organisms/
+│   │   │   └── Dashboard.jsx
+│   │   │
 │   │   └── templates/
-│   ├── hooks/
-│   │   ├── useDatasetSearch.js
-│   │   ├── usePromptVisualization.js
-│   │   └── useChartConfigurator.js
-│   └── pages/
-│       └── DashboardBuilderPage.jsx
+│   │       ├── CollectiveForm.jsx
+│   │       └── PersonForm.jsx
+│   │
+│   ├── hooks/                 #ViewModel
+│   │   └── UpdateChart.jsx
+│   │
+│   ├── pages/                 #Uso de las templates lista para formar una página completqa
+│   │   └── DatasetVisualization.jsx
+│   │
+│   ├── styles/               #Tailwind
+│   │   └──globals.css        #Configuración de Tailwind
+│   │
+│   ├── utils/                #Funciones DRY
+│   │
+│   └── App.tsx               #Punto de Entrada
+│
+│
+└── tests/
+    ├── unit/
+    └── integration/
 ```
+
+### Diagrama del Frontend
+
+A continuación se presenta el diagrama del frontend del Centro de Visualización y consumo, en el se evidencia como las peticiones al frontend se envían gracias a cloudfront, y dentro de un S3 bucket con react usando CSR se envían las páginas html ya listas para ser renderizadas en cliente. Dichas páginas usan Plotly para poder crear gráficos dinámicamente dependiendo del tipo de consulta. 
+
+
+![Diagrama Front](img/FrontCvC.png.png)
+
 
 ## Diseño del Backend
 
@@ -8591,7 +8579,7 @@ El sistema valida roles administrativos **en cada petición HTTP** mediante midd
 La autorización se ejecuta **síncronamente al recibir cada request administrativo**, evaluando clearance level, contexto de operación y scoring de riesgo **antes de ejecutar cambios críticos en cualquiera de las 6 bases de datos especializadas**:
 
 ```python
-@router.post("/admin/approve-registration", 
+@router.post("/admin/approve-registration",
             dependencies=[Depends(requires_cognito_role("backoffice_senior_admin"))])
 async def approve_registration(request: ApprovalRequest, user: dict = Depends(get_current_admin)):
     # Validación ejecutada DONDE: en el pod del admin-validation-service
@@ -8599,7 +8587,7 @@ async def approve_registration(request: ApprovalRequest, user: dict = Depends(ge
     # CÓMO: verificación de clearance level contra el request
     if request.risk_level == "HIGH" and user.get("clearance_level") != "maximum":
         raise HTTPException(status_code=403, detail="Insufficient clearance level")
-    
+
     # Log ejecutado DONDE: audit_cases_db + OpenSearch + S3
     # CUANDO: inmediatamente antes de la operación principal
     # CÓMO: escritura simultánea en 3 ubicaciones para trazabilidad
@@ -8694,7 +8682,7 @@ Gestión especializada según el patrón definido en el README:
 # Secretos por categoría según README
 EXTERNAL_API_CREDENTIALS = {
     "sumsub-api-key": "external-api-credentials/sumsub",
-    "stripe-keys": "external-api-credentials/stripe", 
+    "stripe-keys": "external-api-credentials/stripe",
     "banco-central-cert": "external-api-credentials/banco-central"
 }
 
@@ -8723,7 +8711,7 @@ Algoritmos ML del ai-analysis-service especializados para detectar comportamient
 
 ---
 
-### Elementos de Alta Disponibilidad 
+### Elementos de Alta Disponibilidad
 
 #### 1. Replicación de Bases de Datos Especializadas
 
@@ -8731,9 +8719,9 @@ Algoritmos ML del ai-analysis-service especializados para detectar comportamient
 
 **Configuración por Base:**
 - **security_keys_metadata_db**: Instancia principal **desplegada en us-east-1a**, réplica **sincronizada en us-east-1b**, failover (cambio automático de servidor principal) **ejecutado mediante AWS RDS automatic failover**
-- **audit_cases_db**: Instancia principal **ubicada en us-east-1a**, réplica **replicada síncronamente en us-east-1b**, failover **activado automáticamente durante fallos detectados por health checks**  
+- **audit_cases_db**: Instancia principal **ubicada en us-east-1a**, réplica **replicada síncronamente en us-east-1b**, failover **activado automáticamente durante fallos detectados por health checks**
 - **admin_validation_db**: Instancia principal **operando en us-east-1a**, réplica **mantenida en us-east-1b con replicación continua**, failover **disparado cuando primary instance falla**
-- **audit_cases_db**: Instancia principal us-east-1a, réplica us-east-1b, failover <15 segundos  
+- **audit_cases_db**: Instancia principal us-east-1a, réplica us-east-1b, failover <15 segundos
 - **admin_validation_db**: Instancia principal us-east-1a, réplica us-east-1b, failover <20 segundos
 - **pipeline_management_db**: Instancia principal us-east-1b, réplica us-east-1c, failover <30 segundos
 - **system_configuration_db**: Instancia principal us-east-1c, réplica us-east-1a, failover <30 segundos
@@ -8749,7 +8737,7 @@ Algoritmos ML del ai-analysis-service especializados para detectar comportamient
 - **Failover**: Automático **ejecutado mediante Redis Sentinel**
 
 **permission_cache:**
-- **Configuración**: 3 nodos cache.t3.small **balanceados entre las 3 AZs**  
+- **Configuración**: 3 nodos cache.t3.small **balanceados entre las 3 AZs**
 - **Aplicación**: Cache de permisos RBAC **actualizado cada hora con invalidación inteligente activada por cambios de rol**
 - **Failover**: Automático **completado en 10 segundos usando consistent hashing para redistribución**
 
@@ -8818,7 +8806,7 @@ Algoritmos ML del ai-analysis-service especializados para detectar comportamient
 - **Escalación**: Notificación inmediata a super admins
 
 **admin-validation-service:**
-- **Monitoreo**: Cada 30 segundos  
+- **Monitoreo**: Cada 30 segundos
 - **Alertas**: Error rate >2%, validaciones fallidas >5%
 - **Escalación**: Auto-restart de pods, escalado inmediato
 
@@ -8853,7 +8841,7 @@ Algoritmos ML del ai-analysis-service especializados para detectar comportamient
 
 **Liveness Probes:** (verificaciones de que el servicio está funcionando)
 - security-key-orchestrator: **ejecutado cada 5 segundos en endpoint /health/live**
-- admin-validation: **verificado cada 10 segundos mediante HTTP GET a /status**  
+- admin-validation: **verificado cada 10 segundos mediante HTTP GET a /status**
 - audit-intelligence: **monitoreado cada 15 segundos con timeout de 3 segundos**
 - Otros microservicios: **checkeados cada 30 segundos por Kubernetes**
 
