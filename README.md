@@ -1,8 +1,9 @@
 # Caso-3-Diseno
 
 # Índice 
-
 - [Planeamiento](#diagrama-del-frontend)
+- [Planeamiento](#diagrama-del-frontend-1)
+- [Planeamiento](#diagrama-del-frontend-2)
 
 
 
